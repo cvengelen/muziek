@@ -11,6 +11,10 @@
 
 package muziek.gui;
 
+import muziek.componisten.ComponistenPersoonTableModel;
+import muziek.componisten.EditComponistenDialog;
+import muziek.componisten.TekstschrijverPersoonTableModel;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
