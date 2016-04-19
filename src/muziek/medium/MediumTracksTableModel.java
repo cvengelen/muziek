@@ -1,26 +1,23 @@
 // Class to setup a TableModel for all tracks on a submedium
 
-package muziek.gui;
+package muziek.medium;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import javax.swing.table.*;
 import java.text.*;
 import java.util.logging.*;
 
 public class MediumTracksTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.gui.MediumTracksTableModel" );
+    final Logger logger = Logger.getLogger( "muziek.medium.MediumTracksTableModel" );
 
     private Connection conn;
-    private String[ ] headings            = { "Track", "Track tijd",
-					      "Opus titel", "Deel", "Deel titel",
-					      "Componisten", "Opus type", "Opus subtype" };
+    private String[ ] headings = { "Track", "Track tijd",
+                                   "Opus titel", "Deel", "Deel titel",
+                                   "Componisten", "Opus type", "Opus subtype" };
     private int[ ]    trackNummer         = new int[ 60 ];
     private String[ ] trackTijdString     = new String[ 60 ];
     private String[ ] opusTitelString     = new String[ 60 ];
@@ -37,9 +34,9 @@ public class MediumTracksTableModel extends AbstractTableModel {
 
 
     // Constructor
-    public MediumTracksTableModel( Connection conn,
-				   int        mediumId,
-				   String     submediumString ) {
+    MediumTracksTableModel( Connection conn,
+                            int        mediumId,
+                            String     submediumString ) {
 	this.conn = conn;
 	this.mediumId = mediumId;
 	this.submediumString = submediumString;
@@ -47,7 +44,7 @@ public class MediumTracksTableModel extends AbstractTableModel {
 	setupMediumTracksTableModel( );
     }
 
-    public void setupMediumTracksTableModel( String submediumString ) {
+    void setupMediumTracksTableModel( String submediumString ) {
 	this.submediumString = submediumString;
 
 	setupMediumTracksTableModel( );

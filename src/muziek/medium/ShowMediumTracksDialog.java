@@ -1,23 +1,19 @@
 // Dialog for showing all tracks for a medium, submedium
 
-package muziek.gui;
+package muziek.medium;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.util.*;
 import java.util.logging.*;
-import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.event.*;
 
 public class ShowMediumTracksDialog {
-    final Logger logger = Logger.getLogger( "muziek.gui.ShowMediumTracksDialog" );
+    final Logger logger = Logger.getLogger( "muziek.medium.ShowMediumTracksDialog" );
 
     Connection conn;
     Object parentObject;
