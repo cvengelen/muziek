@@ -7,32 +7,29 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+
 import javax.swing.table.*;
-import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
 
-public class ComponistenTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.componisten.ComponistenTableModel" );
+class ComponistenTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( ComponistenTableModel.class.getCanonicalName() );
 
     private Connection connection;
     private String[ ] headings = { "Id", "Componisten", "Persoon" };
 
-    class ComponistenRecord {
+    private class ComponistenRecord {
 	String	componistenString;
 	String	persoonString;
 	int	componistenId;
 	int	persoonId;
 
-	public ComponistenRecord( String componistenString,
-				  String persoonString,
-				  int    componistenId,
-				  int    persoonId ) {
+	ComponistenRecord( String componistenString,
+                           String persoonString,
+                           int    componistenId,
+                           int    persoonId ) {
 	    this.componistenString = componistenString;
 	    this.persoonString = persoonString;
 	    this.componistenId = componistenId;
@@ -40,22 +37,22 @@ public class ComponistenTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList componistenRecordList = new ArrayList( 100 );
+    private ArrayList<ComponistenRecord> componistenRecordList = new ArrayList<>( 100 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    public ComponistenTableModel( Connection connection ) {
+    ComponistenTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupComponistenTableModel( null, 0 );
     }
 
-    public void setupComponistenTableModel( String componistenFilterString,
-					    int selectedPersoonId ) {
+    void setupComponistenTableModel( String componistenFilterString,
+                                     int selectedPersoonId ) {
 
 	// Setup the table
 	try {
@@ -140,10 +137,9 @@ public class ComponistenTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final ComponistenRecord componistenRecord =
-	    ( ComponistenRecord )componistenRecordList.get( row );
+	final ComponistenRecord componistenRecord = componistenRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( componistenRecord.componistenId );
+	if ( column == 0 ) return componistenRecord.componistenId;
 	if ( column == 1 ) return componistenRecord.componistenString;
 	if ( column == 2 ) return componistenRecord.persoonString;
 
@@ -157,8 +153,7 @@ public class ComponistenTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final ComponistenRecord componistenRecord =
-	    ( ComponistenRecord )componistenRecordList.get( row );
+	final ComponistenRecord componistenRecord = componistenRecordList.get( row );
 
 	String updateString = null;
 
@@ -218,19 +213,17 @@ public class ComponistenTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getComponistenId( int row ) {
-	final ComponistenRecord componistenRecord =
-	    ( ComponistenRecord )componistenRecordList.get( row );
-
+    int getComponistenId( int row ) {
+	final ComponistenRecord componistenRecord = componistenRecordList.get( row );
 	return componistenRecord.componistenId;
     }
 
-    public String getComponistenString( int row ) {
+    String getComponistenString( int row ) {
 	if ( ( row < 0 ) || ( row >= componistenRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( ComponistenRecord )componistenRecordList.get( row ) ).componistenString;
+	return ( componistenRecordList.get( row ) ).componistenString;
     }
 }

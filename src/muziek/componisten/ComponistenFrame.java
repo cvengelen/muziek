@@ -23,33 +23,31 @@ import muziek.gui.PersoonComboBox;
 import table.*;
 
 
-public class ComponistenFrame {
-    final Logger logger = Logger.getLogger( "muziek.componisten.ComponistenFrame" );
+class ComponistenFrame {
+    private final Logger logger = Logger.getLogger(ComponistenFrame.class.getCanonicalName());
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Componisten" );
+    private Connection connection;
+    private final JFrame frame = new JFrame( "Componisten" );
 
-    JTextField componistenFilterTextField;
+    private JTextField componistenFilterTextField;
 
-    PersoonComboBox persoonComboBox;
-    int selectedPersoonId = 0;
+    private PersoonComboBox persoonComboBox;
+    private int selectedPersoonId = 0;
 
-    ComponistenTableModel componistenTableModel;
-    TableSorter componistenTableSorter;
-    JTable componistenTable;
-
+    private ComponistenTableModel componistenTableModel;
+    private TableSorter componistenTableSorter;
 
     class Componisten {
         int        id;
         String  string;
 
-        public Componisten( int    id,
-                            String string ) {
+        Componisten( int    id,
+                     String string ) {
             this.id = id;
             this.string = string;
         }
 
-        public boolean presentInTable( String tableString ) {
+        boolean presentInTable( String tableString ) {
             // Check if componistenId is present in table
             try {
                 Statement statement = connection.createStatement( );
@@ -72,7 +70,7 @@ public class ComponistenFrame {
     }
 
 
-    public ComponistenFrame( final Connection connection ) {
+    ComponistenFrame( final Connection connection ) {
         this.connection = connection;
 
         // put the controls the content pane
@@ -154,7 +152,7 @@ public class ComponistenFrame {
         // Create componisten table from title table model
         componistenTableModel = new ComponistenTableModel( connection );
         componistenTableSorter = new TableSorter( componistenTableModel );
-        componistenTable = new JTable( componistenTableSorter );
+        JTable componistenTable = new JTable( componistenTableSorter );
         componistenTableSorter.setTableHeader( componistenTable.getTableHeader( ) );
         // componistenTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -184,7 +182,7 @@ public class ComponistenFrame {
         final ListSelectionModel componistenListSelectionModel = componistenTable.getSelectionModel( );
 
         class ComponistenListSelectionListener implements ListSelectionListener {
-            int selectedRow = -1;
+            private int selectedRow = -1;
 
             public void valueChanged( ListSelectionEvent listSelectionEvent ) {
                 // Ignore extra messages.
@@ -219,9 +217,8 @@ public class ComponistenFrame {
                     System.exit( 0 );
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     // Insert new componisten record
-                    EditComponistenDialog editComponistenDialog =
-                        new EditComponistenDialog( connection, frame,
-                                                   componistenFilterTextField.getText( ) );
+                    new EditComponistenDialog( connection, frame,
+                                               componistenFilterTextField.getText( ) );
                 } else {
                     int selectedRow = componistenListSelectionListener.getSelectedRow( );
                     if ( selectedRow < 0 ) {
@@ -246,8 +243,7 @@ public class ComponistenFrame {
 
                     if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
                         // Do dialog
-                        EditComponistenDialog editComponistenDialog =
-                            new EditComponistenDialog( connection, frame, selectedComponistenId );
+                        new EditComponistenDialog( connection, frame, selectedComponistenId );
 
                     } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
                         final Componisten componisten = new Componisten( componistenTableModel.getComponistenId( selectedRow ),
