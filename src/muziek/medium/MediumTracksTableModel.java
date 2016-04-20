@@ -11,8 +11,8 @@ import javax.swing.table.*;
 import java.text.*;
 import java.util.logging.*;
 
-public class MediumTracksTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.medium.MediumTracksTableModel" );
+class MediumTracksTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( MediumTracksTableModel.class.getCanonicalName() );
 
     private Connection conn;
     private String[ ] headings = { "Track", "Track tijd",
@@ -119,9 +119,9 @@ public class MediumTracksTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfTracks( ) { return nTracks; }
+    int getNumberOfTracks( ) { return nTracks; }
 
-    public String getTotalTrackTime( ) {
+    String getTotalTrackTime( ) {
 	int totalTime = 0;
 	int hours = 0;
 	int minutes = 0;

@@ -18,7 +18,7 @@ import muziek.gui.*;
 import table.*;
 
 
-public class MediumFrame {
+class MediumFrame {
     private final Logger logger = Logger.getLogger( MediumFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "Medium");
@@ -51,7 +51,7 @@ public class MediumFrame {
     private TableSorter mediumTableSorter;
 
 
-    public MediumFrame( final Connection connection ) {
+    MediumFrame( final Connection connection ) {
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();

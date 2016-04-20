@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class ShowMediumTracksDialog {
+class ShowMediumTracksDialog {
     private final Logger logger = Logger.getLogger( ShowMediumTracksDialog.class.getCanonicalName() );
 
     private JDialog dialog;
@@ -22,9 +22,9 @@ public class ShowMediumTracksDialog {
     private String mediumTypeString;
 
     // Constructor
-    public ShowMediumTracksDialog( Connection conn,
-				   Object     parentObject,
-				   int        mediumId ) {
+    ShowMediumTracksDialog( Connection conn,
+                            Object     parentObject,
+                            int        mediumId ) {
 
 	try {
 	    String mediumQueryString =
