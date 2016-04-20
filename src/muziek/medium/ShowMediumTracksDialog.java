@@ -13,26 +13,18 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class ShowMediumTracksDialog {
-    final Logger logger = Logger.getLogger( "muziek.medium.ShowMediumTracksDialog" );
+    private final Logger logger = Logger.getLogger( ShowMediumTracksDialog.class.getCanonicalName() );
 
-    Connection conn;
-    Object parentObject;
-    JDialog dialog;
-
-    int mediumId = 0;
-    String submediumString = null;
-
-    String mediumTitelString = null;
-    String uitvoerendenString = null;
-    String mediumTypeString = null;
+    private JDialog dialog;
+    private String submediumString;
+    private String mediumTitelString;
+    private String uitvoerendenString;
+    private String mediumTypeString;
 
     // Constructor
     public ShowMediumTracksDialog( Connection conn,
 				   Object     parentObject,
 				   int        mediumId ) {
-	this.conn = conn;
-	this.parentObject = parentObject;
-	this.mediumId = mediumId;
 
 	try {
 	    String mediumQueryString =
@@ -77,42 +69,47 @@ public class ShowMediumTracksDialog {
 
 	final GridBagConstraints constraints = new GridBagConstraints( );
 	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 5, 5, 5, 5 );
-
+        constraints.insets = new Insets( 5, 10, 5, 10 );
+        constraints.weighty = 0.0;
 
 	constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.gridwidth = 1;
+        constraints.weightx = 0.0;
+        constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium titel:" ), constraints );
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.weightx = 1.0;
 	constraints.gridwidth = 5;
 	container.add( new JLabel( mediumTitelString ), constraints );
 
 	constraints.gridx = 0;
 	constraints.gridy = 1;
+        constraints.weightx = 0.0;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Uitvoerenden:" ), constraints );
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 5;
+        constraints.weightx = 1.0;
 	container.add( new JLabel( uitvoerendenString ), constraints );
 
 	constraints.gridx = 0;
 	constraints.gridy = 2;
 	constraints.gridwidth = 1;
+        constraints.weightx = 0.0;
 	container.add( new JLabel( "Medium type:" ), constraints );
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( new JLabel( mediumTypeString ), constraints );
 
 	// Initialize combo box for submedium (may not be necessary)
-	final JComboBox submediumComboBox = new JComboBox( );
+	final JComboBox<String> submediumComboBox = new JComboBox<>( );
 
 	// Check if there is more than one submedium for the medium
 	try {
 	    final String submediumQueryString =
-		"SELECT DISTINCT submedium FROM tracks WHERE medium_id = " + mediumId;
+		"SELECT DISTINCT submedium FROM tracks WHERE medium_id = " + mediumId + " ORDER BY submedium";
 
 	    final Statement statement = conn.createStatement( );
 	    final ResultSet resultSet = statement.executeQuery( submediumQueryString );
@@ -176,18 +173,24 @@ public class ShowMediumTracksDialog {
 	mediumTracksTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 	mediumTracksTable.getColumnModel( ).getColumn( 0 ).setPreferredWidth( 50 );  // track #
 	mediumTracksTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth( 70 );  // tijd
-	mediumTracksTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 250 ); // opus titel
+	mediumTracksTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 310 ); // opus titel
 	mediumTracksTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 40 );  // opus-deel #
-	mediumTracksTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 150 ); // opus-deel titel
-	mediumTracksTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 110 ); // componisten
+	mediumTracksTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 160 ); // opus-deel titel
+	mediumTracksTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 120 ); // componisten
 	mediumTracksTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 90 );  // opus type
 	mediumTracksTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 80 );  // opus subtype
 
 	// Set vertical size just enough for 20 entries
-	mediumTracksTable.setPreferredScrollableViewportSize( new Dimension( 840, 320 ) );
+	mediumTracksTable.setPreferredScrollableViewportSize( new Dimension( 920, 320 ) );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
 	constraints.gridwidth = 8;
+
+        // Setting weighty and fill is necessary for proper filling the frame when resized.
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weightx = 1.0;
+        constraints.weighty = 1.0;
+
 	container.add( new JScrollPane( mediumTracksTable ), constraints );
 
 
@@ -201,6 +204,9 @@ public class ShowMediumTracksDialog {
 	closeButton.addActionListener( new closeActionListener( ) );
 	constraints.gridx = 0;
 	constraints.gridy = 8;
+        constraints.fill = GridBagConstraints.NONE;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.0;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( closeButton, constraints );
 

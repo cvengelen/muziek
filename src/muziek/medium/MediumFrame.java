@@ -19,42 +19,39 @@ import table.*;
 
 
 public class MediumFrame {
-    final Logger logger = Logger.getLogger( "muziek.medium.MediumFrame" );
+    private final Logger logger = Logger.getLogger( MediumFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Medium");
+    private final JFrame frame = new JFrame( "Medium");
 
-    JTextField mediumTitelFilterTextField;
+    private JTextField mediumTitelFilterTextField;
 
-    JTextField uitvoerendenFilterTextField;
+    private JTextField uitvoerendenFilterTextField;
 
-    int selectedGenreId = 0;
-    GenreComboBox genreComboBox;
+    private int selectedGenreId = 0;
+    private GenreComboBox genreComboBox;
 
-    int selectedSubgenreId = 0;
-    SubgenreComboBox subgenreComboBox;
+    private int selectedSubgenreId = 0;
+    private SubgenreComboBox subgenreComboBox;
 
-    int selectedMediumTypeId = 0;
-    MediumTypeComboBox mediumTypeComboBox;
+    private int selectedMediumTypeId = 0;
+    private MediumTypeComboBox mediumTypeComboBox;
 
-    int selectedMediumStatusId = 0;
-    MediumStatusComboBox mediumStatusComboBox;
+    private int selectedMediumStatusId = 0;
+    private MediumStatusComboBox mediumStatusComboBox;
 
-    int selectedLabelId = 0;
-    LabelComboBox labelComboBox;
+    private int selectedLabelId = 0;
+    private LabelComboBox labelComboBox;
 
-    int selectedOpslagId = 0;
-    OpslagComboBox opslagComboBox;
+    private int selectedOpslagId = 0;
+    private OpslagComboBox opslagComboBox;
 
-    JTextField opmerkingenFilterTextField;
+    private JTextField opmerkingenFilterTextField;
 
-    MediumTableModel mediumTableModel;
-    TableSorter mediumTableSorter;
-    JTable mediumTable;
+    private MediumTableModel mediumTableModel;
+    private TableSorter mediumTableSorter;
 
 
     public MediumFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -378,7 +375,7 @@ public class MediumFrame {
 						 cancelRowEditButton,
 						 saveRowEditButton );
 	mediumTableSorter = new TableSorter( mediumTableModel );
-	mediumTable = new JTable( mediumTableSorter );
+	JTable mediumTable = new JTable( mediumTableSorter );
 	mediumTableSorter.setTableHeader( mediumTable.getTableHeader( ) );
 	// mediumTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -440,7 +437,7 @@ public class MediumFrame {
 	final ListSelectionModel mediumListSelectionModel = mediumTable.getSelectionModel( );
 
 	class MediumListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -525,15 +522,14 @@ public class MediumFrame {
 		    System.exit( 0 );
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new medium record
-		    EditMediumDialog editMediumDialog =
-			new EditMediumDialog( connection, frame,
-					      mediumTitelFilterTextField.getText( ),
-					      uitvoerendenFilterTextField.getText( ),
-					      selectedGenreId,
-					      selectedSubgenreId,
-					      selectedMediumTypeId,
-					      selectedMediumStatusId,
-					      selectedLabelId );
+                    new EditMediumDialog( connection, frame,
+                                          mediumTitelFilterTextField.getText( ),
+                                          uitvoerendenFilterTextField.getText( ),
+                                          selectedGenreId,
+                                          selectedSubgenreId,
+                                          selectedMediumTypeId,
+                                          selectedMediumStatusId,
+                                          selectedLabelId );
 
 		    // Records may have been modified: setup the table model again
 		    mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
@@ -569,8 +565,7 @@ public class MediumFrame {
 
 		    if ( actionEvent.getActionCommand( ).equals( "openDialog" ) ) {
 			// Do dialog
-			EditMediumDialog editMediumDialog =
-			    new EditMediumDialog( connection, frame, selectedMediumId );
+                        new EditMediumDialog( connection, frame, selectedMediumId );
 
 			// Records may have been modified: setup the table model again
 			mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
@@ -694,8 +689,7 @@ public class MediumFrame {
 			saveRowEditButton.setEnabled( false );
 		    } else if ( actionEvent.getActionCommand( ).equals( "showMediumTracks" ) ) {
 			// Do dialog
-			ShowMediumTracksDialog showMediumTracksDialog =
-			    new ShowMediumTracksDialog( connection, frame, selectedMediumId );
+                        new ShowMediumTracksDialog( connection, frame, selectedMediumId );
 		    }
 		}
 	    }
