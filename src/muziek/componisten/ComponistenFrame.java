@@ -18,6 +18,7 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import java.util.logging.*;
 
+import muziek.gui.EditComponistenDialog;
 import muziek.gui.PersoonComboBox;
 
 import table.*;

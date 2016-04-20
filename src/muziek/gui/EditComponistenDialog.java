@@ -1,9 +1,6 @@
 // Dialog for inserting or updating componisten, componisten_persoon and tekstschrijver_persoon
 
-package muziek.componisten;
-
-import muziek.gui.EditPersoonDialog;
-import muziek.gui.PersoonComboBox;
+package muziek.gui;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,7 +15,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 public class EditComponistenDialog {
-    final private Logger logger = Logger.getLogger( "muziek.componisten.EditComponistenDialog" );
+    final private Logger logger = Logger.getLogger( "muziek.gui.EditComponistenDialog" );
 
     Connection connection;
 
