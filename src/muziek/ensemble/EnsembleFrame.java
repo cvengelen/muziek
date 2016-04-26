@@ -1,5 +1,3 @@
-// frame to show and select records from ensemble
-
 package muziek.ensemble;
 
 import java.sql.Connection;
@@ -16,22 +14,23 @@ import java.util.logging.*;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the ensemble table in schema muziek.
+ * An instance of EnsembleFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class EnsembleFrame {
-    final Logger logger = Logger.getLogger( "muziek.ensemble.EnsembleFrame" );
+    private final Logger logger = Logger.getLogger( EnsembleFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Ensemble" );
+    private final JFrame frame = new JFrame( "Ensemble" );
 
-    JTextField ensembleFilterTextField;
+    private JTextField ensembleFilterTextField;
 
-    EnsembleTableModel ensembleTableModel;
-    TableSorter ensembleTableSorter;
-    JTable ensembleTable;
-
+    private EnsembleTableModel ensembleTableModel;
+    private TableSorter ensembleTableSorter;
 
     public EnsembleFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -39,32 +38,33 @@ public class EnsembleFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.insets = new Insets( 0, 0, 10, 10 );
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Ensemble Filter:" ), constraints );
+
 	ensembleFilterTextField = new JTextField( 20 );
 
+        constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( ensembleFilterTextField, constraints );
 
-	class EnsembleFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the ensemble table
-		ensembleTableModel.setupEnsembleTableModel( ensembleFilterTextField.getText( ) );
-	    }
-	}
-	ensembleFilterTextField.addActionListener( new EnsembleFilterActionListener( ) );
-
+	ensembleFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the ensemble table
+            ensembleTableSorter.clearSortingState();
+            ensembleTableModel.setupEnsembleTableModel( ensembleFilterTextField.getText( ) );
+        } );
 
 	// Create ensemble table from title table model
 	ensembleTableModel = new EnsembleTableModel( connection );
 	ensembleTableSorter = new TableSorter( ensembleTableModel );
-	ensembleTable = new JTable( ensembleTableSorter );
+	final JTable ensembleTable = new JTable( ensembleTableSorter );
 	ensembleTableSorter.setTableHeader( ensembleTable.getTableHeader( ) );
 	// ensembleTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -77,11 +77,14 @@ public class EnsembleFrame {
 	// Set vertical size just enough for 20 entries
 	ensembleTable.setPreferredScrollableViewportSize( new Dimension( 450, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
 	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( ensembleTable ), constraints );
 
 
@@ -96,7 +99,7 @@ public class EnsembleFrame {
 	final ListSelectionModel ensembleListSelectionModel = ensembleTable.getSelectionModel( );
 
 	class EnsembleListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -114,7 +117,7 @@ public class EnsembleFrame {
 		deleteEnsembleButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add ensembleListSelectionListener object to the selection model of the musici table
@@ -126,7 +129,8 @@ public class EnsembleFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+                    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new ensemble record
 		    try {
@@ -255,12 +259,28 @@ public class EnsembleFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 520, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 510, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

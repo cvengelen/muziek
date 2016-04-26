@@ -1,5 +1,3 @@
-// frame to show and select records from label
-
 package muziek.label;
 
 import java.sql.Connection;
@@ -16,22 +14,23 @@ import java.util.logging.*;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the label table in schema muziek.
+ * An instance of LabelFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class LabelFrame {
-    final Logger logger = Logger.getLogger( "muziek.label.LabelFrame" );
+    private final Logger logger = Logger.getLogger( LabelFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Label" );
+    private final JFrame frame = new JFrame( "Label" );
 
-    JTextField labelFilterTextField;
+    private JTextField labelFilterTextField;
 
-    LabelTableModel labelTableModel;
-    TableSorter labelTableSorter;
-    JTable labelTable;
-
+    private LabelTableModel labelTableModel;
+    private TableSorter labelTableSorter;
 
     public LabelFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -39,17 +38,20 @@ public class LabelFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.insets = new Insets( 0, 0, 10, 10 );
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Label Filter:" ), constraints );
 	labelFilterTextField = new JTextField( 12 );
 
+        constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( labelFilterTextField, constraints );
 
 	class LabelFilterActionListener implements ActionListener {
@@ -58,13 +60,17 @@ public class LabelFrame {
 		labelTableModel.setupLabelTableModel( labelFilterTextField.getText( ) );
 	    }
 	}
-	labelFilterTextField.addActionListener( new LabelFilterActionListener( ) );
+	labelFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the label table
+            labelTableSorter.clearSortingState();
+            labelTableModel.setupLabelTableModel( labelFilterTextField.getText( ) );
+        } );
 
 
 	// Create label table from title table model
 	labelTableModel = new LabelTableModel( connection );
 	labelTableSorter = new TableSorter( labelTableModel );
-	labelTable = new JTable( labelTableSorter );
+	final JTable labelTable = new JTable( labelTableSorter );
 	labelTableSorter.setTableHeader( labelTable.getTableHeader( ) );
 	// labelTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -77,12 +83,15 @@ public class LabelFrame {
 	// Set vertical size just enough for 20 entries
 	labelTable.setPreferredScrollableViewportSize( new Dimension( 270, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
 	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
-	container.add( new JScrollPane( labelTable ), constraints );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
+        container.add( new JScrollPane( labelTable ), constraints );
 
 
 	// Define the delete button because it is used by the list selection listener
@@ -92,7 +101,7 @@ public class LabelFrame {
 	final ListSelectionModel labelListSelectionModel = labelTable.getSelectionModel( );
 
 	class LabelListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -110,7 +119,7 @@ public class LabelFrame {
 		deleteLabelButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add labelListSelectionListener object to the selection model of the musici table
@@ -122,7 +131,8 @@ public class LabelFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+		    frame.dispose();
+                    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new label record
 		    try {
@@ -250,12 +260,28 @@ public class LabelFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 350, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 330, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

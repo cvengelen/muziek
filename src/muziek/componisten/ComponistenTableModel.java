@@ -7,18 +7,16 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
 class ComponistenTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( ComponistenTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Componisten", "Persoon" };
+    private final String[ ] headings = { "Id", "Componisten", "Persoon" };
 
     private class ComponistenRecord {
 	String	componistenString;
@@ -214,8 +212,12 @@ class ComponistenTableModel extends AbstractTableModel {
     }
 
     int getComponistenId( int row ) {
-	final ComponistenRecord componistenRecord = componistenRecordList.get( row );
-	return componistenRecord.componistenId;
+        if ( ( row < 0 ) || ( row >= componistenRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
+
+	return componistenRecordList.get( row ).componistenId;
     }
 
     String getComponistenString( int row ) {
@@ -224,6 +226,6 @@ class ComponistenTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	return ( componistenRecordList.get( row ) ).componistenString;
+	return componistenRecordList.get( row ).componistenString;
     }
 }

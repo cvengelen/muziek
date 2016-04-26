@@ -1,5 +1,3 @@
-// frame to show and select records from medium
-
 package muziek.medium;
 
 import java.sql.Connection;
@@ -17,8 +15,13 @@ import java.util.logging.*;
 import muziek.gui.*;
 import table.*;
 
-
-class MediumFrame {
+/**
+ * Frame to show, insert and update records in the medium table in schema muziek.
+ * An instance of MediumFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class MediumFrame {
     private final Logger logger = Logger.getLogger( MediumFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "Medium");
@@ -50,8 +53,7 @@ class MediumFrame {
     private MediumTableModel mediumTableModel;
     private TableSorter mediumTableSorter;
 
-
-    MediumFrame( final Connection connection ) {
+    public MediumFrame( final Connection connection ) {
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -59,47 +61,41 @@ class MediumFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.insets = new Insets( 5, 10, 5, 10 );
-	constraints.weighty = 0.0;
 
-
-	/////////////////////////////////
 	// Text filter action listener
-	/////////////////////////////////
-
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the medium table
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
-
+	ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
+            mediumTableSorter.clearSortingState();
+            // Setup the medium table
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        };
 
 	/////////////////////////////////
 	// Medium titel filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium Titel Filter:" ), constraints );
 
 	mediumTitelFilterTextField = new JTextField( 55 );
 	mediumTitelFilterTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 20, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( mediumTitelFilterTextField, constraints );
 
 
@@ -107,17 +103,22 @@ class MediumFrame {
 	// Uitvoerenden filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
 	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
+	constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Uitvoerenden Filter:" ), constraints );
 
 	uitvoerendenFilterTextField = new JTextField( 55 );
 	uitvoerendenFilterTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( uitvoerendenFilterTextField, constraints );
 
@@ -126,236 +127,222 @@ class MediumFrame {
 	// Genre Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.weightx = 0.0;
+	constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Genre:" ), constraints );
 
 	genreComboBox = new GenreComboBox( connection, selectedGenreId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( genreComboBox, constraints );
 
-	class SelectGenreActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected genre ID from the combo box
-		selectedGenreId = genreComboBox.getSelectedGenreId( );
+	genreComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected genre ID from the combo box
+            selectedGenreId = genreComboBox.getSelectedGenreId( );
 
-		// Setup the medium table for the selected genre
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId  );
-	    }
-	}
-	genreComboBox.addActionListener( new SelectGenreActionListener( ) );
-
+            // Setup the medium table for the selected genre
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId  );
+        } );
 
 	/////////////////////////////////
 	// Subgenre Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Subgenre:" ), constraints );
 
 	subgenreComboBox = new SubgenreComboBox( connection, selectedSubgenreId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( subgenreComboBox, constraints );
 
-	class SelectSubgenreActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected subgenre ID from the combo box
-		selectedSubgenreId = subgenreComboBox.getSelectedSubgenreId( );
+	subgenreComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected subgenre ID from the combo box
+            selectedSubgenreId = subgenreComboBox.getSelectedSubgenreId( );
 
-		// Setup the medium table for the selected subgenre
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	subgenreComboBox.addActionListener( new SelectSubgenreActionListener( ) );
-
+            // Setup the medium table for the selected subgenre
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        } );
 
 	/////////////////////////////////
 	// Medium Type Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 4;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "MediumType:" ), constraints );
 
 	mediumTypeComboBox = new MediumTypeComboBox( connection, selectedMediumTypeId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( mediumTypeComboBox, constraints );
 
-	class SelectMediumTypeActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected mediumType ID from the combo box
-		selectedMediumTypeId = mediumTypeComboBox.getSelectedMediumTypeId( );
+	mediumTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected mediumType ID from the combo box
+            selectedMediumTypeId = mediumTypeComboBox.getSelectedMediumTypeId( );
 
-		// Setup the medium table for the selected mediumType
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	mediumTypeComboBox.addActionListener( new SelectMediumTypeActionListener( ) );
-
+            // Setup the medium table for the selected mediumType
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        } );
 
 	/////////////////////////////////
 	// Medium Status Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 5;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "MediumStatus:" ), constraints );
 
 	mediumStatusComboBox = new MediumStatusComboBox( connection, selectedMediumStatusId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( mediumStatusComboBox, constraints );
 
-	class SelectMediumStatusActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected mediumStatus ID from the combo box
-		selectedMediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
+	mediumStatusComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected mediumStatus ID from the combo box
+            selectedMediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
 
-		// Setup the medium table for the selected mediumStatus
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	mediumStatusComboBox.addActionListener( new SelectMediumStatusActionListener( ) );
-
+            // Setup the medium table for the selected mediumStatus
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        } );
 
 	/////////////////////////////////
 	// Label Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 6;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Label:" ), constraints );
 
 	labelComboBox = new LabelComboBox( connection, frame, selectedLabelId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( labelComboBox, constraints );
 
-	class SelectLabelActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected label ID from the combo box
-		selectedLabelId = labelComboBox.getSelectedLabelId( );
+	labelComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected label ID from the combo box
+            selectedLabelId = labelComboBox.getSelectedLabelId( );
 
-		// Setup the medium table for the selected label
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	labelComboBox.addActionListener( new SelectLabelActionListener( ) );
-
+            // Setup the medium table for the selected label
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        } );
 
 	/////////////////////////////////
 	// Opslag Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 7;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opslag:" ), constraints );
 
 	opslagComboBox = new OpslagComboBox( connection, frame, selectedLabelId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( opslagComboBox, constraints );
 
-	class SelectOpslagActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected opslagcombobox ID from the combo box
-		selectedOpslagId = opslagComboBox.getSelectedOpslagId( );
+	opslagComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected opslagcombobox ID from the combo box
+            selectedOpslagId = opslagComboBox.getSelectedOpslagId( );
 
-		// Setup the medium table for the selected opslag
-		mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-							uitvoerendenFilterTextField.getText( ),
-							opmerkingenFilterTextField.getText( ),
-							selectedGenreId,
-							selectedSubgenreId,
-							selectedMediumTypeId,
-							selectedMediumStatusId,
-							selectedLabelId,
-							selectedOpslagId );
-	    }
-	}
-	opslagComboBox.addActionListener( new SelectOpslagActionListener( ) );
-
+            // Setup the medium table for the selected opslag
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedOpslagId );
+        } );
 
 	/////////////////////////////////
 	// Opmerkingen filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 8;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opmerkingen Filter:" ), constraints );
 
 	opmerkingenFilterTextField = new JTextField( 55 );
 	opmerkingenFilterTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.weightx = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( opmerkingenFilterTextField, constraints );
-
 
 	/////////////////////////////////
 	// Medium Table
@@ -375,7 +362,7 @@ class MediumFrame {
 						 cancelRowEditButton,
 						 saveRowEditButton );
 	mediumTableSorter = new TableSorter( mediumTableModel );
-	JTable mediumTable = new JTable( mediumTableSorter );
+	final JTable mediumTable = new JTable( mediumTableSorter );
 	mediumTableSorter.setTableHeader( mediumTable.getTableHeader( ) );
 	// mediumTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -395,7 +382,7 @@ class MediumFrame {
 	mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 200 );  // opmerkingen
 
 	// Set vertical size just enough for 20 entries
-	mediumTable.setPreferredScrollableViewportSize( new Dimension( 990, 320 ) );
+	mediumTable.setPreferredScrollableViewportSize( new Dimension( 1410, 320 ) );
 
 	final DefaultCellEditor genreDefaultCellEditor =
 	    new DefaultCellEditor( new GenreComboBox( connection, 0 ) );
@@ -421,15 +408,16 @@ class MediumFrame {
 	    new DefaultCellEditor( new OpslagComboBox( connection, null, false ) );
 	mediumTable.getColumnModel( ).getColumn( 10 ).setCellEditor( opslagDefaultCellEditor );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 9;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
 
 	// Setting weighty and fill is necessary for proper filling the frame when resized.
 	constraints.fill = GridBagConstraints.BOTH;
-	constraints.weightx = 1.0;
-	constraints.weighty = 1.0;
+	constraints.weightx = 1d;
+	constraints.weighty = 1d;
 
 	container.add( new JScrollPane( mediumTable ), constraints );
 
@@ -519,7 +507,8 @@ class MediumFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new medium record
                     new EditMediumDialog( connection, frame,
@@ -738,14 +727,28 @@ class MediumFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 10;
-	constraints.weightx = 1.0;
-	constraints.weighty = 0.0;
+	constraints.weightx = 0d;
+	constraints.weighty = 0d;
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 1080, 820 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1470, 820 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

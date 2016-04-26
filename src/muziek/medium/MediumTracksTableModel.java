@@ -15,9 +15,10 @@ class MediumTracksTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( MediumTracksTableModel.class.getCanonicalName() );
 
     private Connection conn;
-    private String[ ] headings = { "Track", "Track tijd",
-                                   "Opus titel", "Deel", "Deel titel",
-                                   "Componisten", "Opus type", "Opus subtype" };
+    private final String[ ] headings = { "Track", "Track tijd",
+                                         "Opus titel", "Deel", "Deel titel",
+                                         "Componisten", "Opus type", "Opus subtype" };
+
     private int[ ]    trackNummer         = new int[ 60 ];
     private String[ ] trackTijdString     = new String[ 60 ];
     private String[ ] opusTitelString     = new String[ 60 ];

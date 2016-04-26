@@ -12,38 +12,38 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-public class EnsembleTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.ensemble.EnsembleTableModel" );
+class EnsembleTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( "muziek.ensemble.EnsembleTableModel" );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Ensemble" };
+    private final String[ ] headings = { "Id", "Ensemble" };
 
-    class EnsembleRecord {
+    private class EnsembleRecord {
 	int	ensembleId;
 	String  ensembleString;
 
-	public EnsembleRecord( int     ensembleId,
-			       String  ensembleString ) {
+	EnsembleRecord( int     ensembleId,
+                        String  ensembleString ) {
 	    this.ensembleId = ensembleId;
 	    this.ensembleString = ensembleString;
 	}
     }
 
-    ArrayList ensembleRecordList = new ArrayList( 100 );
+    private ArrayList<EnsembleRecord> ensembleRecordList = new ArrayList<>( 100 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    public EnsembleTableModel( Connection connection ) {
+    EnsembleTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupEnsembleTableModel( null );
     }
 
-    public void setupEnsembleTableModel( String ensembleFilterString ) {
+    void setupEnsembleTableModel( String ensembleFilterString ) {
 
 	// Setup the table
 	try {
@@ -106,10 +106,9 @@ public class EnsembleTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final EnsembleRecord ensembleRecord =
-	    ( EnsembleRecord )ensembleRecordList.get( row );
+	final EnsembleRecord ensembleRecord = ensembleRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( ensembleRecord.ensembleId );
+	if ( column == 0 ) return ensembleRecord.ensembleId;
 	if ( column == 1 ) return ensembleRecord.ensembleString;
 
 	return "";
@@ -121,8 +120,7 @@ public class EnsembleTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final EnsembleRecord ensembleRecord =
-	    ( EnsembleRecord )ensembleRecordList.get( row );
+	final EnsembleRecord ensembleRecord = ensembleRecordList.get( row );
 
 	String updateString = null;
 
@@ -185,21 +183,23 @@ public class EnsembleTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return ensembleRecordList.size( ); }
+    int getNumberOfRecords( ) { return ensembleRecordList.size( ); }
 
-    public int getEnsembleId( int row ) {
-	final EnsembleRecord ensembleRecord =
-	    ( EnsembleRecord )ensembleRecordList.get( row );
+    int getEnsembleId( int row ) {
+        if ( ( row < 0 ) || ( row >= ensembleRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return ensembleRecord.ensembleId;
+	return ensembleRecordList.get( row ).ensembleId;
     }
 
-    public String getEnsembleString( int row ) {
+    String getEnsembleString( int row ) {
 	if ( ( row < 0 ) || ( row >= ensembleRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( EnsembleRecord )ensembleRecordList.get( row ) ).ensembleString;
+	return ensembleRecordList.get( row ).ensembleString;
     }
 }

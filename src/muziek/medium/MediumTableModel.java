@@ -16,18 +16,17 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class MediumTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.medium.MediumTableModel" );
+class MediumTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( MediumTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Medium", "Uitvoerenden",
-				   "Genre", "Subgenre", "Type", "Status", "Label", "Nummer",
-				   "Aankoopdatum", "Opslag", "Opmerkingen" };
+    private final String[ ] headings = { "Id", "Medium", "Uitvoerenden",
+                                         "Genre", "Subgenre", "Type", "Status", "Label", "Nummer",
+                                         "Aankoopdatum", "Opslag", "Opmerkingen" };
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    class MediumRecord {
+    private class MediumRecord {
 	int	mediumId;
 	String	mediumTitelString;
 	String	uitvoerendenString;
@@ -47,24 +46,24 @@ public class MediumTableModel extends AbstractTableModel {
 	String	opslagString;
 	String	opmerkingenString;
 
-	public MediumRecord( int     mediumId,
-			     String  mediumTitelString,
-			     String  uitvoerendenString,
-			     int     genreId,
-			     String  genreString,
-			     int     subgenreId,
-			     String  subgenreString,
-			     int     mediumTypeId,
-			     String  mediumTypeString,
-			     int     mediumStatusId,
-			     String  mediumStatusString,
-			     int     labelId,
-			     String  labelString,
-			     String  labelNummerString,
-			     Date    aankoopDatumDate,
-			     int     opslagId,
-			     String  opslagString,
-			     String  opmerkingenString ) {
+	MediumRecord( int     mediumId,
+                      String  mediumTitelString,
+                      String  uitvoerendenString,
+                      int     genreId,
+                      String  genreString,
+                      int     subgenreId,
+                      String  subgenreString,
+                      int     mediumTypeId,
+                      String  mediumTypeString,
+                      int     mediumStatusId,
+                      String  mediumStatusString,
+                      int     labelId,
+                      String  labelString,
+                      String  labelNummerString,
+                      Date    aankoopDatumDate,
+                      int     opslagId,
+                      String  opslagString,
+                      String  opmerkingenString ) {
 	    this.mediumId = mediumId;
 	    this.mediumTitelString = mediumTitelString;
 	    this.uitvoerendenString = uitvoerendenString;
@@ -86,7 +85,7 @@ public class MediumTableModel extends AbstractTableModel {
 	}
 
 	// Copy constructor
-	public MediumRecord( MediumRecord mediumRecord ) {
+	MediumRecord( MediumRecord mediumRecord ) {
 	    this.mediumId = mediumRecord.mediumId;
 	    this.mediumTitelString = mediumRecord.mediumTitelString;
 	    this.uitvoerendenString = mediumRecord.uitvoerendenString;
@@ -108,32 +107,31 @@ public class MediumTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList mediumRecordList = new ArrayList( 200 );
+    private final ArrayList<MediumRecord> mediumRecordList = new ArrayList<>( 1000 );
 
-    GenreComboBox genreComboBox;
-    SubgenreComboBox subgenreComboBox;
-    MediumTypeComboBox mediumTypeComboBox;
-    MediumStatusComboBox mediumStatusComboBox;
-    LabelComboBox labelComboBox;
-    OpslagComboBox opslagComboBox;
+    private GenreComboBox genreComboBox;
+    private SubgenreComboBox subgenreComboBox;
+    private MediumTypeComboBox mediumTypeComboBox;
+    private MediumStatusComboBox mediumStatusComboBox;
+    private LabelComboBox labelComboBox;
+    private OpslagComboBox opslagComboBox;
 
-    JButton cancelRowEditButton;
-    JButton saveRowEditButton;
+    private JButton cancelRowEditButton;
+    private JButton saveRowEditButton;
 
-    boolean	 rowModified = false;
-    int		 editRow = -1;
-    MediumRecord mediumRecord = null;
-    MediumRecord originalMediumRecord = null;
+    private boolean	 rowModified = false;
+    private int		 editRow = -1;
+    private MediumRecord mediumRecord = null;
+    private MediumRecord originalMediumRecord = null;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public MediumTableModel( final Connection connection,
-			     final JButton    cancelRowEditButton,
-			     final JButton    saveRowEditButton ) {
+    MediumTableModel( final Connection connection,
+                      final JButton    cancelRowEditButton,
+                      final JButton    saveRowEditButton ) {
 	this.connection = connection;
 	this.cancelRowEditButton = cancelRowEditButton;
 	this.saveRowEditButton = saveRowEditButton;
@@ -149,15 +147,15 @@ public class MediumTableModel extends AbstractTableModel {
 	setupMediumTableModel( null, null, null, 0, 0, 0, 0, 0, 0 );
     }
 
-    public void setupMediumTableModel( String mediumTitelFilterString,
-				       String uitvoerendenFilterString,
-				       String opmerkingenFilterString,
-				       int    genreId,
-				       int    subgenreId,
-				       int    mediumTypeId,
-				       int    mediumStatusId,
-				       int    labelId,
-				       int    opslagId ) {
+    void setupMediumTableModel( String mediumTitelFilterString,
+                                String uitvoerendenFilterString,
+                                String opmerkingenFilterString,
+                                int    genreId,
+                                int    subgenreId,
+                                int    mediumTypeId,
+                                int    mediumStatusId,
+                                int    labelId,
+                                int    opslagId ) {
 	// Setup the table
 	try {
 	    String mediumQueryString =
@@ -370,10 +368,9 @@ public class MediumTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final MediumRecord mediumRecord =
-	    ( MediumRecord )mediumRecordList.get( row );
+	final MediumRecord mediumRecord = mediumRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( mediumRecord.mediumId );
+	if ( column == 0 ) return mediumRecord.mediumId;
 	if ( column == 1 ) return mediumRecord.mediumTitelString;
 	if ( column == 2 ) return mediumRecord.uitvoerendenString;
 	if ( column == 3 ) return mediumRecord.genreString;
@@ -558,25 +555,27 @@ public class MediumTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getMediumId( int row ) {
-	final MediumRecord mediumRecord =
-	    ( MediumRecord )mediumRecordList.get( row );
+    int getMediumId( int row ) {
+        if ( ( row < 0 ) || ( row >= mediumRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return mediumRecord.mediumId;
+	return mediumRecordList.get( row ).mediumId;
     }
 
-    public String getMediumTitelString( int row ) {
+    String getMediumTitelString( int row ) {
 	if ( ( row < 0 ) || ( row >= mediumRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( MediumRecord )mediumRecordList.get( row ) ).mediumTitelString;
+	return mediumRecordList.get( row ).mediumTitelString;
     }
 
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
 	// Initialize record to be edited
-	mediumRecord = ( MediumRecord )mediumRecordList.get( editRow );
+	mediumRecord = mediumRecordList.get( editRow );
 
 	// Copy record to use as key in table update
 	originalMediumRecord = new MediumRecord( mediumRecord );
@@ -588,11 +587,11 @@ public class MediumTableModel extends AbstractTableModel {
 	this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
 	this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
 	// Check if row being canceled equals the row currently being edited
 	if ( row != editRow ) return;
 
@@ -616,9 +615,8 @@ public class MediumTableModel extends AbstractTableModel {
 	return additionalUpdateString;
     }
 
-    public boolean saveEditRow( int row ) {
+    boolean saveEditRow( int row ) {
 	String updateString = null;
-	boolean updateId = false;
 
 	// Compare each field with the value in the original record
 	// If modified, add entry to update query string
@@ -749,5 +747,5 @@ public class MediumTableModel extends AbstractTableModel {
 	}
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 }

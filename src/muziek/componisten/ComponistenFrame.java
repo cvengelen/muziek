@@ -1,9 +1,3 @@
-/**
- * Frame to show and select records from componisten.
- *
- * @author Chris van Engelen
- */
-
 package muziek.componisten;
 
 import java.sql.Connection;
@@ -23,8 +17,13 @@ import muziek.gui.PersoonComboBox;
 
 import table.*;
 
-
-class ComponistenFrame {
+/**
+ * Frame to show, insert and update records in the componisten table in schema muziek.
+ * An instance of ComponistenFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class ComponistenFrame {
     private final Logger logger = Logger.getLogger(ComponistenFrame.class.getCanonicalName());
 
     private Connection connection;
@@ -38,7 +37,7 @@ class ComponistenFrame {
     private ComponistenTableModel componistenTableModel;
     private TableSorter componistenTableSorter;
 
-    class Componisten {
+    private class Componisten {
         int        id;
         String  string;
 
@@ -70,8 +69,7 @@ class ComponistenFrame {
         }
     }
 
-
-    ComponistenFrame( final Connection connection ) {
+    public ComponistenFrame( final Connection connection ) {
         this.connection = connection;
 
         // put the controls the content pane
@@ -80,9 +78,8 @@ class ComponistenFrame {
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
         GridBagConstraints constraints = new GridBagConstraints( );
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 0, 0, 10, 10 );
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = 1;
@@ -90,27 +87,31 @@ class ComponistenFrame {
         container.add( new JLabel( "Componisten Filter:" ), constraints );
         componistenFilterTextField = new JTextField( 30 );
 
+        constraints.insets = new Insets( 20, 5, 5, 40 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( componistenFilterTextField, constraints );
 
-        class ComponistenFilterActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Setup the componisten table
-                componistenTableModel.setupComponistenTableModel( componistenFilterTextField.getText( ),
-                                                                  selectedPersoonId );
-            }
-        }
-        componistenFilterTextField.addActionListener( new ComponistenFilterActionListener( ) );
-
+        componistenFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the componisten table
+            componistenTableSorter.clearSortingState();
+            componistenTableModel.setupComponistenTableModel( componistenFilterTextField.getText( ),
+                                                              selectedPersoonId );
+        } );
 
         ////////////////////////////////////////////////
         // Persoon ComboBox
         ////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.gridwidth = 1;
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
         container.add( new JLabel( "Persoon: " ), constraints );
 
         final JPanel persoonPanel = new JPanel( );
@@ -120,31 +121,23 @@ class ComponistenFrame {
         // Setup a JComboBox with the results of the query on persoon
         // Do not allow to enter new record in persoon
         persoonComboBox = new PersoonComboBox( connection, frame, false );
+        persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected persoon ID from the combo box
+            selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
+
+            // Setup the componisten table
+            componistenTableSorter.clearSortingState();
+            componistenTableModel.setupComponistenTableModel( componistenFilterTextField.getText( ),
+                                                              selectedPersoonId );
+        } );
         persoonPanel.add( persoonComboBox );
-
-        class SelectPersoonActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected persoon ID from the combo box
-                selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
-
-                // Setup the componisten table
-                componistenTableModel.setupComponistenTableModel( componistenFilterTextField.getText( ),
-                                                                  selectedPersoonId );
-            }
-        }
-        persoonComboBox.addActionListener( new SelectPersoonActionListener( ) );
 
         JButton filterPersoonButton = new JButton( "Filter" );
         filterPersoonButton.setActionCommand( "filterPersoon" );
+        filterPersoonButton.addActionListener( ( ActionEvent actionEvent ) -> persoonComboBox.filterPersoonComboBox( ) );
         persoonPanel.add( filterPersoonButton );
 
-        class FilterPersoonActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent ae ) {
-                persoonComboBox.filterPersoonComboBox( );
-            }
-        }
-        filterPersoonButton.addActionListener( new FilterPersoonActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( persoonPanel, constraints );
@@ -167,11 +160,14 @@ class ComponistenFrame {
         // Set vertical size just enough for 20 entries
         componistenTable.setPreferredScrollableViewportSize( new Dimension( 550, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
         container.add( new JScrollPane( componistenTable ), constraints );
 
 
@@ -215,7 +211,8 @@ class ComponistenFrame {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
                     frame.setVisible( false );
-                    System.exit( 0 );
+                    frame.dispose();
+                    return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     // Insert new componisten record
                     new EditComponistenDialog( connection, frame,
@@ -324,12 +321,28 @@ class ComponistenFrame {
         closeButton.addActionListener( buttonActionListener );
         buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
         constraints.gridx = 0;
         constraints.gridy = 3;
-        constraints.insets = new Insets( 10, 0, 0, 10 );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 630, 550 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+        frame.setSize( 610, 550 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.setVisible(true);
     }
