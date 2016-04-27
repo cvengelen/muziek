@@ -2,11 +2,11 @@
 // Project:	muziek
 // Component:	gui
 // File:	OpnameTableModel.java
-// Description:	TableModel for records in opname
+// Description:	TableModel for opname records
 // Author:	Chris van Engelen
 // History:	2006/02/19: Initial version
 //              2011/08/13: Add selection on medium status
-//
+//              2016/04/27: Refactoring, and use of Java 7, 8 features
 
 package muziek.opname;
 
@@ -22,16 +22,17 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-
-public class OpnameTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.opname.OpnameTableModel" );
+/**
+ * TableModel for opname records
+ */
+class OpnameTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( "muziek.opname.OpnameTableModel" );
 
     private Connection connection;
-    private String[ ] headings = { "Medium", "Opus", "Componisten", "Genre", "Type",
+    private final String[ ] headings = { "Medium", "Opus", "Componisten", "Genre", "Type",
 				   "Musici", "Opname datum", "Opname plaats", "Producers" };
 
-    class OpnameRecord {
+    private class OpnameRecord {
 	String	mediumString;
 	String	opusString;
         String  componistString;
@@ -47,20 +48,20 @@ public class OpnameTableModel extends AbstractTableModel {
 	int	opnameNummer;
 	int	musiciId;
 
-	public OpnameRecord( String mediumString,
-			     String opusString,
-                             String componistString,
-			     String componistenString,
-			     String genreString,
-			     String typeString,
-			     String musiciString,
-			     String opnameDatumString,
-			     String opnamePlaatsString,
-			     String producersString,
-			     int    mediumId,
-			     int    opusId,
-			     int    opnameNummer,
-			     int    musiciId ) {
+	OpnameRecord( String mediumString,
+                      String opusString,
+                      String componistString,
+                      String componistenString,
+                      String genreString,
+                      String typeString,
+                      String musiciString,
+                      String opnameDatumString,
+                      String opnamePlaatsString,
+                      String producersString,
+                      int    mediumId,
+                      int    opusId,
+                      int    opnameNummer,
+                      int    musiciId ) {
 	    this.mediumString = mediumString;
 	    this.opusString = opusString;
             this.componistString = componistString;
@@ -76,24 +77,6 @@ public class OpnameTableModel extends AbstractTableModel {
 	    this.opnameNummer = opnameNummer;
 	    this.musiciId = musiciId;
 	}
-
-	// Copy constructor
-	public OpnameRecord( OpnameRecord opnameRecord ) {
-	    this.mediumString = opnameRecord.mediumString;
-	    this.opusString = opnameRecord.opusString;
-            this.componistString = opnameRecord.componistString;
-	    this.componistenString = opnameRecord.componistenString;
-	    this.genreString = opnameRecord.genreString;
-	    this.typeString = opnameRecord.typeString;
-	    this.musiciString = opnameRecord.musiciString;
-	    this.opnameDatumString = opnameRecord.opnameDatumString;
-	    this.opnamePlaatsString = opnameRecord.opnamePlaatsString;
-	    this.producersString = opnameRecord.producersString;
-	    this.mediumId = opnameRecord.mediumId;
-	    this.opusId = opnameRecord.opusId;
-	    this.opnameNummer = opnameRecord.opnameNummer;
-	    this.musiciId = opnameRecord.musiciId;
- 	}
 
         // Check if two opnameRecords are equal, except for the componist string
         // so that that two opnameRecords which differ only in componist will be regarded as the same.
@@ -122,11 +105,11 @@ public class OpnameTableModel extends AbstractTableModel {
         }
     }
 
-    ArrayList<OpnameRecord> opnameRecordList = new ArrayList<OpnameRecord>( 500 );
+    private final ArrayList<OpnameRecord> opnameRecordList = new ArrayList<>( 1000 );
 
     private int mediumId = 0;
     private int mediumStatusId = 0;
-    private String opusFilterString = null;
+    private String opusFilterString;
     private int componistenPersoonId = 0;
     private int componistenId = 0;
     private int genreId = 0;
@@ -141,7 +124,7 @@ public class OpnameTableModel extends AbstractTableModel {
     private final static Pattern componistPattern = Pattern.compile( "(.+?), (.*)" );
 
     // Constructor
-    public OpnameTableModel( Connection connection ) {
+    OpnameTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupOpnameTableModel( mediumId, mediumStatusId, null,
@@ -150,19 +133,19 @@ public class OpnameTableModel extends AbstractTableModel {
 			       opnameDatumId, opnamePlaatsId, producersId );
     }
 
-    public void setupOpnameTableModel( int    mediumId,
-                                       int    mediumStatusId,
-				       String opusFilterString,
-				       int    componistenPersoonId,
-				       int    componistenId,
-				       int    genreId,
-				       int    typeId,
-				       int    persoonAllMusiciId,
-				       int    musiciId,
-				       int    musiciEnsembleId,
-				       int    opnameDatumId,
-				       int    opnamePlaatsId,
-				       int    producersId ) {
+    void setupOpnameTableModel( int    mediumId,
+                                int    mediumStatusId,
+                                String opusFilterString,
+                                int    componistenPersoonId,
+                                int    componistenId,
+                                int    genreId,
+                                int    typeId,
+                                int    persoonAllMusiciId,
+                                int    musiciId,
+                                int    musiciEnsembleId,
+                                int    opnameDatumId,
+                                int    opnamePlaatsId,
+                                int    producersId ) {
 	this.mediumId = mediumId;
 	this.mediumStatusId = mediumStatusId;
 	this.opusFilterString = opusFilterString;
@@ -502,14 +485,11 @@ public class OpnameTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return opnameRecordList.size( ); }
+    int getNumberOfRecords( ) { return opnameRecordList.size( ); }
 
-    public OpnameKey getSelectedOpnameKey( int row ) {
-	final OpnameKey nullOpnameKey = new OpnameKey( );
-
+    OpnameKey getSelectedOpnameKey( int row ) {
 	final OpnameRecord opnameRecord = opnameRecordList.get( row );
-
-	return new OpnameKey( opnameRecord.mediumId,
+        return new OpnameKey( opnameRecord.mediumId,
 			      opnameRecord.opusId,
 			      opnameRecord.opnameNummer,
 			      opnameRecord.musiciId );

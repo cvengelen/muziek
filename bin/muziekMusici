@@ -1,1 +1,2 @@
-java -cp /Users/cvengelen/java/muziek/build/muziek.jar:${JAVA_LIBS}/table.jar -Djava.util.logging.config.file=/Users/cvengelen/java/muziek/resources/logging.properties muziek.musici.Musici
+# Start muziek.Main, met muziek.musici.MusiciFrame als argument
+java -cp /Users/cvengelen/java/muziek/build/muziek.jar:${JAVA_LIBS}/table.jar -Djava.util.logging.config.file=/Users/cvengelen/java/muziek/resources/logging.properties muziek.Main muziek.musici.MusiciFrame

@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in musici
-
 package muziek.musici;
 
 import java.sql.Connection;
@@ -7,23 +5,21 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import javax.swing.table.*;
-import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class MusiciTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.musici.MusiciTableModel" );
+/**
+ * Class to setup a TableModel for records in musici
+ */
+class MusiciTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( MusiciTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Musici", "Persoon", "Rol", "Ensemble" };
+    private final String[ ] headings = { "Id", "Musici", "Persoon", "Rol", "Ensemble" };
 
-    class MusiciRecord {
+    private class MusiciRecord {
 	int	musiciId;
 	String	musiciString;
 	int	persoonId;
@@ -33,14 +29,14 @@ public class MusiciTableModel extends AbstractTableModel {
 	int	ensembleId;
 	String	ensembleString;
 
-	public MusiciRecord( int     musiciId,
-			     String  musiciString,
-			     int     persoonId,
-			     String  persoonString,
-			     int     rolId,
-			     String  rolString,
-			     int     ensembleId,
-			     String  ensembleString ) {
+	MusiciRecord( int     musiciId,
+                      String  musiciString,
+                      int     persoonId,
+                      String  persoonString,
+                      int     rolId,
+                      String  rolString,
+                      int     ensembleId,
+                      String  ensembleString ) {
 	    this.musiciId = musiciId;
 	    this.musiciString = musiciString;
 	    this.persoonId = persoonId;
@@ -52,24 +48,24 @@ public class MusiciTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList musiciRecordList = new ArrayList( 100 );
+    private final ArrayList<MusiciRecord> musiciRecordList = new ArrayList<>( 500 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    public MusiciTableModel( Connection connection ) {
+    MusiciTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupMusiciTableModel( null, 0, 0, 0 );
     }
 
-    public void setupMusiciTableModel( String musiciFilterString,
-				       int selectedPersoonId,
-				       int selectedRolId,
-				       int selectedEnsembleId ) {
+    void setupMusiciTableModel( String musiciFilterString,
+                                int selectedPersoonId,
+                                int selectedRolId,
+                                int selectedEnsembleId ) {
 	// Setup the table
 	try {
 	    String musiciQueryString =
@@ -184,10 +180,9 @@ public class MusiciTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final MusiciRecord musiciRecord =
-	    ( MusiciRecord )musiciRecordList.get( row );
+	final MusiciRecord musiciRecord = musiciRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( musiciRecord.musiciId );
+	if ( column == 0 ) return musiciRecord.musiciId;
 	if ( column == 1 ) return musiciRecord.musiciString;
 	if ( column == 2 ) return musiciRecord.persoonString;
 	if ( column == 3 ) return musiciRecord.rolString;
@@ -202,8 +197,7 @@ public class MusiciTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final MusiciRecord musiciRecord =
-	    ( MusiciRecord )musiciRecordList.get( row );
+	final MusiciRecord musiciRecord = musiciRecordList.get( row );
 
 	String updateString = null;
 
@@ -263,19 +257,21 @@ public class MusiciTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getMusiciId( int row ) {
-	final MusiciRecord musiciRecord =
-	    ( MusiciRecord )musiciRecordList.get( row );
+    int getMusiciId( int row ) {
+        if ( ( row < 0 ) || ( row >= musiciRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return musiciRecord.musiciId;
+	return musiciRecordList.get( row ).musiciId;
     }
 
-    public String getMusiciString( int row ) {
+    String getMusiciString( int row ) {
 	if ( ( row < 0 ) || ( row >= musiciRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( MusiciRecord )musiciRecordList.get( row ) ).musiciString;
+	return musiciRecordList.get( row ).musiciString;
     }
 }

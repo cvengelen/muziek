@@ -1,5 +1,3 @@
-// frame to show and select records from musici
-
 package muziek.musici;
 
 import java.sql.Connection;
@@ -21,40 +19,43 @@ import muziek.gui.PersoonComboBox;
 import muziek.gui.RolComboBox;
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the musici table in schema muziek.
+ * An instance of MusiciFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class MusiciFrame {
-    final Logger logger = Logger.getLogger( "muziek.musici.MusiciFrame" );
+    private final Logger logger = Logger.getLogger( MusiciFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Musici" );
+    private Connection connection;
+    private final JFrame frame = new JFrame( "Musici" );
 
-    JTextField musiciFilterTextField;
+    private JTextField musiciFilterTextField;
 
-    PersoonComboBox persoonComboBox;
-    int selectedPersoonId = 0;
+    private PersoonComboBox persoonComboBox;
+    private int selectedPersoonId = 0;
 
-    RolComboBox rolComboBox;
-    int selectedRolId = 0;
+    private RolComboBox rolComboBox;
+    private int selectedRolId = 0;
 
-    EnsembleComboBox ensembleComboBox;
-    int selectedEnsembleId = 0;
+    private EnsembleComboBox ensembleComboBox;
+    private int selectedEnsembleId = 0;
 
-    MusiciTableModel musiciTableModel;
-    TableSorter musiciTableSorter;
-    JTable musiciTable;
+    private MusiciTableModel musiciTableModel;
+    private TableSorter musiciTableSorter;
 
-
-    class Musici {
+    private class Musici {
 	int	id;
 	String  string;
 
-	public Musici( int    id,
-		       String string ) {
+	Musici( int    id,
+                String string ) {
 	    this.id = id;
 	    this.string = string;
 	}
 
-	public boolean presentInTable( String tableString ) {
+	boolean presentInTable( String tableString ) {
 	    // Check if musiciId is present in table
 	    try {
 		Statement statement = connection.createStatement( );
@@ -76,9 +77,8 @@ public class MusiciFrame {
 	}
     }
 
-
     public MusiciFrame( final Connection connection ) {
-	this.connection = connection;
+        this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -86,19 +86,17 @@ public class MusiciFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.insets = new Insets( 0, 0, 10, 10 );
 
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the musici table
-		musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
-							selectedPersoonId,
-							selectedRolId,
-							selectedEnsembleId );
-	    }
-	}
-	final TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
+	final ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
+            // Setup the musici table
+            musiciTableSorter.clearSortingState();
+            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                    selectedPersoonId,
+                    selectedRolId,
+                    selectedEnsembleId );
+        };
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
@@ -107,8 +105,12 @@ public class MusiciFrame {
 
 	musiciFilterTextField = new JTextField( 20 );
 	musiciFilterTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 20, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( musiciFilterTextField, constraints );
 
 
@@ -116,9 +118,12 @@ public class MusiciFrame {
 	// Persoon ComboBox
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
 	constraints.anchor = GridBagConstraints.EAST;
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( new JLabel( "Persoon:" ), constraints );
 
 	final JPanel persoonPanel = new JPanel( );
@@ -128,33 +133,25 @@ public class MusiciFrame {
 	// Setup a JComboBox with the results of the query on persoon
 	// Do not allow to enter new record in persoon
 	persoonComboBox = new PersoonComboBox( connection, frame, false );
-	persoonPanel.add( persoonComboBox );
+	persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected persoon ID from the combo box
+            selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
 
-	class SelectPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected persoon ID from the combo box
-		selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
-
-		// Setup the musici table
-		musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
-							selectedPersoonId,
-							selectedRolId,
-							selectedEnsembleId );
-	    }
-	}
-	persoonComboBox.addActionListener( new SelectPersoonActionListener( ) );
+            // Setup the musici table
+            musiciTableSorter.clearSortingState();
+            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                    selectedPersoonId,
+                    selectedRolId,
+                    selectedEnsembleId );
+        } );
+        persoonPanel.add( persoonComboBox );
 
 	JButton filterPersoonButton = new JButton( "Filter" );
 	filterPersoonButton.setActionCommand( "filterPersoon" );
-	persoonPanel.add( filterPersoonButton );
+        filterPersoonButton.addActionListener( ( ActionEvent actionEvent ) -> persoonComboBox.filterPersoonComboBox( ) );
+        persoonPanel.add( filterPersoonButton );
 
-	class FilterPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		persoonComboBox.filterPersoonComboBox( );
-	    }
-	}
-	filterPersoonButton.addActionListener( new FilterPersoonActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( persoonPanel, constraints );
@@ -164,6 +161,7 @@ public class MusiciFrame {
 	// Rol ComboBox
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
 	constraints.anchor = GridBagConstraints.EAST;
@@ -175,33 +173,25 @@ public class MusiciFrame {
 	// Setup a JComboBox with the results of the query on rol
 	// Do not allow to enter new record in rol
 	rolComboBox = new RolComboBox( connection, frame, false );
-	rolPanel.add( rolComboBox );
+	rolComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected rol ID from the combo box
+            selectedRolId = rolComboBox.getSelectedRolId( );
 
-	class SelectRolActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected rol ID from the combo box
-		selectedRolId = rolComboBox.getSelectedRolId( );
-
-		// Setup the musici table
-		musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
-							selectedPersoonId,
-							selectedRolId,
-							selectedEnsembleId );
-	    }
-	}
-	rolComboBox.addActionListener( new SelectRolActionListener( ) );
+            // Setup the musici table
+            musiciTableSorter.clearSortingState();
+            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                    selectedPersoonId,
+                    selectedRolId,
+                    selectedEnsembleId );
+        } );
+        rolPanel.add( rolComboBox );
 
 	JButton filterRolButton = new JButton( "Filter" );
 	filterRolButton.setActionCommand( "filterRol" );
-	rolPanel.add( filterRolButton );
+        filterRolButton.addActionListener( ( ActionEvent actionEvent ) -> rolComboBox.filterRolComboBox( ) );
+        rolPanel.add( filterRolButton );
 
-	class FilterRolActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		rolComboBox.filterRolComboBox( );
-	    }
-	}
-	filterRolButton.addActionListener( new FilterRolActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( rolPanel, constraints );
@@ -211,9 +201,9 @@ public class MusiciFrame {
 	// Ensemble ComboBox
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
-	constraints.gridwidth = 1;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Ensemble:" ), constraints );
 
@@ -223,33 +213,25 @@ public class MusiciFrame {
 	// Setup a JComboBox with the results of the query on ensemble
 	// Do not allow to enter new record in ensemble
 	ensembleComboBox = new EnsembleComboBox( connection, frame, false );
-	ensemblePanel.add( ensembleComboBox );
+	ensembleComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected ensemble ID from the combo box
+            selectedEnsembleId = ensembleComboBox.getSelectedEnsembleId( );
 
-	class SelectEnsembleActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected ensemble ID from the combo box
-		selectedEnsembleId = ensembleComboBox.getSelectedEnsembleId( );
-
-		// Setup the musici table
-		musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
-							selectedPersoonId,
-							selectedRolId,
-							selectedEnsembleId );
-	    }
-	}
-	ensembleComboBox.addActionListener( new SelectEnsembleActionListener( ) );
+            // Setup the musici table
+            musiciTableSorter.clearSortingState();
+            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                    selectedPersoonId,
+                    selectedRolId,
+                    selectedEnsembleId );
+        } );
+        ensemblePanel.add( ensembleComboBox );
 
 	JButton filterEnsembleButton = new JButton( "Filter" );
 	filterEnsembleButton.setActionCommand( "filterEnsemble" );
-	ensemblePanel.add( filterEnsembleButton );
+	filterEnsembleButton.addActionListener( ( ActionEvent actionEvent ) -> ensembleComboBox.filterEnsembleComboBox( ) );
+        ensemblePanel.add( filterEnsembleButton );
 
-	class FilterEnsembleActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		ensembleComboBox.filterEnsembleComboBox( );
-	    }
-	}
-	filterEnsembleButton.addActionListener( new FilterEnsembleActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( ensemblePanel, constraints );
@@ -258,7 +240,7 @@ public class MusiciFrame {
 	// Create musici table from title table model
 	musiciTableModel = new MusiciTableModel( connection );
 	musiciTableSorter = new TableSorter( musiciTableModel );
-	musiciTable = new JTable( musiciTableSorter );
+	final JTable musiciTable = new JTable( musiciTableSorter );
 	musiciTableSorter.setTableHeader( musiciTable.getTableHeader( ) );
 	// musiciTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -274,11 +256,14 @@ public class MusiciFrame {
 	// Set vertical size just enough for 20 entries
 	musiciTable.setPreferredScrollableViewportSize( new Dimension( 850, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 4;
 	constraints.gridwidth = 4;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( musiciTable ), constraints );
 
 
@@ -290,7 +275,7 @@ public class MusiciFrame {
 	final ListSelectionModel musiciListSelectionModel = musiciTable.getSelectionModel( );
 
 	class MusiciListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -310,7 +295,7 @@ public class MusiciFrame {
 		deleteMusiciButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add musiciListSelectionListener object to the selection model of the musici table
@@ -322,12 +307,12 @@ public class MusiciFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+                    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new musici record
-		    EditMusiciDialog editMusiciDialog =
-			new EditMusiciDialog( connection, frame,
-					      musiciFilterTextField.getText( ) );
+		    new EditMusiciDialog( connection, frame,
+                                          musiciFilterTextField.getText( ) );
 		} else {
 		    int selectedRow = musiciListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
@@ -352,8 +337,7 @@ public class MusiciFrame {
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			// Do dialog
-			EditMusiciDialog editMusiciDialog =
-			    new EditMusiciDialog( connection, frame, selectedMusiciId );
+			new EditMusiciDialog( connection, frame, selectedMusiciId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			final Musici musici = new Musici( musiciTableModel.getMusiciId( selectedRow ),
 							  musiciTableModel.getMusiciString( selectedRow ) );
@@ -404,6 +388,7 @@ public class MusiciFrame {
 		}
 
 		// Records may have been modified: setup the musici table model again
+                musiciTableSorter.clearSortingState();
 		musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
 							selectedPersoonId,
 							selectedRolId,
@@ -434,12 +419,28 @@ public class MusiciFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 5;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 920, 600 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 910, 600 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

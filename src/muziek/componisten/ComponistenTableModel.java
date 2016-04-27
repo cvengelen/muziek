@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in componisten
-
 package muziek.componisten;
 
 import java.sql.Connection;
@@ -12,6 +10,9 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
+/**
+ * Class to setup a TableModel for records in componisten
+ */
 class ComponistenTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( ComponistenTableModel.class.getCanonicalName() );
 

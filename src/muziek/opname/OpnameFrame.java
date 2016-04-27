@@ -2,11 +2,12 @@
 // Project:	muziek
 // Component:	gui
 // File:	OpnameFrame.java
-// Description:	Frame to show all or selected records in opname table
+// Description:	Frame to show all or selected records in the opname table in schema muziek
 // Author:	Chris van Engelen
 // History:	2006/02/19: Initial version
 //		2009/01/01: Add selection on Componist-Persoon
 //              2011/08/13: Add selection on medium status, default selection available
+//              2016/04/27: Refactoring, and use of Java 7, 8 features
 
 package muziek.opname;
 
@@ -18,60 +19,62 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import java.sql.SQLException;
 import java.util.logging.*;
 
 import muziek.gui.*;
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the opname table in schema muziek.
+ * An instance of OpnameFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class OpnameFrame {
-    final Logger logger = Logger.getLogger( "muziek.opname.OpnameFrame" );
+    private final Logger logger = Logger.getLogger( OpnameFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Opname");
+    private final JFrame frame = new JFrame( "Opname");
 
-    MediumComboBox mediumComboBox;
-    int selectedMediumId = 0;
+    private MediumComboBox mediumComboBox;
+    private int selectedMediumId = 0;
 
-    // Select available CDs: MediumStatus 2
-    MediumStatusComboBox mediumStatusComboBox;
-    int selectedMediumStatusId = 2;
+    // Select available mediums: MediumStatus 2
+    private MediumStatusComboBox mediumStatusComboBox;
+    private int selectedMediumStatusId = 2;
 
-    JTextField opusFilterTextField;
+    private JTextField opusFilterTextField;
 
-    ComponistenPersoonComboBox componistenPersoonComboBox;
-    int selectedComponistenPersoonId = 0;
-    int selectedComponistenId = 0;
+    private ComponistenPersoonComboBox componistenPersoonComboBox;
+    private int selectedComponistenPersoonId = 0;
+    private int selectedComponistenId = 0;
 
-    GenreComboBox genreComboBox;
-    int selectedGenreId = 0;
+    private GenreComboBox genreComboBox;
+    private int selectedGenreId = 0;
 
-    TypeComboBox typeComboBox;
-    int selectedTypeId = 0;
+    private TypeComboBox typeComboBox;
+    private int selectedTypeId = 0;
 
-    MusiciPersoonComboBox musiciPersoonComboBox;
-    int selectedPersoonAllMusiciId = 0;
-    int selectedMusiciId = 0;
+    private MusiciPersoonComboBox musiciPersoonComboBox;
+    private int selectedPersoonAllMusiciId = 0;
+    private int selectedMusiciId = 0;
 
-    MusiciEnsembleComboBox musiciEnsembleComboBox;
-    int selectedMusiciEnsembleId = 0;
+    private MusiciEnsembleComboBox musiciEnsembleComboBox;
+    private int selectedMusiciEnsembleId = 0;
 
-    OpnamePlaatsComboBox opnamePlaatsComboBox;
-    int selectedOpnamePlaatsId = 0;
+    private OpnamePlaatsComboBox opnamePlaatsComboBox;
+    private int selectedOpnamePlaatsId = 0;
 
-    OpnameDatumComboBox opnameDatumComboBox;
-    int selectedOpnameDatumId = 0;
+    private OpnameDatumComboBox opnameDatumComboBox;
+    private int selectedOpnameDatumId = 0;
 
-    ProducersComboBox producersComboBox;
-    int selectedProducersId = 0;
+    private ProducersComboBox producersComboBox;
+    private int selectedProducersId = 0;
 
-
-    OpnameTableModel opnameTableModel;
-    TableSorter opnameTableSorter;
-    JTable opnameTable;
+    private OpnameTableModel opnameTableModel;
+    private TableSorter opnameTableSorter;
 
     public OpnameFrame( final Connection connection ) {
-	this.connection = connection;
 
 	final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
@@ -81,44 +84,35 @@ public class OpnameFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 5, 10, 5, 10 );
-	constraints.weighty = 0.0;
+        constraints.gridwidth = 1;
 
-
-	/////////////////////////////////
 	// Text filter action listener
-	/////////////////////////////////
-
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the opname table
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
+	ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
+            // Setup the opname table
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        };
 
 
 	/////////////////////////////////
 	// Medium Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Medium:" ), constraints );
 
@@ -127,44 +121,35 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for medium with the selected medium ID
 	mediumComboBox = new MediumComboBox( connection, frame, false );
-	mediumPanel.add( mediumComboBox );
+	mediumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected medium ID from the combo box
+            selectedMediumId = mediumComboBox.getSelectedMediumId( );
 
-	class SelectMediumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected medium ID from the combo box
-		selectedMediumId = mediumComboBox.getSelectedMediumId( );
-
-		// Setup the opname table for the selected medium
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	mediumComboBox.addActionListener( new SelectMediumActionListener( ) );
+            // Setup the opname table for the selected medium
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        mediumPanel.add( mediumComboBox );
 
 	JButton filterMediumButton = new JButton( "Filter" );
 	filterMediumButton.setActionCommand( "filterMedium" );
-	mediumPanel.add( filterMediumButton );
+        filterMediumButton.addActionListener( ( ActionEvent actionEvent ) -> mediumComboBox.filterMediumComboBox( ) );
+        mediumPanel.add( filterMediumButton );
 
-	class FilterMediumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		mediumComboBox.filterMediumComboBox( );
-	    }
-	}
-	filterMediumButton.addActionListener( new FilterMediumActionListener( ) );
-
+        constraints.insets = new Insets( 20, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( mediumPanel, constraints );
 
@@ -173,10 +158,9 @@ public class OpnameFrame {
 	// Medium Status Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Medium status:" ), constraints );
 
@@ -185,33 +169,30 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for medium status with the selected medium ID
 	mediumStatusComboBox = new MediumStatusComboBox( connection, selectedMediumStatusId );
-	mediumStatusPanel.add( mediumStatusComboBox );
+	mediumStatusComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected medium status ID from the combo box
+            selectedMediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
 
-	class SelectMediumStatusActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected medium status ID from the combo box
-		selectedMediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
+            // Setup the opname table for the selected medium
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                    selectedMediumStatusId,
+                    opusFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTypeId,
+                    selectedPersoonAllMusiciId,
+                    selectedMusiciId,
+                    selectedMusiciEnsembleId,
+                    selectedOpnameDatumId,
+                    selectedOpnamePlaatsId,
+                    selectedProducersId );
+        } );
+        mediumStatusPanel.add( mediumStatusComboBox );
 
-		// Setup the opname table for the selected medium
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	mediumStatusComboBox.addActionListener( new SelectMediumStatusActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( mediumStatusPanel, constraints );
 
@@ -220,30 +201,33 @@ public class OpnameFrame {
 	// Opus filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opus Filter:" ), constraints );
 
 	opusFilterTextField = new JTextField( 40 );
 	opusFilterTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( opusFilterTextField, constraints );
+
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 
 	/////////////////////////////////
 	// Componisten Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
-	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Componisten:" ), constraints );
 
@@ -252,45 +236,36 @@ public class OpnameFrame {
 
 	// Setup a JComboBox with the results of the query on componisten
 	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, frame, false );
-	componistenPanel.add( componistenPersoonComboBox );
+	componistenPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected componisten-persoon ID and componisten ID from the combo box
+            selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
+            selectedComponistenId = componistenPersoonComboBox.getSelectedComponistenId( );
 
-	class SelectComponistenActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected componisten-persoon ID and componisten ID from the combo box
-		selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
-		selectedComponistenId = componistenPersoonComboBox.getSelectedComponistenId( );
-
-		// Setup the opname table for the selected componisten
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	componistenPersoonComboBox.addActionListener( new SelectComponistenActionListener( ) );
+            // Setup the opname table for the selected componisten
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        componistenPanel.add( componistenPersoonComboBox );
 
 	JButton filterComponistenButton = new JButton( "Filter" );
 	filterComponistenButton.setActionCommand( "filterComponisten" );
-	componistenPanel.add( filterComponistenButton );
+	filterComponistenButton.addActionListener( ( ActionEvent actionEvent ) -> componistenPersoonComboBox.filterComponistenPersoonComboBox( ) );
+        componistenPanel.add( filterComponistenButton );
 
-	class FilterComponistenActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		componistenPersoonComboBox.filterComponistenPersoonComboBox( );
-	    }
-	}
-	filterComponistenButton.addActionListener( new FilterComponistenActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( componistenPanel, constraints );
 
@@ -299,91 +274,87 @@ public class OpnameFrame {
 	// GenreCombo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 4;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Genre:" ), constraints );
 
 	// Setup a JComboBox for genre
 	genreComboBox = new GenreComboBox( connection, selectedGenreId );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
-	constraints.anchor = GridBagConstraints.WEST;
-	container.add( genreComboBox, constraints );
+	genreComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected genre ID from the combo box
+            selectedGenreId = genreComboBox.getSelectedGenreId( );
 
-	class SelectGenreActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected genre ID from the combo box
-		selectedGenreId = genreComboBox.getSelectedGenreId( );
+            // Setup the opname table for the selected genre
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
 
-		// Setup the opname table for the selected genre
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	genreComboBox.addActionListener( new SelectGenreActionListener( ) );
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( genreComboBox, constraints );
 
 
 	/////////////////////////////////
 	// Type Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 5;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Type:" ), constraints );
 
 	// Setup a JComboBox for type
 	typeComboBox = new TypeComboBox( connection, selectedTypeId );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
-	constraints.anchor = GridBagConstraints.WEST;
-	container.add( typeComboBox, constraints );
+	typeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected type ID from the combo box
+            selectedTypeId = typeComboBox.getSelectedTypeId( );
 
-	class SelectTypeActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected type ID from the combo box
-		selectedTypeId = typeComboBox.getSelectedTypeId( );
+            // Setup the opname table for the selected type
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
 
-		// Setup the opname table for the selected type
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	typeComboBox.addActionListener( new SelectTypeActionListener( ) );
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( typeComboBox, constraints );
 
 
-	////////////////////////////////////////////////
+        ////////////////////////////////////////////////
 	// Musici Combo Box
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 6;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Musici:" ), constraints );
 
@@ -392,45 +363,36 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for musici-persoon
 	musiciPersoonComboBox = new MusiciPersoonComboBox( connection, frame );
-	musiciPanel.add( musiciPersoonComboBox );
+	musiciPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected persoon or musici ID from the combo box
+            selectedPersoonAllMusiciId = musiciPersoonComboBox.getSelectedPersoonAllMusiciId( );
+            selectedMusiciId  = musiciPersoonComboBox.getSelectedMusiciId( );
 
-	class SelectMusiciPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected persoon or musici ID from the combo box
-		selectedPersoonAllMusiciId = musiciPersoonComboBox.getSelectedPersoonAllMusiciId( );
-		selectedMusiciId  = musiciPersoonComboBox.getSelectedMusiciId( );
-
-		// Setup the opname table for the selected musici
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	musiciPersoonComboBox.addActionListener( new SelectMusiciPersoonActionListener( ) );
+            // Setup the opname table for the selected musici
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        musiciPanel.add( musiciPersoonComboBox );
 
 	JButton filterMusiciPersoonButton = new JButton( "Filter" );
 	filterMusiciPersoonButton.setActionCommand( "filterMusiciPersoon" );
-	musiciPanel.add( filterMusiciPersoonButton );
+	filterMusiciPersoonButton.addActionListener( ( ActionEvent actionEvent ) -> musiciPersoonComboBox.filterMusiciPersoonComboBox( ) );
+        musiciPanel.add( filterMusiciPersoonButton );
 
-	class FilterMusiciPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		musiciPersoonComboBox.filterMusiciPersoonComboBox( );
-	    }
-	}
-	filterMusiciPersoonButton.addActionListener( new FilterMusiciPersoonActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( musiciPanel, constraints );
 
@@ -439,9 +401,9 @@ public class OpnameFrame {
 	// Ensemble Combo Box
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 7;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Ensemble:" ), constraints );
 
@@ -450,112 +412,46 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for musici-ensemble
 	musiciEnsembleComboBox = new MusiciEnsembleComboBox( connection, frame );
-	ensemblePanel.add( musiciEnsembleComboBox );
+	musiciEnsembleComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected musici-ensemble ID from the combo box
+            selectedMusiciEnsembleId = musiciEnsembleComboBox.getSelectedMusiciEnsembleId( );
 
-	class SelectMusiciEnsembleActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected musici-ensemble ID from the combo box
-		selectedMusiciEnsembleId = musiciEnsembleComboBox.getSelectedMusiciEnsembleId( );
-
-		// Setup the opname table for the selected musici
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	musiciEnsembleComboBox.addActionListener( new SelectMusiciEnsembleActionListener( ) );
+            // Setup the opname table for the selected musici-ensemble
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        ensemblePanel.add( musiciEnsembleComboBox );
 
 	JButton filterMusiciEnsembleButton = new JButton( "Filter" );
 	filterMusiciEnsembleButton.setActionCommand( "filterMusiciEnsemble" );
-	ensemblePanel.add( filterMusiciEnsembleButton );
+	filterMusiciEnsembleButton.addActionListener( ( ActionEvent actionEvent ) -> musiciEnsembleComboBox.filterMusiciEnsembleComboBox( ) );
+        ensemblePanel.add( filterMusiciEnsembleButton );
 
-	class FilterMusiciEnsembleActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		musiciEnsembleComboBox.filterMusiciEnsembleComboBox( );
-	    }
-	}
-	filterMusiciEnsembleButton.addActionListener( new FilterMusiciEnsembleActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( ensemblePanel, constraints );
-
-
-	//////////////////////////////////////////
-	// OpnameDatum Combo Box
-	//////////////////////////////////////////
-
-	constraints.gridx = 0;
-	constraints.gridy = 8;
-	constraints.weightx = 0.0;
-	constraints.anchor = GridBagConstraints.EAST;
-	container.add( new JLabel( "Opname datum:" ), constraints );
-
-	final JPanel opnameDatumPanel = new JPanel( );
-	opnameDatumPanel.setBorder( emptyBorder );
-
-	// Setup a JComboBox for opname datum
-	opnameDatumComboBox = new OpnameDatumComboBox( connection, frame, false );
-	opnameDatumPanel.add( opnameDatumComboBox );
-
-	class SelectOpnameDatumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected opname datum ID from the combo box
-		selectedOpnameDatumId = opnameDatumComboBox.getSelectedOpnameDatumId( );
-
-		// Setup the opname table for the selected opname datum
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	opnameDatumComboBox.addActionListener( new SelectOpnameDatumActionListener( ) );
-
-	JButton filterOpnameDatumButton = new JButton( "Filter" );
-	filterOpnameDatumButton.setActionCommand( "filterOpnameDatum" );
-	opnameDatumPanel.add( filterOpnameDatumButton );
-
-	class FilterOpnameDatumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opnameDatumComboBox.filterOpnameDatumComboBox( );
-	    }
-	}
-	filterOpnameDatumButton.addActionListener( new FilterOpnameDatumActionListener( ) );
-
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
-	constraints.anchor = GridBagConstraints.WEST;
-	container.add( opnameDatumPanel, constraints );
 
 
 	//////////////////////////////////////////
 	// OpnamePlaats Combo Box
 	//////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 9;
-	constraints.weightx = 0.0;
+	constraints.gridy = 8;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opname plaats:" ), constraints );
 
@@ -564,55 +460,94 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for opname_plaats
 	opnamePlaatsComboBox = new OpnamePlaatsComboBox( connection, frame, false );
-	opnamePlaatsPanel.add( opnamePlaatsComboBox );
+	opnamePlaatsComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected opname plaats ID from the combo box
+            selectedOpnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
 
-	class SelectOpnamePlaatsActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected opname plaats ID from the combo box
-		selectedOpnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
-
-		// Setup the opname table for the selected opname plaats
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	opnamePlaatsComboBox.addActionListener( new SelectOpnamePlaatsActionListener( ) );
+            // Setup the opname table for the selected opname plaats
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                    selectedMediumStatusId,
+                    opusFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTypeId,
+                    selectedPersoonAllMusiciId,
+                    selectedMusiciId,
+                    selectedMusiciEnsembleId,
+                    selectedOpnameDatumId,
+                    selectedOpnamePlaatsId,
+                    selectedProducersId );
+        } );
+        opnamePlaatsPanel.add( opnamePlaatsComboBox );
 
 	JButton filterOpnamePlaatsButton = new JButton( "Filter" );
 	filterOpnamePlaatsButton.setActionCommand( "filterOpnamePlaats" );
-	opnamePlaatsPanel.add( filterOpnamePlaatsButton );
+	filterOpnamePlaatsButton.addActionListener( ( ActionEvent actionEvent ) -> opnamePlaatsComboBox.filterOpnamePlaatsComboBox( ) );
+        opnamePlaatsPanel.add( filterOpnamePlaatsButton );
 
-	class FilterOpnamePlaatsActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opnamePlaatsComboBox.filterOpnamePlaatsComboBox( );
-	    }
-	}
-	filterOpnamePlaatsButton.addActionListener( new FilterOpnamePlaatsActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( opnamePlaatsPanel, constraints );
 
 
-	//////////////////////////////////////////
+        //////////////////////////////////////////
+        // OpnameDatum Combo Box
+        //////////////////////////////////////////
+
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
+        constraints.gridy = 9;
+        constraints.anchor = GridBagConstraints.EAST;
+        container.add( new JLabel( "Opname datum:" ), constraints );
+
+        final JPanel opnameDatumPanel = new JPanel( );
+        opnameDatumPanel.setBorder( emptyBorder );
+
+        // Setup a JComboBox for opname datum
+        opnameDatumComboBox = new OpnameDatumComboBox( connection, frame, false );
+        opnameDatumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected opname datum ID from the combo box
+            selectedOpnameDatumId = opnameDatumComboBox.getSelectedOpnameDatumId( );
+
+            // Setup the opname table for the selected opname datum
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                    selectedMediumStatusId,
+                    opusFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTypeId,
+                    selectedPersoonAllMusiciId,
+                    selectedMusiciId,
+                    selectedMusiciEnsembleId,
+                    selectedOpnameDatumId,
+                    selectedOpnamePlaatsId,
+                    selectedProducersId );
+        } );
+        opnameDatumPanel.add( opnameDatumComboBox );
+
+        JButton filterOpnameDatumButton = new JButton( "Filter" );
+        filterOpnameDatumButton.setActionCommand( "filterOpnameDatum" );
+        filterOpnameDatumButton.addActionListener( ( ActionEvent actionEvent ) -> opnameDatumComboBox.filterOpnameDatumComboBox( ) );
+        opnameDatumPanel.add( filterOpnameDatumButton );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( opnameDatumPanel, constraints );
+
+
+        //////////////////////////////////////////
 	// Producers Combo Box
 	//////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 10;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Producers:" ), constraints );
 
@@ -621,44 +556,35 @@ public class OpnameFrame {
 
 	// Setup a JComboBox for producers
 	producersComboBox = new ProducersComboBox( connection, frame, selectedProducersId );
-	producersPanel.add( producersComboBox );
+	producersComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected producers ID from the combo box
+            selectedProducersId = producersComboBox.getSelectedProducersId( );
 
-	class SelectProducersActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected producers ID from the combo box
-		selectedProducersId = producersComboBox.getSelectedProducersId( );
-
-		// Setup the opname table for the selected opname datum
-		opnameTableModel.setupOpnameTableModel( selectedMediumId,
-		                                        selectedMediumStatusId,
-							opusFilterTextField.getText( ),
-							selectedComponistenPersoonId,
-							selectedComponistenId,
-							selectedGenreId,
-							selectedTypeId,
-							selectedPersoonAllMusiciId,
-							selectedMusiciId,
-							selectedMusiciEnsembleId,
-							selectedOpnameDatumId,
-							selectedOpnamePlaatsId,
-							selectedProducersId );
-	    }
-	}
-	producersComboBox.addActionListener( new SelectProducersActionListener( ) );
+            // Setup the opname table for the selected producers
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        producersPanel.add( producersComboBox );
 
 	JButton filterProducersButton = new JButton( "Filter" );
 	filterProducersButton.setActionCommand( "filterProducers" );
-	producersPanel.add( filterProducersButton );
+	filterProducersButton.addActionListener( ( ActionEvent actionEvent ) -> producersComboBox.filterProducersComboBox( ) );
+        producersPanel.add( filterProducersButton );
 
-	class FilterProducersActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		producersComboBox.filterProducersComboBox( );
-	    }
-	}
-	filterProducersButton.addActionListener( new FilterProducersActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( producersPanel, constraints );
 
@@ -666,7 +592,7 @@ public class OpnameFrame {
 	// Create opname table from opname table model
 	opnameTableModel = new OpnameTableModel( connection );
 	opnameTableSorter = new TableSorter( opnameTableModel );
-	opnameTable = new JTable( opnameTableSorter );
+	final JTable opnameTable = new JTable( opnameTableSorter );
 	opnameTableSorter.setTableHeader( opnameTable.getTableHeader( ) );
 	// opnameTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -678,22 +604,22 @@ public class OpnameFrame {
 	opnameTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth(  80 );  // genre
 	opnameTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth(  80 );  // type
 	opnameTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 150 );  // Musici
-	opnameTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 150 );  // Opname datum
+	opnameTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 140 );  // Opname datum
 	opnameTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 150 );  // Opname plaats
 	opnameTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 150 );  // producers
 
 	// Set vertical size just enough for 10 entries
-	opnameTable.setPreferredScrollableViewportSize( new Dimension( 900, 240 ) );
+	opnameTable.setPreferredScrollableViewportSize( new Dimension( 1300, 240 ) );
 
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 11;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 2;
 	constraints.fill = GridBagConstraints.BOTH;
-	constraints.weightx = 1.0;
-	constraints.weighty = 1.0;
+	constraints.weightx = 1d;
+	constraints.weighty = 1d;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 5, 5, 5 );
 	container.add( new JScrollPane( opnameTable ), constraints );
 
 
@@ -704,7 +630,7 @@ public class OpnameFrame {
 	final ListSelectionModel opnameListSelectionModel = opnameTable.getSelectionModel( );
 
 	class OpnameListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -722,7 +648,7 @@ public class OpnameFrame {
 		openOpnameDialogButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add opnameListSelectionListener object to the selection model of the opname table
@@ -734,26 +660,26 @@ public class OpnameFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opname record
-		    EditOpnameDialog editOpnameDialog =
-			new EditOpnameDialog( connection, frame,
-					      selectedMediumId,
-					      opusFilterTextField.getText( ),
-					      selectedComponistenPersoonId,
-					      selectedComponistenId,
-					      ( String )( componistenPersoonComboBox.getSelectedItem( ) ),
-					      selectedGenreId,
-					      ( String )( genreComboBox.getSelectedItem( ) ),
-					      selectedTypeId,
-					      ( String )( typeComboBox.getSelectedItem( ) ),
-					      selectedPersoonAllMusiciId,
-					      selectedMusiciId,
-					      selectedMusiciEnsembleId,
-					      selectedOpnameDatumId,
-					      selectedOpnamePlaatsId,
-					      selectedProducersId );
+		    new EditOpnameDialog( connection, frame,
+                                          selectedMediumId,
+                                          opusFilterTextField.getText( ),
+                                          selectedComponistenPersoonId,
+                                          selectedComponistenId,
+                                          ( String )( componistenPersoonComboBox.getSelectedItem( ) ),
+                                          selectedGenreId,
+                                          ( String )( genreComboBox.getSelectedItem( ) ),
+                                          selectedTypeId,
+                                          ( String )( typeComboBox.getSelectedItem( ) ),
+                                          selectedPersoonAllMusiciId,
+                                          selectedMusiciId,
+                                          selectedMusiciEnsembleId,
+                                          selectedOpnameDatumId,
+                                          selectedOpnamePlaatsId,
+                                          selectedProducersId );
 		} else {
 		    int selectedRow = opnameListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
@@ -777,9 +703,8 @@ public class OpnameFrame {
 			    return;
 			}
 
-			// Do dialog
-			EditOpnameDialog editOpnameDialog =
-			    new EditOpnameDialog( connection, frame, selectedOpnameKey );
+			// Do edit opname dialog
+			new EditOpnameDialog( connection, frame, selectedOpnameKey );
 
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			logger.severe( "Delete not yet implemented" );
@@ -787,6 +712,7 @@ public class OpnameFrame {
 		}
 
 		// Records may have been modified: setup the table model again
+                opnameTableSorter.clearSortingState();
 		opnameTableModel.setupOpnameTableModel( selectedMediumId,
 		                                        selectedMediumStatusId,
 							opusFilterTextField.getText( ),
@@ -800,6 +726,7 @@ public class OpnameFrame {
 							selectedOpnameDatumId,
 							selectedOpnamePlaatsId,
 							selectedProducersId );
+
 		// Setup combo boxes again
 		componistenPersoonComboBox.setupComponistenPersoonComboBox( selectedComponistenPersoonId,
 									    selectedComponistenId );
@@ -832,13 +759,28 @@ public class OpnameFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 12;
-        constraints.weightx = 0.0;
-        constraints.weighty = 0.0;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 980, 800 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1360, 800 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }
