@@ -1,13 +1,12 @@
-//
 // Project:	muziek
-// Component:	gui
-// File:	OpnameFrame.java
+// Package:	muziek.opus
+// File:	OpusFrame.java
 // Description:	Frame to show all or selected records in the opus table
 // Author:	Chris van Engelen
 // History:	2006/02/26: Initial version
 //		2009/01/01: Add selection on Componist-Persoon
 //              2011/08/28: Add weightx, weighty, fill
-//
+//              2016/04/27: Refactoring, and use of Java 7, 8 features
 
 package muziek.opus;
 
@@ -19,6 +18,8 @@ import java.sql.Statement;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.*;
 
 import java.util.logging.Logger;
@@ -26,40 +27,43 @@ import java.util.logging.Logger;
 import muziek.gui.*;
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the opus table in schema muziek.
+ * An instance of OpusDatumFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class OpusFrame {
-    final Logger logger = Logger.getLogger( "muziek.opus.OpusFrame" );
+    private final Logger logger = Logger.getLogger( OpusFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Opus");
+    private final JFrame frame = new JFrame( "Opus");
 
-    JTextField opusTitelFilterTextField;
+    static private final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
-    JTextField opusNummerFilterTextField;
+    private JTextField opusTitelFilterTextField;
 
-    ComponistenPersoonComboBox componistenPersoonComboBox;
-    int selectedComponistenPersoonId = 0;
-    int selectedComponistenId = 0;
+    private JTextField opusNummerFilterTextField;
 
-    GenreComboBox genreComboBox;
-    int selectedGenreId = 0;
+    private ComponistenPersoonComboBox componistenPersoonComboBox;
+    private int selectedComponistenPersoonId = 0;
+    private int selectedComponistenId = 0;
 
-    TijdperkComboBox tijdperkComboBox;
-    int selectedTijdperkId = 0;
+    private GenreComboBox genreComboBox;
+    private int selectedGenreId = 0;
 
-    TypeComboBox typeComboBox;
-    int selectedTypeId = 0;
+    private TijdperkComboBox tijdperkComboBox;
+    private int selectedTijdperkId = 0;
 
-    SubtypeComboBox subtypeComboBox;
-    int selectedSubtypeId = 0;
+    private TypeComboBox typeComboBox;
+    private int selectedTypeId = 0;
 
-    OpusTableModel opusTableModel;
-    TableSorter opusTableSorter;
-    JTable opusTable;
+    private SubtypeComboBox subtypeComboBox;
+    private int selectedSubtypeId = 0;
 
+    private OpusTableModel opusTableModel;
+    private TableSorter opusTableSorter;
 
     public OpusFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -67,276 +71,251 @@ public class OpusFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.insets = new Insets( 15, 5, 5, 5 );
-	constraints.weighty = 0.0;
+        constraints.gridwidth = 1;
 
+        // Action Listenen
+        final ActionListener textFieldActionListener = ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
+
+            // Setup the opus table
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        };
 
 	/////////////////////////////////
 	// Opus Titel filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.weightx = 0.0;
-	constraints.gridwidth = 1;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opus Titel Filter:" ), constraints );
+
 	opusTitelFilterTextField = new JTextField( 40 );
+        opusTitelFilterTextField.addActionListener( textFieldActionListener );
 
+        constraints.insets = new Insets( 20, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
-	constraints.gridwidth = 3;
 	container.add( opusTitelFilterTextField, constraints );
-
-	class OpusTitelFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
-
-		// Setup the opus table
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	opusTitelFilterTextField.addActionListener( new OpusTitelFilterActionListener( ) );
-
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 	/////////////////////////////////
 	// Opus nummer filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-	constraints.weightx = 0.0;
-	constraints.gridwidth = 1;
-	constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opus Nummer Filter:" ), constraints );
+
 	opusNummerFilterTextField = new JTextField( 40 );
+        opusNummerFilterTextField.addActionListener( textFieldActionListener );
 
+        constraints.insets = new Insets( 5, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
-	constraints.gridwidth = 3;
 	container.add( opusNummerFilterTextField, constraints );
-
-	class OpusNummerFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
-
-		// Setup the opus table
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	opusNummerFilterTextField.addActionListener( new OpusNummerFilterActionListener( ) );
-
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 	/////////////////////////////////
 	// Componisten Combo Box
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Componisten:" ), constraints );
 
-	// Setup a JComboBox with the results of the query on componisten
+        final JPanel componistenPanel = new JPanel( );
+        componistenPanel.setBorder( emptyBorder );
+
+        // Setup a JComboBox with the results of the query on componisten
 	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, frame, false );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
-	constraints.anchor = GridBagConstraints.WEST;
-	container.add( componistenPersoonComboBox, constraints );
+        componistenPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
 
-	class SelectComponistenActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
+            // Get the selected componisten-persoon ID and componisten ID from the combo box
+            selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
+            selectedComponistenId = componistenPersoonComboBox.getSelectedComponistenId( );
 
-		// Get the selected componisten-persoon ID and componisten ID from the combo box
-		selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
-		selectedComponistenId = componistenPersoonComboBox.getSelectedComponistenId( );
-
-		// Setup the opus table for the selected componisten
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	componistenPersoonComboBox.addActionListener( new SelectComponistenActionListener( ) );
+            // Setup the opus table for the selected componisten
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        } );
+        componistenPanel.add( componistenPersoonComboBox );
 
 	JButton filterComponistenButton = new JButton( "Filter" );
-	filterComponistenButton.setActionCommand( "filterComponisten" );
+        filterComponistenButton.addActionListener( ( ActionEvent actionEvent ) -> componistenPersoonComboBox.filterComponistenPersoonComboBox( ) );
+        componistenPanel.add( filterComponistenButton );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
-	constraints.weightx = 1.0;
-	constraints.gridwidth = 1;
-	container.add( filterComponistenButton, constraints );
+	container.add( componistenPanel, constraints );
 
-	class FilterComponistenActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		componistenPersoonComboBox.filterComponistenPersoonComboBox( );
-	    }
-	}
-	filterComponistenButton.addActionListener( new FilterComponistenActionListener( ) );
+        /////////////////////////////////
+        // Genre Combo Box
+        /////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.anchor = GridBagConstraints.EAST;
+        container.add( new JLabel( "Genre:" ), constraints );
 
-	// Setup a JComboBox for genre
+        // Setup a JComboBox for genre
 	genreComboBox = new GenreComboBox( connection, selectedGenreId );
-	constraints.gridx = 0;
-	constraints.gridy = 3;
-	constraints.weightx = 0.0;
-	constraints.anchor = GridBagConstraints.EAST;
-	container.add( new JLabel( "Genre:" ), constraints );
+        genreComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
 
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+            // Get the selected genre ID from the combo box
+            selectedGenreId = genreComboBox.getSelectedGenreId( );
+
+            // Setup the opus table for the selected genre
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( genreComboBox, constraints );
 
-	class SelectGenreActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
+        /////////////////////////////////
+        // Tijdperk Combo Box
+        /////////////////////////////////
 
-		// Get the selected genre ID from the combo box
-		selectedGenreId = genreComboBox.getSelectedGenreId( );
-
-		// Setup the opus table for the selected genre
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	genreComboBox.addActionListener( new SelectGenreActionListener( ) );
-
-
-	// Setup a JComboBox for tijdperk
-	tijdperkComboBox = new TijdperkComboBox( connection, selectedTijdperkId );
-	constraints.gridx = 0;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 4;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Tijdperk:" ), constraints );
+
+        // Setup a JComboBox for tijdperk
+        tijdperkComboBox = new TijdperkComboBox( connection, selectedTijdperkId );
+        tijdperkComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
+
+            // Get the selected tijdperk ID from the combo box
+            selectedTijdperkId = tijdperkComboBox.getSelectedTijdperkId( );
+
+            // Setup the opus table for the selected tijdperk
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( tijdperkComboBox, constraints );
 
-	class SelectTijdperkActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
+        /////////////////////////////////
+        // Tijdperk Combo Box
+        /////////////////////////////////
 
-		// Get the selected tijdperk ID from the combo box
-		selectedTijdperkId = tijdperkComboBox.getSelectedTijdperkId( );
-
-		// Setup the opus table for the selected tijdperk
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	tijdperkComboBox.addActionListener( new SelectTijdperkActionListener( ) );
-
-
-	// Setup a JComboBox for type
-	typeComboBox = new TypeComboBox( connection, selectedTypeId );
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 5;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Type:" ), constraints );
+
+        // Setup a JComboBox for type
+        typeComboBox = new TypeComboBox( connection, selectedTypeId );
+        typeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
+
+            // Get the selected type ID from the combo box
+            selectedTypeId = typeComboBox.getSelectedTypeId( );
+
+            // Setup the opus table for the selected type
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( typeComboBox, constraints );
 
-	class SelectTypeActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
+        /////////////////////////////////
+        // Subtype Combo Box
+        /////////////////////////////////
 
-		// Get the selected type ID from the combo box
-		selectedTypeId = typeComboBox.getSelectedTypeId( );
-
-		// Setup the opus table for the selected type
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	typeComboBox.addActionListener( new SelectTypeActionListener( ) );
-
-
-	// Setup a JComboBox for subtype
-	subtypeComboBox = new SubtypeComboBox( connection, frame, selectedSubtypeId );
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 6;
-	constraints.weightx = 0.0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Subtype:" ), constraints );
+
+        // Setup a JComboBox for subtype
+        subtypeComboBox = new SubtypeComboBox( connection, frame, selectedSubtypeId );
+        subtypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Number of rows may have changed: reset the table sorter
+            opusTableSorter.clearSortingState( );
+
+            // Get the selected subtype ID from the combo box
+            selectedSubtypeId = subtypeComboBox.getSelectedSubtypeId( );
+
+            // Setup the opus table for the selected subtype
+            opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                    opusNummerFilterTextField.getText( ),
+                    selectedComponistenPersoonId,
+                    selectedComponistenId,
+                    selectedGenreId,
+                    selectedTijdperkId,
+                    selectedTypeId,
+                    selectedSubtypeId );
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( subtypeComboBox, constraints );
-
-	class SelectSubtypeActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Number of rows may have changed: reset the table sorter
-		opusTableSorter.clearSortingState( );
-
-		// Get the selected subtype ID from the combo box
-		selectedSubtypeId = subtypeComboBox.getSelectedSubtypeId( );
-
-		// Setup the opus table for the selected subtype
-		opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
-						    opusNummerFilterTextField.getText( ),
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTijdperkId,
-						    selectedTypeId,
-						    selectedSubtypeId );
-	    }
-	}
-	subtypeComboBox.addActionListener( new SelectSubtypeActionListener( ) );
 
 
 	// Define the open dialog, enable edit, cancel, save, and delete buttons.
@@ -352,7 +331,7 @@ public class OpusFrame {
 					     cancelRowEditButton,
 					     saveRowEditButton );
 	opusTableSorter = new TableSorter( opusTableModel );
-	opusTable = new JTable( opusTableSorter );
+	final JTable opusTable = new JTable( opusTableSorter );
 	opusTableSorter.setTableHeader( opusTable.getTableHeader( ) );
 	// opusTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -366,6 +345,9 @@ public class OpusFrame {
 	opusTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 150 );  // tijdperk
 	opusTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 100 );  // type
 	opusTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 100 );  // subtype
+
+        // Set vertical size just enough for 10 entries
+        opusTable.setPreferredScrollableViewportSize( new Dimension( 980, 240 ) );
 
 	final DefaultCellEditor genreDefaultCellEditor =
 	    new DefaultCellEditor( new GenreComboBox( connection, 0 ) );
@@ -383,27 +365,22 @@ public class OpusFrame {
 	    new DefaultCellEditor( new SubtypeComboBox( connection, null, false ) );
 	opusTable.getColumnModel( ).getColumn( 7 ).setCellEditor( subtypeDefaultCellEditor );
 
-	// Set vertical size just enough for 10 entries
-	opusTable.setPreferredScrollableViewportSize( new Dimension( 900, 240 ) );
-
-
-	constraints.gridx = 0;
+        constraints.insets = new Insets( 5, 20, 5, 20 );
+        constraints.gridx = 0;
 	constraints.gridy = 9;
 	// Setting weighty and fill is necessary for proper filling the frame when resized.
 	constraints.fill = GridBagConstraints.BOTH;
-	constraints.weightx = 1.0;
-	constraints.weighty = 1.0;
+	constraints.weightx = 1d;
+	constraints.weighty = 1d;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.gridwidth = 3;
-	constraints.insets = new Insets( 10, 15, 5, 15 );
+	constraints.gridwidth = 2;
 	container.add( new JScrollPane( opusTable ), constraints );
-
 
 	// Get the selection model related to the rekening_mutatie table
 	final ListSelectionModel opusListSelectionModel = opusTable.getSelectionModel( );
 
 	class OpusListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -471,7 +448,7 @@ public class OpusFrame {
 		deleteOpusButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add opusListSelectionListener object to the selection model of the musici table
@@ -483,19 +460,19 @@ public class OpusFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opus record
-		    EditOpusDialog editOpusDialog =
-			new EditOpusDialog( connection, frame,
-					    opusTitelFilterTextField.getText( ),
-					    opusNummerFilterTextField.getText( ),
-					    selectedComponistenPersoonId,
-					    selectedComponistenId,
-					    selectedGenreId,
-					    selectedTijdperkId,
-					    selectedTypeId,
-					    selectedSubtypeId );
+		    new EditOpusDialog( connection, frame,
+                                        opusTitelFilterTextField.getText( ),
+                                        opusNummerFilterTextField.getText( ),
+                                        selectedComponistenPersoonId,
+                                        selectedComponistenId,
+                                        selectedGenreId,
+                                        selectedTijdperkId,
+                                        selectedTypeId,
+                                        selectedSubtypeId );
 
 		    // Number of rows may have changed: reset the table sorter
 		    opusTableSorter.clearSortingState( );
@@ -537,8 +514,7 @@ public class OpusFrame {
 
 		    if ( actionEvent.getActionCommand( ).equals( "openDialog" ) ) {
 			// Do dialog
-			EditOpusDialog editOpusDialog =
-			    new EditOpusDialog( connection, frame, selectedOpusId );
+			new EditOpusDialog( connection, frame, selectedOpusId );
 
 			// Number of rows may have changed: reset the table sorter
 			opusTableSorter.clearSortingState( );
@@ -714,15 +690,29 @@ public class OpusFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 10;
-	constraints.weighty = 0;
-	constraints.gridwidth = 3;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 5, 5, 15, 5 );
+        constraints.fill = GridBagConstraints.NONE;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 1000, 700 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1040, 700 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

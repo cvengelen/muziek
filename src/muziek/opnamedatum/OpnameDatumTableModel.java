@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in opname_datum
-
 package muziek.opnamedatum;
 
 import java.sql.Connection;
@@ -12,17 +10,19 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.*;
 
-
-public class OpnameDatumTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.opnamedatum.OpnameDatumTableModel" );
+/**
+ * Class to setup a TableModel for records in opname_datum
+ */
+class OpnameDatumTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( OpnameDatumTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id",
-				   "Jaar 1", "Maand 1",
-				   "Jaar 2", "Maand 2",
-				   "Opname Datum" };
+    private final String[ ] headings = { "Id",
+                                         "Jaar 1", "Maand 1",
+                                         "Jaar 2", "Maand 2",
+                                         "Opname Datum" };
 
-    class OpnameDatumRecord {
+    private class OpnameDatumRecord {
 	int	opnameDatumId;
 	Integer	opnameJaar1Integer;
 	Integer opnameMaand1Integer;
@@ -30,24 +30,22 @@ public class OpnameDatumTableModel extends AbstractTableModel {
 	Integer	opnameMaand2Integer;
 	String	opnameDatumString;
 
-	public OpnameDatumRecord( int	 opnameDatumId,
-				  int	 opnameJaar1,
-				  int	 opnameMaand1,
-				  int	 opnameJaar2,
-				  int	 opnameMaand2,
-				  String opnameDatumString ) {
-	    this.opnameDatumId = opnameDatumId;
-	    this.opnameJaar1Integer = new Integer( opnameJaar1 );
-	    this.opnameMaand1Integer = new Integer( opnameMaand1 );
-	    this.opnameJaar2Integer = new Integer( opnameJaar2 );
-	    this.opnameMaand2Integer = new Integer( opnameMaand2 );
-	    this.opnameDatumString = opnameDatumString;
+	OpnameDatumRecord( int	 opnameDatumId,
+                           int	 opnameJaar1,
+                           int	 opnameMaand1,
+                           int	 opnameJaar2,
+                           int	 opnameMaand2,
+                           String opnameDatumString ) {
+	    this.opnameDatumId       = opnameDatumId;
+	    this.opnameJaar1Integer  = opnameJaar1;
+	    this.opnameMaand1Integer = opnameMaand1;
+	    this.opnameJaar2Integer  = opnameJaar2;
+	    this.opnameMaand2Integer = opnameMaand2;
+	    this.opnameDatumString   = opnameDatumString;
 	}
     }
 
-    ArrayList opnameDatumRecordList = new ArrayList( 200 );
-
-    private String opnameDatumFilterString = null;
+    private final ArrayList<OpnameDatumRecord> opnameDatumRecordList = new ArrayList<>( 200 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
@@ -55,14 +53,13 @@ public class OpnameDatumTableModel extends AbstractTableModel {
 
 
     // Constructor
-    public OpnameDatumTableModel( Connection connection ) {
+    OpnameDatumTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupOpnameDatumTableModel( null );
     }
 
-    public void setupOpnameDatumTableModel( String opnameDatumFilterString ) {
-	this.opnameDatumFilterString = opnameDatumFilterString;
+    void setupOpnameDatumTableModel( String opnameDatumFilterString ) {
 
 	// Setup the table
 	try {
@@ -138,10 +135,9 @@ public class OpnameDatumTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final OpnameDatumRecord opnameDatumRecord =
-	    ( OpnameDatumRecord )opnameDatumRecordList.get( row );
+	final OpnameDatumRecord opnameDatumRecord = opnameDatumRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( opnameDatumRecord.opnameDatumId );
+	if ( column == 0 ) return opnameDatumRecord.opnameDatumId;
 	if ( column == 1 ) return opnameDatumRecord.opnameJaar1Integer;
 	if ( column == 2 ) return opnameDatumRecord.opnameMaand1Integer;
 	if ( column == 3 ) return opnameDatumRecord.opnameJaar2Integer;
@@ -157,56 +153,55 @@ public class OpnameDatumTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final OpnameDatumRecord opnameDatumRecord =
-	    ( OpnameDatumRecord )opnameDatumRecordList.get( row );
+	final OpnameDatumRecord opnameDatumRecord = opnameDatumRecordList.get( row );
 
 	String updateString = null;
 
 	try {
 	    switch ( column ) {
 	    case 1:
-		int jaar1 = ( ( Integer )object ).intValue( );
+		int jaar1 = ( Integer )object;
 		if ( ( jaar1 == 0 ) &&
-		     ( opnameDatumRecord.opnameJaar1Integer.intValue( ) != 0 ) ) {
+		     ( opnameDatumRecord.opnameJaar1Integer != 0 ) ) {
 		    updateString = "opname_jaar_1 = NULL ";
 		    opnameDatumRecord.opnameJaar1Integer = ( Integer )object;
-		} else if ( jaar1 != opnameDatumRecord.opnameJaar1Integer.intValue( ) ) {
+		} else if ( jaar1 != opnameDatumRecord.opnameJaar1Integer ) {
 		    updateString = "opname_jaar_1 = " + jaar1;
 		    opnameDatumRecord.opnameJaar1Integer = ( Integer )object;
 		}
 		break;
 
 	    case 2:
-		int maand1 = ( ( Integer )object ).intValue( );
+		int maand1 = ( Integer )object;
 		if ( ( maand1 == 0 ) &&
-		     ( opnameDatumRecord.opnameMaand1Integer.intValue( ) != 0 ) ) {
+		     ( opnameDatumRecord.opnameMaand1Integer != 0 ) ) {
 		    updateString = "opname_maand_1 = NULL ";
 		    opnameDatumRecord.opnameMaand1Integer = ( Integer )object;
-		} else if ( maand1 != opnameDatumRecord.opnameMaand1Integer.intValue( ) ) {
+		} else if ( maand1 != opnameDatumRecord.opnameMaand1Integer ) {
 		    updateString = "opname_maand_1 = " + maand1;
 		    opnameDatumRecord.opnameMaand1Integer = ( Integer )object;
 		}
 		break;
 
 	    case 3:
-		int jaar2 = ( ( Integer )object ).intValue( );
+		int jaar2 = ( Integer )object;
 		if ( ( jaar2 == 0 ) &&
-		     ( opnameDatumRecord.opnameJaar2Integer.intValue( ) != 0 ) ) {
+		     ( opnameDatumRecord.opnameJaar2Integer != 0 ) ) {
 		    updateString = "opname_jaar_2 = NULL ";
 		    opnameDatumRecord.opnameJaar2Integer = ( Integer )object;
-		} else if ( jaar2 != opnameDatumRecord.opnameJaar2Integer.intValue( ) ) {
+		} else if ( jaar2 != opnameDatumRecord.opnameJaar2Integer ) {
 		    updateString = "opname_jaar_2 = " + jaar2;
 		    opnameDatumRecord.opnameJaar2Integer = ( Integer )object;
 		}
 		break;
 
 	    case 4:
-		int maand2 = ( ( Integer )object ).intValue( );
+		int maand2 = ( Integer )object;
 		if ( ( maand2 == 0 ) &&
-		     ( opnameDatumRecord.opnameMaand2Integer.intValue( ) != 0 ) ) {
+		     ( opnameDatumRecord.opnameMaand2Integer != 0 ) ) {
 		    updateString = "opname_maand_2 = NULL ";
 		    opnameDatumRecord.opnameMaand2Integer = ( Integer )object;
-		} else if ( maand2 != opnameDatumRecord.opnameMaand2Integer.intValue( ) ) {
+		} else if ( maand2 != opnameDatumRecord.opnameMaand2Integer ) {
 		    updateString = "opname_maand_2 = " + maand2;
 		    opnameDatumRecord.opnameMaand2Integer = ( Integer )object;
 		}
@@ -265,19 +260,21 @@ public class OpnameDatumTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getOpnameDatumId( int row ) {
-	final OpnameDatumRecord opnameDatumRecord =
-	    ( OpnameDatumRecord )opnameDatumRecordList.get( row );
+    int getOpnameDatumId( int row ) {
+        if ( ( row < 0 ) || ( row >= opnameDatumRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return opnameDatumRecord.opnameDatumId;
+	return opnameDatumRecordList.get( row ).opnameDatumId;
     }
 
-    public String getOpnameDatumString( int row ) {
+    String getOpnameDatumString( int row ) {
 	if ( ( row < 0 ) || ( row >= opnameDatumRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( OpnameDatumRecord )opnameDatumRecordList.get( row ) ).opnameDatumString;
+	return opnameDatumRecordList.get( row ).opnameDatumString;
     }
 }

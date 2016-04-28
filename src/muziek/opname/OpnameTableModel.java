@@ -1,6 +1,5 @@
-//
 // Project:	muziek
-// Component:	gui
+// Package:	muziek.opname
 // File:	OpnameTableModel.java
 // Description:	TableModel for opname records
 // Author:	Chris van Engelen

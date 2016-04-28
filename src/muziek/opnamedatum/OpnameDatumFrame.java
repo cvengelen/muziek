@@ -1,5 +1,3 @@
-// frame to show and select records from opname_datum
-
 package muziek.opnamedatum;
 
 import java.sql.Connection;
@@ -18,22 +16,23 @@ import muziek.gui.EditOpnameDatumDialog;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the opname_datum table in schema muziek.
+ * An instance of OpnameDatumFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class OpnameDatumFrame {
-    final Logger logger = Logger.getLogger( "muziek.opnamedatum.OpnameDatumFrame" );
+    private final Logger logger = Logger.getLogger( OpnameDatumFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Opname Datum");
+    private final JFrame frame = new JFrame( "Opname Datum");
 
-    JTextField opnameDatumFilterTextField;
+    private JTextField opnameDatumFilterTextField;
 
-    OpnameDatumTableModel opnameDatumTableModel;
-    TableSorter opnameDatumTableSorter;
-    JTable opnameDatumTable;
-
+    private OpnameDatumTableModel opnameDatumTableModel;
+    private TableSorter opnameDatumTableSorter;
 
     public OpnameDatumFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -41,27 +40,12 @@ public class OpnameDatumFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-
-
-	/////////////////////////////////
-	// Text filter action listener
-	/////////////////////////////////
-
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the opnameDatum table
-		opnameDatumTableModel.setupOpnameDatumTableModel( opnameDatumFilterTextField.getText( ) );
-	    }
-	}
-	TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
-
 
 	/////////////////////////////////
 	// Opname datum filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
@@ -69,11 +53,18 @@ public class OpnameDatumFrame {
 	container.add( new JLabel( "Opname Datum Filter:" ), constraints );
 
 	opnameDatumFilterTextField = new JTextField( 20 );
-	opnameDatumFilterTextField.addActionListener( textFilterActionListener );
+	opnameDatumFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the opnameDatum table
+            opnameDatumTableSorter.clearSortingState();
+            opnameDatumTableModel.setupOpnameDatumTableModel( opnameDatumFilterTextField.getText( ) );
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 200 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( opnameDatumFilterTextField, constraints );
-
 
 	/////////////////////////////////
 	// OpnameDatum Table
@@ -82,7 +73,7 @@ public class OpnameDatumFrame {
 	// Create opnameDatum table from title table model
 	opnameDatumTableModel = new OpnameDatumTableModel( connection );
 	opnameDatumTableSorter = new TableSorter( opnameDatumTableModel );
-	opnameDatumTable = new JTable( opnameDatumTableSorter );
+	final JTable opnameDatumTable = new JTable( opnameDatumTableSorter );
 	opnameDatumTableSorter.setTableHeader( opnameDatumTable.getTableHeader( ) );
 	// opnameDatumTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -99,12 +90,14 @@ public class OpnameDatumFrame {
 	// Set vertical size just enough for 20 entries
 	opnameDatumTable.setPreferredScrollableViewportSize( new Dimension( 570, 320 ) );
 
-
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 6;
-	constraints.gridwidth = 3;
+	constraints.gridy = 1;
+	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( opnameDatumTable ), constraints );
 
 
@@ -115,7 +108,7 @@ public class OpnameDatumFrame {
 	final ListSelectionModel opnameDatumListSelectionModel = opnameDatumTable.getSelectionModel( );
 
 	class OpnameDatumListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -133,7 +126,7 @@ public class OpnameDatumFrame {
 		deleteOpnameDatumButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+            int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add opnameDatumListSelectionListener object to the selection model of the musici table
@@ -145,12 +138,12 @@ public class OpnameDatumFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+                    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opnameDatum record
-		    EditOpnameDatumDialog editOpnameDatumDialog =
-			new EditOpnameDatumDialog( connection, frame,
-						   opnameDatumFilterTextField.getText( ) );
+		    new EditOpnameDatumDialog( connection, frame,
+                                               opnameDatumFilterTextField.getText( ) );
 
 		    // Records may have been modified: setup the table model again
 		    opnameDatumTableModel.setupOpnameDatumTableModel( opnameDatumFilterTextField.getText( ) );
@@ -261,12 +254,28 @@ public class OpnameDatumFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 7;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+	constraints.gridy = 2;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 620, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 630, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

@@ -1,11 +1,10 @@
-//
 // Project:	muziek
-// Component:	gui
+// Package:	muziek.opus
 // File:	OpusTableModel.java
 // Description:	TableModel for records in opus
 // Author:	Chris van Engelen
 // History:	2006/02/26: Initial version
-//
+//              2016/04/27: Refactoring, and use of Java 7, 8 features
 
 package muziek.opus;
 
@@ -19,22 +18,23 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-
 import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.*;
 
-
-public class OpusTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.opus.OpusTableModel" );
+/**
+ * TableModel for opus records
+ */
+class OpusTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( OpusTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Titel", "Componisten", "Opus", "Genre",
-				   "Tijdperk", "Type", "Subtype" };
+    private final String[ ] headings = { "Id", "Titel", "Componisten", "Opus", "Genre",
+                                         "Tijdperk", "Type", "Subtype" };
 
-    class OpusRecord {
+    private class OpusRecord {
 	int	opusId;
 	String	opusTitelString;
         String  componistString;
@@ -49,19 +49,19 @@ public class OpusTableModel extends AbstractTableModel {
 	int	subtypeId;
 	String	subtypeString;
 
-	public OpusRecord( int    opusId,
-			   String opusTitelString,
-                           String componistString,
-			   String componistenString,
-			   String opusNummerString,
-			   int    genreId,
-			   String genreString,
-			   int    tijdperkId,
-			   String tijdperkString,
-			   int    typeId,
-			   String typeString,
-			   int    subtypeId,
-			   String subtypeString ) {
+	OpusRecord( int    opusId,
+                    String opusTitelString,
+                    String componistString,
+                    String componistenString,
+                    String opusNummerString,
+                    int    genreId,
+                    String genreString,
+                    int    tijdperkId,
+                    String tijdperkString,
+                    int    typeId,
+                    String typeString,
+                    int    subtypeId,
+                    String subtypeString ) {
 	    this.opusId = opusId;
 	    this.opusTitelString = opusTitelString;
             this.componistString = componistString;
@@ -78,7 +78,7 @@ public class OpusTableModel extends AbstractTableModel {
 	}
 
 	// Copy constructor
-	public OpusRecord( OpusRecord opusRecord ) {
+	OpusRecord( OpusRecord opusRecord ) {
 	    this.opusId = opusRecord.opusId;
 	    this.opusTitelString = opusRecord.opusTitelString;
             this.componistString = opusRecord.componistString;
@@ -120,33 +120,32 @@ public class OpusTableModel extends AbstractTableModel {
         }
     }
 
-    ArrayList<OpusRecord> opusRecordList = new ArrayList<OpusRecord>( 1500 );
+    private final ArrayList<OpusRecord> opusRecordList = new ArrayList<>( 1500 );
 
-    GenreComboBox genreComboBox;
-    TijdperkComboBox tijdperkComboBox;
-    TypeComboBox typeComboBox;
-    SubtypeComboBox subtypeComboBox;
+    private GenreComboBox genreComboBox;
+    private TijdperkComboBox tijdperkComboBox;
+    private TypeComboBox typeComboBox;
+    private SubtypeComboBox subtypeComboBox;
 
+    private JButton cancelRowEditButton;
+    private JButton saveRowEditButton;
 
-    JButton cancelRowEditButton;
-    JButton saveRowEditButton;
-
-    boolean	rowModified = false;
-    int		editRow = -1;
-    OpusRecord	opusRecord = null;
-    OpusRecord	originalOpusRecord = null;
+    private boolean	rowModified = false;
+    private int		editRow = -1;
+    private OpusRecord	opusRecord;
+    private OpusRecord	originalOpusRecord;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
     private final static Pattern componistPattern = Pattern.compile( "(.+?), (.*)" );
 
 
     // Constructor
-    public OpusTableModel( final Connection connection,
-			   final JButton    cancelRowEditButton,
-			   final JButton    saveRowEditButton ) {
+    OpusTableModel( final Connection connection,
+                    final JButton    cancelRowEditButton,
+                    final JButton    saveRowEditButton ) {
 	this.connection = connection;
 	this.cancelRowEditButton = cancelRowEditButton;
 	this.saveRowEditButton = saveRowEditButton;
@@ -160,14 +159,15 @@ public class OpusTableModel extends AbstractTableModel {
 	setupOpusTableModel( null, null, 0, 0, 0, 0, 0, 0 );
     }
 
-    public void setupOpusTableModel( String opusTitelFilterString,
-				     String opusNummerFilterString,
-				     int    componistenPersoonId,
-				     int    componistenId,
-				     int    genreId,
-				     int    tijdperkId,
-				     int    typeId,
-				     int    subtypeId ) {
+    void setupOpusTableModel( String opusTitelFilterString,
+                              String opusNummerFilterString,
+                              int    componistenPersoonId,
+                              int    componistenId,
+                              int    genreId,
+                              int    tijdperkId,
+                              int    typeId,
+                              int    subtypeId ) {
+
 	// Setup the table
 	try {
 	    String opusQueryString =
@@ -484,19 +484,19 @@ public class OpusTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getOpusId( int row ) {
+    int getOpusId( int row ) {
 	final OpusRecord opusRecord = opusRecordList.get( row );
 
 	return opusRecord.opusId;
     }
 
-    public String getOpusTitelString( int row ) {
+    String getOpusTitelString( int row ) {
 	final OpusRecord opusRecord = opusRecordList.get( row );
 
 	return opusRecord.opusTitelString;
     }
 
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
 	// Initialize record to be edited
 	opusRecord = opusRecordList.get( editRow );
 
@@ -510,11 +510,11 @@ public class OpusTableModel extends AbstractTableModel {
 	this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
 	this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
 	// Check if row being canceled equals the row currently being edited
 	if ( row != editRow ) return;
 
@@ -531,8 +531,7 @@ public class OpusTableModel extends AbstractTableModel {
 	fireTableRowUpdated( row );
     }
 
-
-    public boolean saveEditRow( int row ) {
+    boolean saveEditRow( int row ) {
 	String updateString = null;
 
 	// Compare each field with the value in the original record
@@ -621,7 +620,7 @@ public class OpusTableModel extends AbstractTableModel {
 	}
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 
     private static boolean stringEquals(final String stringA, final String stringB) {
         // Two strings are equal if:

@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in opslag
-
 package muziek.opslag;
 
 import java.sql.Connection;
@@ -12,39 +10,40 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class OpslagTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.opslag.OpslagTableModel" );
+/**
+ * Class to setup a TableModel for records in opslag
+ */
+class OpslagTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( OpslagTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Opslag" };
+    private final String[ ] headings = { "Id", "Opslag" };
 
-    class OpslagRecord {
+    private class OpslagRecord {
 	int	opslagId;
 	String	opslagString;
 
-	public OpslagRecord( int    opslagId,
-			     String opslagString ) {
+	OpslagRecord( int    opslagId,
+                      String opslagString ) {
 	    this.opslagId = opslagId;
 	    this.opslagString = opslagString;
 	}
     }
 
-    ArrayList opslagRecordList = new ArrayList( 200 );
+    private final ArrayList<OpslagRecord> opslagRecordList = new ArrayList<>( 500 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public OpslagTableModel( Connection connection ) {
+    OpslagTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupOpslagTableModel( null );
     }
 
-    public void setupOpslagTableModel( String opslagFilterString ) {
+    void setupOpslagTableModel( String opslagFilterString ) {
 
 	// Setup the table
 	try {
@@ -109,10 +108,9 @@ public class OpslagTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final OpslagRecord opslagRecord =
-	    ( OpslagRecord )opslagRecordList.get( row );
+	final OpslagRecord opslagRecord = opslagRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( opslagRecord.opslagId );
+	if ( column == 0 ) return opslagRecord.opslagId;
 	if ( column == 1 ) return opslagRecord.opslagString;
 
 	return "";
@@ -124,8 +122,7 @@ public class OpslagTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final OpslagRecord opslagRecord =
-	    ( OpslagRecord )opslagRecordList.get( row );
+	final OpslagRecord opslagRecord = opslagRecordList.get( row );
 
 	String updateString = null;
 
@@ -188,21 +185,23 @@ public class OpslagTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return opslagRecordList.size( ); }
+    int getNumberOfRecords( ) { return opslagRecordList.size( ); }
 
-    public int getOpslagId( int row ) {
-	final OpslagRecord opslagRecord =
-	    ( OpslagRecord )opslagRecordList.get( row );
+    int getOpslagId( int row ) {
+        if ( ( row < 0 ) || ( row >= opslagRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return opslagRecord.opslagId;
+	return opslagRecordList.get( row ).opslagId;
     }
 
-    public String getOpslagString( int row ) {
+    String getOpslagString( int row ) {
 	if ( ( row < 0 ) || ( row >= opslagRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( OpslagRecord )opslagRecordList.get( row ) ).opslagString;
+	return opslagRecordList.get( row ).opslagString;
     }
 }

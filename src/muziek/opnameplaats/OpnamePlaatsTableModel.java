@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in opname_plaats
-
 package muziek.opnameplaats;
 
 import java.sql.Connection;
@@ -7,33 +5,32 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.*;
 
-
-public class OpnamePlaatsTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.opnameplaats.OpnamePlaatsTableModel" );
+/**
+ * Class to setup a TableModel for records in opname_plaats
+ */
+class OpnamePlaatsTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( OpnamePlaatsTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Opname Plaats" };
+    private final String[ ] headings = { "Id", "Opname Plaats" };
 
-    class OpnamePlaatsRecord {
+    private class OpnamePlaatsRecord {
 	int	opnamePlaatsId;
 	String	opnamePlaatsString;
 
-	public OpnamePlaatsRecord( int    opnamePlaatsId,
-				   String opnamePlaatsString ) {
+	OpnamePlaatsRecord( int    opnamePlaatsId,
+                            String opnamePlaatsString ) {
 	    this.opnamePlaatsId = opnamePlaatsId;
 	    this.opnamePlaatsString = opnamePlaatsString;
 	}
     }
 
-    ArrayList opnamePlaatsRecordList = new ArrayList( 200 );
-
-    private String opnamePlaatsFilterString = null;
+    private final ArrayList<OpnamePlaatsRecord> opnamePlaatsRecordList = new ArrayList<>( 200 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
@@ -41,14 +38,13 @@ public class OpnamePlaatsTableModel extends AbstractTableModel {
 
 
     // Constructor
-    public OpnamePlaatsTableModel( Connection connection ) {
+    OpnamePlaatsTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupOpnamePlaatsTableModel( null );
     }
 
-    public void setupOpnamePlaatsTableModel( String opnamePlaatsFilterString ) {
-	this.opnamePlaatsFilterString = opnamePlaatsFilterString;
+    void setupOpnamePlaatsTableModel( String opnamePlaatsFilterString ) {
 
 	// Setup the table
 	try {
@@ -112,10 +108,9 @@ public class OpnamePlaatsTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final OpnamePlaatsRecord opnamePlaatsRecord =
-	    ( OpnamePlaatsRecord )opnamePlaatsRecordList.get( row );
+	final OpnamePlaatsRecord opnamePlaatsRecord = opnamePlaatsRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( opnamePlaatsRecord.opnamePlaatsId );
+	if ( column == 0 ) return opnamePlaatsRecord.opnamePlaatsId;
 	if ( column == 1 ) return opnamePlaatsRecord.opnamePlaatsString;
 
 	return "";
@@ -127,8 +122,7 @@ public class OpnamePlaatsTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final OpnamePlaatsRecord opnamePlaatsRecord =
-	    ( OpnamePlaatsRecord )opnamePlaatsRecordList.get( row );
+	final OpnamePlaatsRecord opnamePlaatsRecord = opnamePlaatsRecordList.get( row );
 
 	String updateString = null;
 
@@ -186,19 +180,21 @@ public class OpnamePlaatsTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getOpnamePlaatsId( int row ) {
-	final OpnamePlaatsRecord opnamePlaatsRecord =
-	    ( OpnamePlaatsRecord )opnamePlaatsRecordList.get( row );
+    int getOpnamePlaatsId( int row ) {
+        if ( ( row < 0 ) || ( row >= opnamePlaatsRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return opnamePlaatsRecord.opnamePlaatsId;
+	return opnamePlaatsRecordList.get( row ).opnamePlaatsId;
     }
 
-    public String getOpnamePlaatsString( int row ) {
+    String getOpnamePlaatsString( int row ) {
 	if ( ( row < 0 ) || ( row >= opnamePlaatsRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( OpnamePlaatsRecord )opnamePlaatsRecordList.get( row ) ).opnamePlaatsString;
+	return opnamePlaatsRecordList.get( row ).opnamePlaatsString;
     }
 }

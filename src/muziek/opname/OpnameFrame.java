@@ -1,6 +1,5 @@
-//
 // Project:	muziek
-// Component:	gui
+// Package:	muziek.opname
 // File:	OpnameFrame.java
 // Description:	Frame to show all or selected records in the opname table in schema muziek
 // Author:	Chris van Engelen
@@ -35,6 +34,8 @@ public class OpnameFrame {
     private final Logger logger = Logger.getLogger( OpnameFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "Opname");
+
+    static private final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
     private MediumComboBox mediumComboBox;
     private int selectedMediumId = 0;
@@ -75,8 +76,6 @@ public class OpnameFrame {
     private TableSorter opnameTableSorter;
 
     public OpnameFrame( final Connection connection ) {
-
-	final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();

@@ -1,5 +1,3 @@
-// frame to show and select records from opslag
-
 package muziek.opslag;
 
 import java.sql.Connection;
@@ -16,52 +14,21 @@ import java.util.logging.*;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the opslag table in schema muziek.
+ * An instance of OpslagDatumFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class OpslagFrame {
-    final Logger logger = Logger.getLogger( "muziek.opslag.OpslagFrame" );
+    private final Logger logger = Logger.getLogger( OpslagFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Opslag" );
+    private final JFrame frame = new JFrame( "Opslag" );
 
-    OpslagTableModel opslagTableModel;
-    TableSorter opslagTableSorter;
-    JTable opslagTable;
-
-    class Opslag {
-	int	id;
-	String  name;
-
-	public Opslag( int    id,
-			String name ) {
-	    this.id = id;
-	    this.name = name;
-	}
-
-	public boolean presentInTable( String tableString ) {
-	    // Check if opslagId is present in table
-	    try {
-		Statement statement = connection.createStatement( );
-		ResultSet resultSet = statement.executeQuery( "SELECT opslag_id FROM " + tableString +
-							      " WHERE opslag_id = " + id );
-		if ( resultSet.next( ) ) {
-		    JOptionPane.showMessageDialog( frame,
-						   "Tabel " + tableString +
-						   " heeft nog verwijzing naar '" + name + "'",
-						   "Opslag frame error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return true;
-		}
-	    } catch ( SQLException sqlException ) {
-		logger.severe( "SQLException: " + sqlException.getMessage( ) );
-		return true;
-	    }
-	    return false;
-	}
-    }
-
+    private OpslagTableModel opslagTableModel;
+    private TableSorter opslagTableSorter;
 
     public OpslagFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -69,31 +36,31 @@ public class OpslagFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opslag Filter:" ), constraints );
+
 	final JTextField opslagFilterTextField = new JTextField( 15 );
+        opslagFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the opslag table
+            opslagTableSorter.clearSortingState();
+            opslagTableModel.setupOpslagTableModel( opslagFilterTextField.getText( ) );
+        } );
 
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.insets = new Insets( 20, 5, 5, 100 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( opslagFilterTextField, constraints );
-
-	class OpslagFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the opslag table
-		opslagTableModel.setupOpslagTableModel( opslagFilterTextField.getText( ) );
-	    }
-	}
-	opslagFilterTextField.addActionListener( new OpslagFilterActionListener( ) );
-
 
 	// Create opslag table from title table model
 	opslagTableModel = new OpslagTableModel( connection );
 	opslagTableSorter = new TableSorter( opslagTableModel );
-	opslagTable = new JTable( opslagTableSorter );
+	final JTable opslagTable = new JTable( opslagTableSorter );
 	opslagTableSorter.setTableHeader( opslagTable.getTableHeader( ) );
 	// opslagTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -105,10 +72,13 @@ public class OpslagFrame {
 	// Set vertical size just enough for 20 entries
 	opslagTable.setPreferredScrollableViewportSize( new Dimension( 300, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 4;
-	constraints.gridwidth = 5;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+	constraints.gridy = 1;
+	constraints.gridwidth = 2;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( new JScrollPane( opslagTable ), constraints );
 
@@ -124,7 +94,7 @@ public class OpslagFrame {
 	final ListSelectionModel opslagListSelectionModel = opslagTable.getSelectionModel( );
 
 	class OpslagListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -142,7 +112,7 @@ public class OpslagFrame {
 		deleteOpslagButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add opslagListSelectionListener object to the selection model of the musici table
@@ -154,7 +124,8 @@ public class OpslagFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
 			Statement statement = connection.createStatement( );
@@ -197,7 +168,6 @@ public class OpslagFrame {
 			return;
 		    }
 
-
 		    // Replace null or empty string by single space for messages
 		    String selectedOpslagString = opslagTableModel.getOpslagString( selectedRow );
 		    if ( ( selectedOpslagString == null ) || ( selectedOpslagString.length( ) == 0  ) ) {
@@ -205,9 +175,6 @@ public class OpslagFrame {
 		    }
 
 		    if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
-			final Opslag opslag = new Opslag( selectedOpslagId,
-							     opslagTableModel.getOpslagString( selectedRow ) );
-
 			// Check if opslag ID is still used in table medium
 			try {
 			    Statement statement = connection.createStatement( );
@@ -237,7 +204,7 @@ public class OpslagFrame {
 			if ( result != JOptionPane.YES_OPTION ) return;
 
 			String deleteString  = "DELETE FROM opslag";
-			deleteString += " WHERE opslag_id = " + opslag.id;
+			deleteString += " WHERE opslag_id = " + selectedOpslagId;
 
 			logger.info( "deleteString: " + deleteString );
 
@@ -246,7 +213,7 @@ public class OpslagFrame {
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with opslag_id  = " +
-						       opslag.id + " in opslag" );
+                                                        selectedOpslagId + " in opslag" );
 				JOptionPane.showMessageDialog( frame,
 							       errorString,
 							       "Delete Opslag record",
@@ -285,14 +252,29 @@ public class OpslagFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 5;
-	constraints.gridwidth = 3;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+	constraints.gridy = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 400, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 360, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }
