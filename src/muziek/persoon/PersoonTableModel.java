@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in persoon
-
 package muziek.persoon;
 
 import java.sql.Connection;
@@ -12,39 +10,40 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class PersoonTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.persoon.PersoonTableModel" );
+/**
+ * TableModel for records in persoon
+ */
+class PersoonTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( PersoonTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Persoon" };
+    private final String[ ] headings = { "Id", "Persoon" };
 
-    class PersoonRecord {
+    private class PersoonRecord {
 	int	persoonId;
 	String  persoonString;
 
-	public PersoonRecord( int     persoonId,
-			      String  persoonString ) {
+	PersoonRecord( int     persoonId,
+                       String  persoonString ) {
 	    this.persoonId = persoonId;
 	    this.persoonString = persoonString;
 	}
     }
 
-    ArrayList persoonRecordList = new ArrayList( 200 );
+    private final ArrayList<PersoonRecord> persoonRecordList = new ArrayList<>( 2500 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public PersoonTableModel( Connection connection ) {
+    PersoonTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupPersoonTableModel( null );
     }
 
-    public void setupPersoonTableModel( String persoonFilterString ) {
+    void setupPersoonTableModel( String persoonFilterString ) {
 
 	// Setup the table
 	try {
@@ -74,6 +73,7 @@ public class PersoonTableModel extends AbstractTableModel {
 	    }
 
 	    persoonRecordList.trimToSize( );
+            logger.info("Table shows " + persoonRecordList.size() + " persoon records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -109,10 +109,9 @@ public class PersoonTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final PersoonRecord persoonRecord =
-	    ( PersoonRecord )persoonRecordList.get( row );
+	final PersoonRecord persoonRecord = persoonRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( persoonRecord.persoonId );
+	if ( column == 0 ) return persoonRecord.persoonId;
 	if ( column == 1 ) return persoonRecord.persoonString;
 
 	return "";
@@ -124,8 +123,7 @@ public class PersoonTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final PersoonRecord persoonRecord =
-	    ( PersoonRecord )persoonRecordList.get( row );
+	final PersoonRecord persoonRecord = persoonRecordList.get( row );
 
 	String updateString = null;
 
@@ -188,21 +186,21 @@ public class PersoonTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return persoonRecordList.size( ); }
+    int getPersoonId( int row ) {
+        if ( ( row < 0 ) || ( row >= persoonRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-    public int getPersoonId( int row ) {
-	final PersoonRecord persoonRecord =
-	    ( PersoonRecord )persoonRecordList.get( row );
-
-	return persoonRecord.persoonId;
+	return persoonRecordList.get( row ).persoonId;
     }
 
-    public String getPersoonString( int row ) {
-	if ( ( row < 0 ) || ( row >= persoonRecordList.size( ) ) ) {
-	    logger.severe( "Invalid row: " + row );
-	    return null;
-	}
+    String getPersoonString( int row ) {
+        if ( ( row < 0 ) || ( row >= persoonRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return null;
+        }
 
-	return ( ( PersoonRecord )persoonRecordList.get( row ) ).persoonString;
+	return persoonRecordList.get( row ).persoonString;
     }
 }

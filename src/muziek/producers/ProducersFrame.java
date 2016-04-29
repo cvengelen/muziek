@@ -1,5 +1,3 @@
-// frame to show and select records from producers
-
 package muziek.producers;
 
 import java.sql.Connection;
@@ -19,34 +17,37 @@ import muziek.gui.EditProducersDialog;
 import muziek.gui.PersoonComboBox;
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the producers table in schema muziek.
+ * An instance of ProducersFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class ProducersFrame {
-    final Logger logger = Logger.getLogger( "muziek.producers.ProducersFrame" );
+    private final Logger logger = Logger.getLogger( ProducersFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Producers" );
+    private final Connection connection;
+    private final JFrame frame = new JFrame( "Producers" );
 
-    JTextField producersFilterTextField;
+    private JTextField producersFilterTextField;
 
-    PersoonComboBox persoonComboBox;
-    int selectedPersoonId = 0;
+    private PersoonComboBox persoonComboBox;
+    private int selectedPersoonId = 0;
 
-    ProducersTableModel producersTableModel;
-    TableSorter producersTableSorter;
-    JTable producersTable;
+    private ProducersTableModel producersTableModel;
+    private TableSorter producersTableSorter;
 
-
-    class Producers {
+    private class Producers {
 	int	id;
 	String  string;
 
-	public Producers( int    id,
-			  String string ) {
+	Producers( int    id,
+                   String string ) {
 	    this.id = id;
 	    this.string = string;
 	}
 
-	public boolean presentInTable( String tableString ) {
+	boolean presentInTable( String tableString ) {
 	    // Check if producersId is present in table
 	    try {
 		Statement statement = connection.createStatement( );
@@ -68,7 +69,6 @@ public class ProducersFrame {
 	}
     }
 
-
     public ProducersFrame( final Connection connection ) {
 	this.connection = connection;
 
@@ -78,37 +78,39 @@ public class ProducersFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
+        constraints.gridwidth = 1;
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.gridwidth = 1;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Producers Filter:" ), constraints );
-	producersFilterTextField = new JTextField( 30 );
 
+	producersFilterTextField = new JTextField( 30 );
+        producersFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the producers table
+            producersTableSorter.clearSortingState();
+            producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
+                    selectedPersoonId );
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 100 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( producersFilterTextField, constraints );
-
-	class ProducersFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the producers table
-		producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
-							      selectedPersoonId );
-	    }
-	}
-	producersFilterTextField.addActionListener( new ProducersFilterActionListener( ) );
-
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 	////////////////////////////////////////////////
 	// Persoon ComboBox
 	////////////////////////////////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-	constraints.gridwidth = 1;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Persoon: " ), constraints );
 
 	final JPanel persoonPanel = new JPanel( );
@@ -118,40 +120,31 @@ public class ProducersFrame {
 	// Setup a JComboBox with the results of the query on persoon
 	// Do not allow to enter new record in persoon
 	persoonComboBox = new PersoonComboBox( connection, frame, false );
+        persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected persoon ID from the combo box
+            selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
+
+            // Setup the producers table
+            producersTableSorter.clearSortingState();
+            producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
+                    selectedPersoonId );
+        } );
 	persoonPanel.add( persoonComboBox );
-
-	class SelectPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected persoon ID from the combo box
-		selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
-
-		// Setup the producers table
-		producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
-							      selectedPersoonId );
-	    }
-	}
-	persoonComboBox.addActionListener( new SelectPersoonActionListener( ) );
 
 	JButton filterPersoonButton = new JButton( "Filter" );
 	filterPersoonButton.setActionCommand( "filterPersoon" );
+        filterPersoonButton.addActionListener( ( ActionEvent ae ) -> persoonComboBox.filterPersoonComboBox( ) );
 	persoonPanel.add( filterPersoonButton );
 
-	class FilterPersoonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		persoonComboBox.filterPersoonComboBox( );
-	    }
-	}
-	filterPersoonButton.addActionListener( new FilterPersoonActionListener( ) );
-
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( persoonPanel, constraints );
 
-
 	// Create producers table from title table model
 	producersTableModel = new ProducersTableModel( connection );
 	producersTableSorter = new TableSorter( producersTableModel );
-	producersTable = new JTable( producersTableSorter );
+	final JTable producersTable = new JTable( producersTableSorter );
 	producersTableSorter.setTableHeader( producersTable.getTableHeader( ) );
 	// producersTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -165,13 +158,18 @@ public class ProducersFrame {
 	// Set vertical size just enough for 20 entries
 	producersTable.setPreferredScrollableViewportSize( new Dimension( 550, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
 	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( producersTable ), constraints );
-
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 	// Define the edit, delete button because it is used by the list selection listener
 	final JButton editProducersButton = new JButton( "Edit" );
@@ -181,7 +179,7 @@ public class ProducersFrame {
 	final ListSelectionModel producersListSelectionModel = producersTable.getSelectionModel( );
 
 	class ProducersListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -201,7 +199,7 @@ public class ProducersFrame {
 		deleteProducersButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add producersListSelectionListener object to the selection model of the musici table
@@ -213,12 +211,12 @@ public class ProducersFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new producers record
-		    EditProducersDialog editProducersDialog =
-			new EditProducersDialog( connection, frame,
-						 producersFilterTextField.getText( ) );
+		    new EditProducersDialog( connection, frame,
+                                             producersFilterTextField.getText( ) );
 		} else {
 		    int selectedRow = producersListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
@@ -243,8 +241,7 @@ public class ProducersFrame {
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			// Do dialog
-			EditProducersDialog editProducersDialog =
-			    new EditProducersDialog( connection, frame, selectedProducersId );
+			new EditProducersDialog( connection, frame, selectedProducersId );
 
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			final Producers producers = new Producers( producersTableModel.getProducersId( selectedRow ),
@@ -324,12 +321,25 @@ public class ProducersFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 630, 550 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 610, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

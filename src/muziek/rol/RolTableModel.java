@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in rol
-
 package muziek.rol;
 
 import java.sql.Connection;
@@ -12,42 +10,40 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class RolTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.rol.RolTableModel" );
+/**
+ * TableModel for records in rol
+ */
+class RolTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( RolTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Rol" };
+    private final String[ ] headings = { "Id", "Rol" };
 
-    class RolRecord {
+    private class RolRecord {
 	int	rolId;
 	String	rolString;
 
-	public RolRecord( int    rolId,
-			  String rolString ) {
+	RolRecord( int    rolId,
+                   String rolString ) {
 	    this.rolId = rolId;
 	    this.rolString = rolString;
 	}
     }
 
-    ArrayList rolRecordList = new ArrayList( 100 );
-
-    private String rolFilterString = null;
+    private final ArrayList<RolRecord> rolRecordList = new ArrayList<>( 200 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public RolTableModel( Connection connection ) {
+    RolTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupRolTableModel( null );
     }
 
-    public void setupRolTableModel( String rolFilterString ) {
-	this.rolFilterString = rolFilterString;
+    void setupRolTableModel( String rolFilterString ) {
 
 	// Setup the table
 	try {
@@ -72,6 +68,7 @@ public class RolTableModel extends AbstractTableModel {
 	    }
 
 	    rolRecordList.trimToSize( );
+            logger.info("Table shows " + rolRecordList.size() + " rol records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -108,9 +105,9 @@ public class RolTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final RolRecord rolRecord = ( RolRecord )rolRecordList.get( row );
+	final RolRecord rolRecord = rolRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( rolRecord.rolId );
+	if ( column == 0 ) return rolRecord.rolId;
 	if ( column == 1 ) return rolRecord.rolString;
 
 	return "";
@@ -122,7 +119,7 @@ public class RolTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final RolRecord rolRecord = ( RolRecord )rolRecordList.get( row );
+	final RolRecord rolRecord = rolRecordList.get( row );
 
 	String updateString = null;
 
@@ -180,18 +177,21 @@ public class RolTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getRolId( int row ) {
-	final RolRecord rolRecord = ( RolRecord )rolRecordList.get( row );
+    int getRolId( int row ) {
+        if ( ( row < 0 ) || ( row >= rolRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return rolRecord.rolId;
+	return rolRecordList.get( row ).rolId;
     }
 
-    public String getRolString( int row ) {
+    String getRolString( int row ) {
 	if ( ( row < 0 ) || ( row >= rolRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( RolRecord )rolRecordList.get( row ) ).rolString;
+	return rolRecordList.get( row ).rolString;
     }
 }

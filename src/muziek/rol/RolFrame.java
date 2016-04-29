@@ -1,5 +1,3 @@
-// frame to show and select records from rol
-
 package muziek.rol;
 
 import java.sql.Connection;
@@ -16,22 +14,24 @@ import java.util.logging.Logger;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the rol table in schema muziek.
+ * An instance of RolFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class RolFrame {
-    final Logger logger = Logger.getLogger( "muziek.rol.RolFrame" );
+    private final Logger logger = Logger.getLogger( RolFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Rol");
+    private final JFrame frame = new JFrame( "Rol");
 
-    JTextField rolFilterTextField;
+    private JTextField rolFilterTextField;
 
-    RolTableModel rolTableModel;
-    TableSorter rolTableSorter;
-    JTable rolTable;
+    private RolTableModel rolTableModel;
+    private TableSorter rolTableSorter;
 
 
     public RolFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the controls the content pane
 	Container container = frame.getContentPane();
@@ -39,39 +39,31 @@ public class RolFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-
-
-	/////////////////////////////////
-	// Text filter action listener
-	/////////////////////////////////
-
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the rol table
-		rolTableModel.setupRolTableModel( rolFilterTextField.getText( ) );
-	    }
-	}
-	TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
-
+        constraints.gridwidth = 1;
 
 	/////////////////////////////////
 	// rol filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Rol Filter:" ), constraints );
 
 	rolFilterTextField = new JTextField( 15 );
-	rolFilterTextField.addActionListener( textFilterActionListener );
+	rolFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the rol table
+            rolTableSorter.clearSortingState();
+            rolTableModel.setupRolTableModel( rolFilterTextField.getText( ) );
+        });
+
+        constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( rolFilterTextField, constraints );
-
 
 	/////////////////////////////////
 	// Rol Table
@@ -80,7 +72,7 @@ public class RolFrame {
 	// Create rol table from title table model
 	rolTableModel = new RolTableModel( connection );
 	rolTableSorter = new TableSorter( rolTableModel );
-	rolTable = new JTable( rolTableSorter );
+	final JTable rolTable = new JTable( rolTableSorter );
 	rolTableSorter.setTableHeader( rolTable.getTableHeader( ) );
 	// rolTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -93,14 +85,15 @@ public class RolFrame {
 	// Set vertical size just enough for 20 entries
 	rolTable.setPreferredScrollableViewportSize( new Dimension( 250, 320 ) );
 
-
-	constraints.gridx = 0;
-	constraints.gridy = 6;
-	constraints.gridwidth = 3;
+        constraints.insets = new Insets( 5, 20, 5, 20 );
+        constraints.gridx = 0;
+	constraints.gridy = 1;
+	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( rolTable ), constraints );
-
 
 	// Define the delete button because it is enabled/disabled by the list selection listener
 	final JButton deleteRolButton = new JButton( "Delete" );
@@ -109,7 +102,7 @@ public class RolFrame {
 	final ListSelectionModel rolListSelectionModel = rolTable.getSelectionModel( );
 
 	class RolListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -127,7 +120,7 @@ public class RolFrame {
 		deleteRolButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add rolListSelectionListener object to the selection model of the musici table
@@ -139,7 +132,8 @@ public class RolFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
 			Statement statement = connection.createStatement( );
@@ -266,12 +260,28 @@ public class RolFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 7;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+	constraints.gridy = 2;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 330, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 310, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

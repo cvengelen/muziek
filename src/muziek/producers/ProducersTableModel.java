@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in producers
-
 package muziek.producers;
 
 import java.sql.Connection;
@@ -12,23 +10,25 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class ProducersTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.producers.ProducersTableModel" );
+/**
+ * TableModel for records in producers
+ */
+class ProducersTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( ProducersTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Producers", "Persoon" };
+    private final String[ ] headings = { "Id", "Producers", "Persoon" };
 
-    class ProducersRecord {
+    private class ProducersRecord {
 	String	producersString;
 	String	persoonString;
 	int	producersId;
 	int	persoonId;
 
-	public ProducersRecord( String producersString,
-				String persoonString,
-				int    producersId,
-				int    persoonId ) {
+	ProducersRecord( String producersString,
+                         String persoonString,
+                         int    producersId,
+                         int    persoonId ) {
 	    this.producersString = producersString;
 	    this.persoonString = persoonString;
 	    this.producersId = producersId;
@@ -36,21 +36,20 @@ public class ProducersTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList producersRecordList = new ArrayList( 100 );
+    private final ArrayList<ProducersRecord> producersRecordList = new ArrayList<>( 500 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public ProducersTableModel( Connection connection ) {
+    ProducersTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupProducersTableModel( null, 0 );
     }
 
-    public void setupProducersTableModel( String producersFilterString,
+    void setupProducersTableModel( String producersFilterString,
 					    int selectedPersoonId ) {
 
 	// Setup the table
@@ -96,6 +95,7 @@ public class ProducersTableModel extends AbstractTableModel {
 	    }
 
 	    producersRecordList.trimToSize( );
+            logger.info("Table shows " + producersRecordList.size() + " producers records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -136,10 +136,9 @@ public class ProducersTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final ProducersRecord producersRecord =
-	    ( ProducersRecord )producersRecordList.get( row );
+	final ProducersRecord producersRecord = producersRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( producersRecord.producersId );
+	if ( column == 0 ) return producersRecord.producersId;
 	if ( column == 1 ) return producersRecord.producersString;
 	if ( column == 2 ) return producersRecord.persoonString;
 
@@ -153,8 +152,7 @@ public class ProducersTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final ProducersRecord producersRecord =
-	    ( ProducersRecord )producersRecordList.get( row );
+	final ProducersRecord producersRecord = producersRecordList.get( row );
 
 	String updateString = null;
 
@@ -214,19 +212,21 @@ public class ProducersTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getProducersId( int row ) {
-	final ProducersRecord producersRecord =
-	    ( ProducersRecord )producersRecordList.get( row );
+    int getProducersId( int row ) {
+        if ( ( row < 0 ) || ( row >= producersRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return producersRecord.producersId;
+	return producersRecordList.get( row ).producersId;
     }
 
-    public String getProducersString( int row ) {
+    String getProducersString( int row ) {
 	if ( ( row < 0 ) || ( row >= producersRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( ProducersRecord )producersRecordList.get( row ) ).producersString;
+	return producersRecordList.get( row ).producersString;
     }
 }

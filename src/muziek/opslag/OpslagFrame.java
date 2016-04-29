@@ -16,7 +16,7 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opslag table in schema muziek.
- * An instance of OpslagDatumFrame is created by class muziek.Main.
+ * An instance of OpslagFrame is created by class muziek.Main.
  *
  * @author Chris van Engelen
  */
@@ -36,11 +36,12 @@ public class OpslagFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
+        constraints.gridwidth = 1;
 
 	constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.gridwidth = 1;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opslag Filter:" ), constraints );
 
 	final JTextField opslagFilterTextField = new JTextField( 15 );

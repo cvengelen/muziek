@@ -1,5 +1,3 @@
-// Class to setup a TableModel for records in subtype
-
 package muziek.subtype;
 
 import java.sql.Connection;
@@ -12,42 +10,40 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
-public class SubtypeTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "muziek.subtype.SubtypeTableModel" );
+/**
+ * TableModel for records in subtype
+ */
+class SubtypeTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( SubtypeTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Subtype" };
+    private final String[ ] headings = { "Id", "Subtype" };
 
-    class SubtypeRecord {
+    private class SubtypeRecord {
 	int	subtypeId;
 	String	subtypeString;
 
-	public SubtypeRecord( int    subtypeId,
-			      String subtypeString ) {
+	SubtypeRecord( int    subtypeId,
+                       String subtypeString ) {
 	    this.subtypeId = subtypeId;
 	    this.subtypeString = subtypeString;
 	}
     }
 
-    ArrayList subtypeRecordList = new ArrayList( 100 );
-
-    private String subtypeFilterString = null;
+    private final ArrayList<SubtypeRecord> subtypeRecordList = new ArrayList<>( 100 );
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public SubtypeTableModel( Connection connection ) {
+    SubtypeTableModel( Connection connection ) {
 	this.connection = connection;
 
 	setupSubtypeTableModel( null );
     }
 
-    public void setupSubtypeTableModel( String subtypeFilterString ) {
-	this.subtypeFilterString = subtypeFilterString;
+    void setupSubtypeTableModel( String subtypeFilterString ) {
 
 	// Setup the table
 	try {
@@ -72,6 +68,7 @@ public class SubtypeTableModel extends AbstractTableModel {
 	    }
 
 	    subtypeRecordList.trimToSize( );
+            logger.info("Table shows " + subtypeRecordList.size() + " subtype records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -108,9 +105,9 @@ public class SubtypeTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final SubtypeRecord subtypeRecord = ( SubtypeRecord )subtypeRecordList.get( row );
+	final SubtypeRecord subtypeRecord = subtypeRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( subtypeRecord.subtypeId );
+	if ( column == 0 ) return subtypeRecord.subtypeId;
 	if ( column == 1 ) return subtypeRecord.subtypeString;
 
 	return "";
@@ -122,7 +119,7 @@ public class SubtypeTableModel extends AbstractTableModel {
 	    return;
 	}
 
-	final SubtypeRecord subtypeRecord = ( SubtypeRecord )subtypeRecordList.get( row );
+	final SubtypeRecord subtypeRecord = subtypeRecordList.get( row );
 
 	String updateString = null;
 
@@ -180,18 +177,21 @@ public class SubtypeTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-    public int getSubtypeId( int row ) {
-	final SubtypeRecord subtypeRecord = ( SubtypeRecord )subtypeRecordList.get( row );
+    int getSubtypeId( int row ) {
+        if ( ( row < 0 ) || ( row >= subtypeRecordList.size( ) ) ) {
+            logger.severe( "Invalid row: " + row );
+            return 0;
+        }
 
-	return subtypeRecord.subtypeId;
+	return subtypeRecordList.get( row ).subtypeId;
     }
 
-    public String getSubtypeString( int row ) {
+    String getSubtypeString( int row ) {
 	if ( ( row < 0 ) || ( row >= subtypeRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( SubtypeRecord )subtypeRecordList.get( row ) ).subtypeString;
+	return subtypeRecordList.get( row ).subtypeString;
     }
 }

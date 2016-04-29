@@ -1,5 +1,3 @@
-// frame to show and select records from subtype
-
 package muziek.subtype;
 
 import java.sql.Connection;
@@ -14,24 +12,26 @@ import javax.swing.event.*;
 
 import java.util.logging.Logger;
 
+import com.sun.deploy.panel.JreTableModel;
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the subtype table in schema muziek.
+ * An instance of SubtypeFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class SubtypeFrame {
-    final Logger logger = Logger.getLogger( "muziek.subtype.SubtypeFrame" );
+    private final Logger logger = Logger.getLogger( SubtypeFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Subtype");
+    private JFrame frame = new JFrame( "Subtype");
 
-    JTextField subtypeFilterTextField;
+    private JTextField subtypeFilterTextField;
 
-    SubtypeTableModel subtypeTableModel;
-    TableSorter subtypeTableSorter;
-    JTable subtypeTable;
-
+    private SubtypeTableModel subtypeTableModel;
+    private TableSorter subtypeTableSorter;
 
     public SubtypeFrame( final Connection connection ) {
-	this.connection = connection;
 
 	// put the contsubtypes the content pane
 	Container container = frame.getContentPane();
@@ -39,39 +39,31 @@ public class SubtypeFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-
-
-	/////////////////////////////////
-	// Text filter action listener
-	/////////////////////////////////
-
-	class TextFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the subtype table
-		subtypeTableModel.setupSubtypeTableModel( subtypeFilterTextField.getText( ) );
-	    }
-	}
-	TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
-
+        constraints.gridwidth = 1;
 
 	/////////////////////////////////
 	// Subtype filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Subtype Filter:" ), constraints );
 
 	subtypeFilterTextField = new JTextField( 15 );
-	subtypeFilterTextField.addActionListener( textFilterActionListener );
+	subtypeFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the subtype table
+            subtypeTableSorter.clearSortingState();
+            subtypeTableModel.setupSubtypeTableModel( subtypeFilterTextField.getText( ) );
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( subtypeFilterTextField, constraints );
-
 
 	/////////////////////////////////
 	// Subtype Table
@@ -80,7 +72,7 @@ public class SubtypeFrame {
 	// Create subtype table from title table model
 	subtypeTableModel = new SubtypeTableModel( connection );
 	subtypeTableSorter = new TableSorter( subtypeTableModel );
-	subtypeTable = new JTable( subtypeTableSorter );
+	final JTable subtypeTable = new JTable( subtypeTableSorter );
 	subtypeTableSorter.setTableHeader( subtypeTable.getTableHeader( ) );
 	// subtypeTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -93,12 +85,14 @@ public class SubtypeFrame {
 	// Set vertical size just enough for 20 entries
 	subtypeTable.setPreferredScrollableViewportSize( new Dimension( 350, 320 ) );
 
-
-	constraints.gridx = 0;
-	constraints.gridy = 6;
-	constraints.gridwidth = 3;
+        constraints.insets = new Insets( 5, 20, 5, 20 );
+        constraints.gridx = 0;
+	constraints.gridy = 1;
+	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( subtypeTable ), constraints );
 
 
@@ -109,7 +103,7 @@ public class SubtypeFrame {
 	final ListSelectionModel subtypeListSelectionModel = subtypeTable.getSelectionModel( );
 
 	class SubtypeListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -127,7 +121,7 @@ public class SubtypeFrame {
 		deleteSubtypeButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add subtypeListSelectionListener object to the selection model of the musici table
@@ -139,7 +133,8 @@ public class SubtypeFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
 			Statement statement = connection.createStatement( );
@@ -266,12 +261,28 @@ public class SubtypeFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 7;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+	constraints.gridy = 2;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 430, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 410, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }

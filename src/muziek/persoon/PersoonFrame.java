@@ -1,5 +1,3 @@
-// frame to show and select records from persoon
-
 package muziek.persoon;
 
 import java.sql.Connection;
@@ -16,28 +14,32 @@ import java.util.logging.*;
 
 import table.*;
 
-
+/**
+ * Frame to show, insert and update records in the persoon table in schema muziek.
+ * An instance of PersoonFrame is created by class muziek.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class PersoonFrame {
-    final Logger logger = Logger.getLogger( "muziek.persoon.PersoonFrame" );
+    private final Logger logger = Logger.getLogger( PersoonFrame.class.getCanonicalName() );
 
-    final Connection connection;
-    final JFrame frame = new JFrame( "Persoon" );
+    private final Connection connection;
+    private final JFrame frame = new JFrame( "Persoon" );
 
-    PersoonTableModel persoonTableModel;
-    TableSorter persoonTableSorter;
-    JTable persoonTable;
+    private PersoonTableModel persoonTableModel;
+    private TableSorter persoonTableSorter;
 
-    class Persoon {
+    private class Persoon {
 	int	id;
 	String  name;
 
-	public Persoon( int    id,
-			String name ) {
+	Persoon( int    id,
+                 String name ) {
 	    this.id = id;
 	    this.name = name;
 	}
 
-	public boolean presentInTable( String tableString ) {
+	boolean presentInTable( String tableString ) {
 	    // Check if persoonId is present in table
 	    try {
 		Statement statement = connection.createStatement( );
@@ -59,7 +61,6 @@ public class PersoonFrame {
 	}
     }
 
-
     public PersoonFrame( final Connection connection ) {
 	this.connection = connection;
 
@@ -69,31 +70,30 @@ public class PersoonFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
+        constraints.gridwidth = 1;
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Persoon Filter:" ), constraints );
+
 	final JTextField persoonFilterTextField = new JTextField( 15 );
+        persoonFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the persoon table
+            persoonTableSorter.clearSortingState();
+            persoonTableModel.setupPersoonTableModel( persoonFilterTextField.getText( ) );
+        } );
 
+        constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( persoonFilterTextField, constraints );
-
-	class PersoonFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the persoon table
-		persoonTableModel.setupPersoonTableModel( persoonFilterTextField.getText( ) );
-	    }
-	}
-	persoonFilterTextField.addActionListener( new PersoonFilterActionListener( ) );
-
 
 	// Create persoon table from title table model
 	persoonTableModel = new PersoonTableModel( connection );
 	persoonTableSorter = new TableSorter( persoonTableModel );
-	persoonTable = new JTable( persoonTableSorter );
+	final JTable persoonTable = new JTable( persoonTableSorter );
 	persoonTableSorter.setTableHeader( persoonTable.getTableHeader( ) );
 	// persoonTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -105,12 +105,18 @@ public class PersoonFrame {
 	// Set vertical size just enough for 20 entries
 	persoonTable.setPreferredScrollableViewportSize( new Dimension( 300, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 4;
-	constraints.gridwidth = 5;
-	constraints.insets = new Insets( 10, 0, 10, 10 );
+	constraints.gridy = 1;
+	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
-	container.add( new JScrollPane( persoonTable ), constraints );
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
+        container.add( new JScrollPane( persoonTable ), constraints );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 
 	////////////////////////////////////////////////
@@ -124,7 +130,7 @@ public class PersoonFrame {
 	final ListSelectionModel persoonListSelectionModel = persoonTable.getSelectionModel( );
 
 	class PersoonListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -142,7 +148,7 @@ public class PersoonFrame {
 		deletePersoonButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add persoonListSelectionListener object to the selection model of the musici table
@@ -154,7 +160,8 @@ public class PersoonFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
 			Statement statement = connection.createStatement( );
@@ -270,14 +277,26 @@ public class PersoonFrame {
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 5;
-	constraints.gridwidth = 3;
-	constraints.insets = new Insets( 10, 0, 0, 10 );
+	constraints.gridy = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 400, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 360, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible(true);
     }
