@@ -1,12 +1,11 @@
-//
 // Project:	muziek
-// Component:	gui
+// Package:	muziek.gui
 // File:	OpusComboBox.java
 // Description:	ComboBox for selection of record in opus table
 // Author:	Chris van Engelen
 // History:	2005/04/02: Initial version
 //		2009/01/01: Add selection on Componist-Persoon
-//
+//              2016/05/20: Refactoring, and use of Java 7, 8 features
 
 package muziek.gui;
 
@@ -19,11 +18,8 @@ import java.util.*;
 import java.util.logging.*;
 import javax.swing.*;
 
-
 public class OpusComboBox extends JComboBox< String > {
-	private static final long serialVersionUID = 1L;
-
-	final private Logger logger = Logger.getLogger( "muziek.gui.OpusComboBox" );
+    final private Logger logger = Logger.getLogger( OpusComboBox.class.getCanonicalName() );
 
     private Connection conn;
 
@@ -37,10 +33,11 @@ public class OpusComboBox extends JComboBox< String > {
     private int selectedGenreId = 0;
     private int selectedTypeId = 0;
 
-    private Map< String, Object > opusMap = new HashMap< String, Object >( );
+    private Map< String, Integer > opusMap = new HashMap< >( 2000 );
     private int selectedOpusId = 0;
     private String opusFilterString = null;
     private String newOpusString = null;
+    private int maxOpusLength = 100;
 
 
     public OpusComboBox( Connection conn,
@@ -59,7 +56,8 @@ public class OpusComboBox extends JComboBox< String > {
 			 int	    selectedComponistenPersoonId,
 			 int        selectedComponistenId,
 			 int        selectedGenreId,
-			 int        selectedTypeId ) {
+			 int        selectedTypeId,
+                         int        maxOpusLength ) {
 	this.conn = conn;
 	this.parentObject = parentObject;
 	this.opusFilterString = opusFilterString;
@@ -67,6 +65,7 @@ public class OpusComboBox extends JComboBox< String > {
 	this.selectedComponistenId = selectedComponistenId;
 	this.selectedGenreId = selectedGenreId;
 	this.selectedTypeId = selectedTypeId;
+        this.maxOpusLength = maxOpusLength;
 
 	// Setup the Opus combo box
 	setupOpusComboBox( );
@@ -75,17 +74,19 @@ public class OpusComboBox extends JComboBox< String > {
 
     public OpusComboBox( Connection conn,
 			 Object     parentObject,
-			 int        selectedOpusId ) {
+			 int        selectedOpusId,
+                         int        maxOpusLength ) {
 	this.conn = conn;
 	this.parentObject = parentObject;
 	this.selectedOpusId = selectedOpusId;
+        this.maxOpusLength = maxOpusLength;
 
 	// Setup the Opus combo box
 	setupOpusComboBox( );
     }
 
 
-    public void setupOpusComboBox( int selectedOpusId ) {
+    void setupOpusComboBox( int selectedOpusId ) {
 	this.selectedOpusId = selectedOpusId;
 
 	// Setup the opus combo box
@@ -149,14 +150,13 @@ public class OpusComboBox extends JComboBox< String > {
 
 	try {
 	    // Fill the combo box and hash table
-	    String opusQueryString =
-		new String( "SELECT opus_id, persoon, opus_titel, opus_nummer, genre FROM opus " +
-			    "LEFT JOIN genre ON opus.genre_id = genre.genre_id " +
-			    "LEFT JOIN componisten ON opus.componisten_id = componisten.componisten_id " +
-			    "LEFT JOIN componisten_persoon ON opus.componisten_id = componisten_persoon.componisten_id " +
-			    "LEFT JOIN persoon ON componisten_persoon.persoon_id = persoon.persoon_id " +
-			    "LEFT JOIN type ON opus.type_id = type.type_id " +
-			    "LEFT JOIN subtype ON opus.subtype_id = subtype.subtype_id " );
+	    String opusQueryString = "SELECT opus_id, persoon, opus_titel, opus_nummer, genre FROM opus " +
+			             "LEFT JOIN genre ON opus.genre_id = genre.genre_id " +
+			             "LEFT JOIN componisten ON opus.componisten_id = componisten.componisten_id " +
+			             "LEFT JOIN componisten_persoon ON opus.componisten_id = componisten_persoon.componisten_id " +
+			             "LEFT JOIN persoon ON componisten_persoon.persoon_id = persoon.persoon_id " +
+			             "LEFT JOIN type ON opus.type_id = type.type_id " +
+			             "LEFT JOIN subtype ON opus.subtype_id = subtype.subtype_id ";
 
 	    // Check if an opus filter is present, or if a componist is selected
 	    if ( ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
@@ -258,12 +258,12 @@ public class OpusComboBox extends JComboBox< String > {
 		    opusString += " (" + genreString + ")";
 		}
 
-		if ( opusString.length( ) > 100 ) {
-		    opusString = opusString.substring( 0, 100 );
+		if ( opusString.length( ) > maxOpusLength ) {
+		    opusString = opusString.substring( 0, maxOpusLength );
 		}
 
 		// Store the opus_id in the map indexed by the opusTitelString
-		opusMap.put( opusString, resultSet.getObject( 1 ) );
+		opusMap.put( opusString, resultSet.getInt( 1 ) );
 
 		// Add the opusTitelString to the combo box
 		addItem( opusString );
@@ -277,12 +277,13 @@ public class OpusComboBox extends JComboBox< String > {
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
+        logger.info("#opus: " + opusMap.size());
 
 	setMaximumRowCount( 20 );
     }
 
 
-    public String filterOpusComboBox( ) {
+    String filterOpusComboBox( ) {
 	String newOpusFilterString = null;
 
 	// Prompt for the opus filter, using the current value as default
@@ -321,12 +322,12 @@ public class OpusComboBox extends JComboBox< String > {
     }
 
 
-    public String getSelectedOpusString( ) {
+    String getSelectedOpusString( ) {
 	return ( String )getSelectedItem( );
     }
 
 
-    public int getSelectedOpusId( ) {
+    int getSelectedOpusId( ) {
 	String opusString = ( String )getSelectedItem( );
 
 	if ( opusString == null ) return 0;
@@ -336,14 +337,14 @@ public class OpusComboBox extends JComboBox< String > {
 
 	// Get the opus_id from the map
 	if ( opusMap.containsKey( opusString ) ) {
-	    return ( ( Integer )opusMap.get( opusString ) ).intValue( );
+	    return opusMap.get( opusString );
 	}
 
 	return 0;
     }
 
 
-    public boolean newOpusSelected( ) {
+    boolean newOpusSelected( ) {
 	String opusString = ( String )getSelectedItem( );
 
 	// Check if empty string is selected

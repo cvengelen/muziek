@@ -1,12 +1,11 @@
-//
 // Project:	muziek
-// Component:	gui
+// Package:	muziek.gui
 // File:	EditOpnameDialog.java
 // Description:	Dialog for inserting or updating a record in opname
 // Author:	Chris van Engelen
 // History:	2005/05/01: Initial version
 //		2009/01/01: Add selection on Componist-Persoon
-//
+//              2016/05/20: Refactoring, and use of Java 7, 8 features
 
 package muziek.gui;
 
@@ -15,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.util.*;
 import java.util.logging.*;
 import java.text.*;
 import java.awt.*;
@@ -30,64 +28,63 @@ import javax.swing.text.*;
 public class EditOpnameDialog {
     final private Logger logger = Logger.getLogger( "muziek.gui.EditOpnameDialog" );
 
-    Connection conn;
-    Object parentObject;
-    JDialog dialog;
+    private Connection conn;
+    private Object parentObject;
+    private JDialog dialog;
 
-    int selectedComponistenPersoonId = 0;
-    int selectedComponistenId = 0;
-    String selectedComponistenString = null;
+    private int selectedComponistenPersoonId = 0;
+    private int selectedComponistenId = 0;
+    private String selectedComponistenString = null;
 
-    int selectedGenreId = 0;
-    String selectedGenreString = null;
+    private int selectedGenreId = 0;
+    private String selectedGenreString = null;
 
-    int selectedTypeId = 0;
-    String selectedTypeString = null;
+    private int selectedTypeId = 0;
+    private String selectedTypeString = null;
 
-    OpnameKey opnameKey = new OpnameKey( );
+    private OpnameKey opnameKey = new OpnameKey( );
 
-    MediumComboBox mediumComboBox;
-    int defaultMediumId = 0;
-    String mediumFilterString = null;
+    private MediumComboBox mediumComboBox;
+    private int defaultMediumId = 0;
+    private String mediumFilterString = null;
 
-    OpusComboBox opusComboBox;
-    int defaultOpusId = 0;
-    String opusFilterString = null;
+    private OpusComboBox opusComboBox;
+    private int defaultOpusId = 0;
+    private String opusFilterString = null;
 
-    int defaultOpnameNummer = 0;
-    JSpinner opnameNummerSpinner;
+    private int defaultOpnameNummer = 0;
+    private JSpinner opnameNummerSpinner;
 
-    TracksTableModel tracksTableModel;
-    JTable tracksTable;
+    private TracksTableModel tracksTableModel;
 
-    MusiciComboBox musiciComboBox;
-    int defaultMusiciId = 0;
-    int defaultMusiciPersoonId = 0;
-    int defaultMusiciEnsembleId = 0;
-    String musiciFilterString = null;
+    private MusiciComboBox musiciComboBox;
+    private int defaultMusiciId = 0;
+    private int defaultMusiciPersoonId = 0;
+    private int defaultMusiciEnsembleId = 0;
+    private String musiciFilterString = null;
 
-    OpnamePlaatsComboBox opnamePlaatsComboBox;
-    int defaultOpnamePlaatsId = 0;
-    String opnamePlaatsFilterString = null;
+    private OpnamePlaatsComboBox opnamePlaatsComboBox;
+    private int defaultOpnamePlaatsId = 0;
+    private String opnamePlaatsFilterString = null;
 
-    OpnameDatumComboBox opnameDatumComboBox;
-    int defaultOpnameDatumId = 0;
-    String opnameDatumFilterString = null;
+    private OpnameDatumComboBox opnameDatumComboBox;
+    private int defaultOpnameDatumId = 0;
+    private String opnameDatumFilterString = null;
 
-    ProducersComboBox producersComboBox;
-    int defaultProducersId = 0;
-    String producersFilterString = null;
+    private ProducersComboBox producersComboBox;
+    private int defaultProducersId = 0;
+    private String producersFilterString = null;
 
-    String defaultOpnameTechniekString = null;
-    String opnameTechniekString = null;
+    private String defaultOpnameTechniekString = null;
+    private String opnameTechniekString = null;
 
-    String defaultMixTechniekString = null;
-    String mixTechniekString = null;
+    private String defaultMixTechniekString = null;
+    private String mixTechniekString = null;
 
-    int nUpdate = 0;
+    private int nUpdate = 0;
 
-    final String insertOpnameActionCommand = "insertOpname";
-    final String updateOpnameActionCommand = "updateOpname";
+    private final String insertOpnameActionCommand = "insertOpname";
+    private final String updateOpnameActionCommand = "updateOpname";
 
     // Constructor for inserting a record in opname
     public EditOpnameDialog( Connection conn,
@@ -124,6 +121,9 @@ public class EditOpnameDialog {
 	this.defaultOpnameDatumId = selectedOpnameDatumId;
 	this.defaultOpnamePlaatsId = selectedOpnamePlaatsId;
 	this.defaultProducersId = selectedProducersId;
+
+        defaultOpnameTechniekString = "D";
+        defaultMixTechniekString = "D";
 
 	setupOpnameDialog( "Insert opname", "Insert", insertOpnameActionCommand );
     }
@@ -170,10 +170,10 @@ public class EditOpnameDialog {
 	    // these will be equal to the default. Note: do not copy variables, but really make new objects,
 	    // otherwise changing the copy would result in also changing the default!
 	    if ( defaultOpnameTechniekString != null ) {
-		opnameTechniekString = new String( defaultOpnameTechniekString );
+		opnameTechniekString = defaultOpnameTechniekString;
 	    }
 	    if ( defaultMixTechniekString != null ) {
-		mixTechniekString = new String( defaultMixTechniekString );
+		mixTechniekString = defaultMixTechniekString;
 	    }
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
@@ -200,10 +200,7 @@ public class EditOpnameDialog {
 	// Set grid bag layout manager
 	Container container = dialog.getContentPane( );
 	container.setLayout( new GridBagLayout( ) );
-
-	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 5, 5, 5, 5 );
+        GridBagConstraints constraints = new GridBagConstraints( );
 
 
 	//////////////////////////////////////////
@@ -212,97 +209,90 @@ public class EditOpnameDialog {
 
 	// Setup a JComboBox for medium with the selected medium ID
 	mediumComboBox = new MediumComboBox( conn, dialog, defaultMediumId );
+        mediumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            int selectedMediumId = 0;
+
+            // Check if a medium record needs to be inserted
+            if ( mediumComboBox.newMediumSelected( ) ) {
+                // Insert new medium record
+                EditMediumDialog editMediumDialog =
+                        new EditMediumDialog( conn, parentObject,
+                                mediumFilterString,
+                                null,
+                                selectedGenreId,
+                                0, 0, 0, 0 );
+
+                // Check if a new medium record has been inserted
+                if ( editMediumDialog.mediumUpdated( ) ) {
+                    // Get the id of the new medium record
+                    selectedMediumId = editMediumDialog.getMediumId( );
+
+                    // Setup the medium combo box again
+                    mediumComboBox.setupMediumComboBox( selectedMediumId );
+                }
+            } else {
+                // Get the selected medium ID from the combo box
+                selectedMediumId = mediumComboBox.getSelectedMediumId( );
+            }
+
+            // Setup the tracks table
+            tracksTableModel.initTable( selectedMediumId,
+                    opusComboBox.getSelectedOpusId( ) );
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 20, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( mediumComboBox, constraints );
 
-	class SelectMediumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		int selectedMediumId = 0;
-
-		// Check if a medium record needs to be inserted
-		if ( mediumComboBox.newMediumSelected( ) ) {
-		    // Insert new medium record
-		    EditMediumDialog editMediumDialog =
-			new EditMediumDialog( conn, parentObject,
-					      mediumFilterString,
-					      null,
-					      selectedGenreId,
-					      0, 0, 0, 0 );
-
-		    // Check if a new medium record has been inserted
-		    if ( editMediumDialog.mediumUpdated( ) ) {
-			// Get the id of the new medium record
-			selectedMediumId = editMediumDialog.getMediumId( );
-
-			// Setup the medium combo box again
-			mediumComboBox.setupMediumComboBox( selectedMediumId );
-		    }
-		} else {
-		    // Get the selected medium ID from the combo box
-		    selectedMediumId = mediumComboBox.getSelectedMediumId( );
-		}
-
-		// Setup the tracks table
-		tracksTableModel.initTable( selectedMediumId,
-					    opusComboBox.getSelectedOpusId( ) );
-	    }
-	}
-	mediumComboBox.addActionListener( new SelectMediumActionListener( ) );
-
 	JButton filterMediumButton = new JButton( "Filter" );
 	filterMediumButton.setActionCommand( "filterMedium" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        filterMediumButton.addActionListener( ( ActionEvent actionEvent ) ->
+                mediumFilterString = mediumComboBox.filterMediumComboBox( ) );
+
 	constraints.gridwidth = 1;
 	container.add( filterMediumButton, constraints );
 
-	class FilterMediumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		mediumFilterString = mediumComboBox.filterMediumComboBox( );
-	    }
-	}
-	filterMediumButton.addActionListener( new FilterMediumActionListener( ) );
-
 	JButton editMediumButton = new JButton( "Edit" );
 	editMediumButton.setActionCommand( "editMedium" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editMediumButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Medium ID
+            int selectedMediumId = mediumComboBox.getSelectedMediumId( );
+
+            // Check if medium has been selected
+            if ( selectedMediumId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen medium geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditMediumDialog editMediumDialog =
+                    new EditMediumDialog( conn, dialog, selectedMediumId );
+
+            if ( editMediumDialog.mediumUpdated( ) ) {
+                // Setup the medium combo box again
+                mediumComboBox.setupMediumComboBox( );
+
+                // Setup the tracks table
+                tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ),
+                        opusComboBox.getSelectedOpusId( ) );
+            }
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 20 );
 	constraints.gridwidth = 1;
 	container.add( editMediumButton, constraints );
-
-	class EditMediumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Medium ID
-		int selectedMediumId = mediumComboBox.getSelectedMediumId( );
-
-		// Check if medium has been selected
-		if ( selectedMediumId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen medium geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditMediumDialog editMediumDialog =
-		    new EditMediumDialog( conn, dialog, selectedMediumId );
-
-		if ( editMediumDialog.mediumUpdated( ) ) {
-		    // Setup the medium combo box again
-		    mediumComboBox.setupMediumComboBox( );
-
-		    // Setup the tracks table
-		    tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ),
-						opusComboBox.getSelectedOpusId( ) );
-		}
-	    }
-	}
-	editMediumButton.addActionListener( new EditMediumActionListener( ) );
 
 
 	///////////////////////////////////////////////////
@@ -313,6 +303,9 @@ public class EditOpnameDialog {
 	     ( selectedComponistenId != 0 ) ||
 	     ( selectedGenreId != 0 ) ||
 	     ( selectedTypeId != 0 ) ) {
+
+            constraints.anchor = GridBagConstraints.EAST;
+            constraints.insets = new Insets( 5, 20, 5, 5 );
 	    constraints.gridx = 0;
 	    constraints.gridy = 1;
 	    constraints.gridwidth = 1;
@@ -338,34 +331,33 @@ public class EditOpnameDialog {
 		opusSelectionPanel.add( typeSelectionLabel );
 	    }
 
+            constraints.anchor = GridBagConstraints.WEST;
+            constraints.insets = new Insets( 5, 5, 5, 5 );
 	    constraints.gridx = GridBagConstraints.RELATIVE;
 	    container.add( opusSelectionPanel, constraints );
 
 	    JButton resetOpusSelectionButton = new JButton( "Reset" );
 	    resetOpusSelectionButton.setActionCommand( "resetOpusSelection" );
-	    constraints.gridx = GridBagConstraints.RELATIVE;
-	    constraints.gridwidth = 1;
-	    container.add( resetOpusSelectionButton, constraints );
+	    resetOpusSelectionButton.addActionListener( ( ActionEvent actionEvent ) -> {
+                opusFilterString = null;
+                selectedComponistenPersoonId = 0;
+                selectedComponistenId = 0;
+                selectedGenreId = 0;
+                selectedTypeId = 0;
+                componistenSelectionLabel.setText( "" );
+                genreSelectionLabel.setText( "" );
+                typeSelectionLabel.setText( "" );
+                opusComboBox.setupOpusComboBox( opusFilterString,
+                        selectedComponistenPersoonId,
+                        selectedComponistenId,
+                        selectedGenreId,
+                        selectedTypeId );
+            } );
 
-	    class ResetOpusSelectionActionListener implements ActionListener {
-		public void actionPerformed( ActionEvent actionEvent ) {
-		    opusFilterString = null;
-		    selectedComponistenPersoonId = 0;
-		    selectedComponistenId = 0;
-		    selectedGenreId = 0;
-		    selectedTypeId = 0;
-		    componistenSelectionLabel.setText( "" );
-		    genreSelectionLabel.setText( "" );
-		    typeSelectionLabel.setText( "" );
-		    opusComboBox.setupOpusComboBox( opusFilterString,
-						    selectedComponistenPersoonId,
-						    selectedComponistenId,
-						    selectedGenreId,
-						    selectedTypeId );
-		}
-	    }
-	    resetOpusSelectionButton.addActionListener( new ResetOpusSelectionActionListener( ) );
-	}
+            constraints.insets = new Insets( 5, 5, 5, 20 );
+            constraints.gridwidth = 1;
+            container.add( resetOpusSelectionButton, constraints );
+        }
 
 
 	//////////////////////////////////////////
@@ -373,114 +365,110 @@ public class EditOpnameDialog {
 	//////////////////////////////////////////
 
 	// Setup a JComboBox for opus
+        final int maxOpusLength = 93;
 	if ( editOpnameButtonActionCommand.equals( insertOpnameActionCommand ) ) {
 	    opusComboBox = new OpusComboBox( conn, dialog,
 					     opusFilterString,
 					     selectedComponistenPersoonId,
 					     selectedComponistenId,
 					     selectedGenreId,
-					     selectedTypeId );
+					     selectedTypeId,
+                                             maxOpusLength );
 	} else {
-	    opusComboBox = new OpusComboBox( conn, dialog, defaultOpusId );
+	    opusComboBox = new OpusComboBox( conn, dialog, defaultOpusId, maxOpusLength );
 	}
+        opusComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            int selectedOpusId = 0;
+
+            // Check if a opus record needs to be inserted
+            if ( opusComboBox.newOpusSelected( ) ) {
+                // Insert new opus record
+                EditOpusDialog editOpusDialog =
+                        new EditOpusDialog( conn, parentObject,
+                                opusFilterString,
+                                selectedComponistenPersoonId,
+                                selectedComponistenId,
+                                selectedGenreId,
+                                selectedTypeId );
+
+                // Check if a new opus record has been inserted
+                if ( editOpusDialog.opusUpdated( ) ) {
+                    // Get the id of the new opus record
+                    selectedOpusId = editOpusDialog.getOpusId( );
+
+                    // Setup the opus combo box again
+                    opusComboBox.setupOpusComboBox( selectedOpusId );
+                }
+            } else {
+                // Get the selected opus ID from the combo box
+                selectedOpusId = opusComboBox.getSelectedOpusId( );
+            }
+
+            // Setup the tracks table
+            tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ), selectedOpusId );
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 2;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opus:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( opusComboBox, constraints );
 
-	class SelectOpusActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		int selectedOpusId = 0;
-
-		// Check if a opus record needs to be inserted
-		if ( opusComboBox.newOpusSelected( ) ) {
-		    // Insert new opus record
-		    EditOpusDialog editOpusDialog =
-			new EditOpusDialog( conn, parentObject, 
-					    opusFilterString,
-					    selectedComponistenPersoonId,
-					    selectedComponistenId,
-					    selectedGenreId,
-					    selectedTypeId );
-
-		    // Check if a new opus record has been inserted
-		    if ( editOpusDialog.opusUpdated( ) ) {
-			// Get the id of the new opus record
-			selectedOpusId = editOpusDialog.getOpusId( );
-
-			// Setup the opus combo box again
-			opusComboBox.setupOpusComboBox( selectedOpusId );
-		    }
-		} else {
-		    // Get the selected opus ID from the combo box
-		    selectedOpusId = opusComboBox.getSelectedOpusId( );
-		}
-
-		// Setup the tracks table
-		tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ),
-					    selectedOpusId );
-	    }
-	}
-	opusComboBox.addActionListener( new SelectOpusActionListener( ) );
-
 	JButton filterOpusButton = new JButton( "Filter" );
 	filterOpusButton.setActionCommand( "filterOpus" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        filterOpusButton.addActionListener( ( ActionEvent actionEvent ) ->
+                opusFilterString = opusComboBox.filterOpusComboBox( ) );
+
 	constraints.gridwidth = 1;
 	container.add( filterOpusButton, constraints );
 
-	class FilterOpusActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opusFilterString = opusComboBox.filterOpusComboBox( );
-	    }
-	}
-	filterOpusButton.addActionListener( new FilterOpusActionListener( ) );
-
 	JButton editOpusButton = new JButton( "Edit" );
 	editOpusButton.setActionCommand( "editOpus" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editOpusButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Opus ID
+            int selectedOpusId = opusComboBox.getSelectedOpusId( );
+
+            // Check if opus has been selected
+            if ( selectedOpusId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen opus geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditOpusDialog editOpusDialog =
+                    new EditOpusDialog( conn, dialog, selectedOpusId );
+
+            if ( editOpusDialog.opusUpdated( ) ) {
+                // Setup the opus combo box again
+                opusComboBox.setupOpusComboBox( );
+
+                // Setup the tracks table
+                tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ),
+                        opusComboBox.getSelectedOpusId( ) );
+            }
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridwidth = 1;
 	container.add( editOpusButton, constraints );
-
-	class EditOpusActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Opus ID
-		int selectedOpusId = opusComboBox.getSelectedOpusId( );
-
-		// Check if opus has been selected
-		if ( selectedOpusId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen opus geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditOpusDialog editOpusDialog =
-		    new EditOpusDialog( conn, dialog, selectedOpusId );
-
-		if ( editOpusDialog.opusUpdated( ) ) {
-		    // Setup the opus combo box again
-		    opusComboBox.setupOpusComboBox( );
-
-		    // Setup the tracks table
-		    tracksTableModel.initTable( mediumComboBox.getSelectedMediumId( ),
-						opusComboBox.getSelectedOpusId( ) );
-		}
-	    }
-	}
-	editOpusButton.addActionListener( new EditOpusActionListener( ) );
 
 
 	//////////////////////////////////////////
 	// Opname nummer spinner
 	//////////////////////////////////////////
 
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 3;
 	constraints.gridwidth = 1;
@@ -492,6 +480,9 @@ public class EditOpnameDialog {
 	if ( opnameNummerSpinnerTextField != null ) {
 	    opnameNummerSpinnerTextField.setColumns( 1 );
 	}
+
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( opnameNummerSpinner, constraints );
@@ -501,6 +492,8 @@ public class EditOpnameDialog {
 	// tracks Table, Replace, Remove Buttons
 	////////////////////////////////////////////////
 
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 4;
 	constraints.gridwidth = 1;
@@ -514,7 +507,7 @@ public class EditOpnameDialog {
 						 opnameKey.getOpusId( ) );
 
 	// Create tracks table from tracks table model
-	tracksTable = new JTable( tracksTableModel );
+	final JTable tracksTable = new JTable( tracksTableModel );
 
 	// Setup a table with tracks records for this opus
 	// tracksTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -536,7 +529,7 @@ public class EditOpnameDialog {
 
 	    // Set renderer for String objects
 	    class TimeStringRenderer extends JFormattedTextField implements TableCellRenderer {
-		TimeStringRenderer( MaskFormatter maskFormatter ) {
+		private TimeStringRenderer( MaskFormatter maskFormatter ) {
 		    super( maskFormatter );
 		}
 
@@ -566,26 +559,28 @@ public class EditOpnameDialog {
 	    logger.severe( "time parse exception: " + parseException.getMessage( ) );
 	}
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( tracksTable ), constraints );
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 	// Define Add button next to table
 	final JButton addTrackToTableButton = new JButton( "Add" );
 	addTrackToTableButton.setActionCommand( "addTrackToTable" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        addTrackToTableButton.addActionListener( ( ActionEvent actionEvent ) -> tracksTableModel.addRow( ) );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 2;
 	constraints.gridheight = 1;
 	container.add( addTrackToTableButton, constraints );
-
-	// Class to handle Add button: uses tracksListSelectionListener
-	class AddTrackToTableActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Add row to table
-		tracksTableModel.addRow( );
-	    }
-	}
-	addTrackToTableButton.addActionListener( new AddTrackToTableActionListener( ) );
 
 	// Define Insert button next to table
 	final JButton insertTrackInTableButton = new JButton( "Insert" );
@@ -606,7 +601,7 @@ public class EditOpnameDialog {
 	final ListSelectionModel tracksListSelectionModel = tracksTable.getSelectionModel( );
 
 	class TracksListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -632,43 +627,33 @@ public class EditOpnameDialog {
 	final TracksListSelectionListener tracksListSelectionListener = new TracksListSelectionListener( );
 	tracksListSelectionModel.addListSelectionListener( tracksListSelectionListener );
 
+        insertTrackInTableButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            int selectedRow = tracksListSelectionListener.getSelectedRow( );
+            if ( selectedRow < 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen track geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
 
-	// Class to handle Insert button: uses tracksListSelectionListener
-	class InsertTrackInTableActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		int selectedRow = tracksListSelectionListener.getSelectedRow( );
-		if ( selectedRow < 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen track geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
+            // Insert selected row in table
+            tracksTableModel.insertRow( selectedRow );
+        } );
 
-		// Insert selected row in table
-		tracksTableModel.insertRow( selectedRow );
-	    }
-	}
-	insertTrackInTableButton.addActionListener( new InsertTrackInTableActionListener( ) );
+	removeTrackFromTableButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            int selectedRow = tracksListSelectionListener.getSelectedRow( );
+            if ( selectedRow < 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen tracks geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
 
-
-	// Class to handle Remove button: uses tracksListSelectionListener
-	class RemoveTrackFromTableActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		int selectedRow = tracksListSelectionListener.getSelectedRow( );
-		if ( selectedRow < 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen tracks geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Remove selected row in table
-		tracksTableModel.removeRow( selectedRow );
-	    }
-	}
-	removeTrackFromTableButton.addActionListener( new RemoveTrackFromTableActionListener( ) );
+            // Remove selected row in table
+            tracksTableModel.removeRow( selectedRow );
+        } );
 
 
 	//////////////////////////////////////////
@@ -686,81 +671,74 @@ public class EditOpnameDialog {
 	} else {
 	    musiciComboBox = new MusiciComboBox( conn, dialog );
 	}
+        musiciComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Check if a musici record needs to be inserted
+            if ( musiciComboBox.newMusiciSelected( ) ) {
+                // Insert new musici record
+                EditMusiciDialog editMusiciDialog =
+                        new EditMusiciDialog( conn, parentObject, musiciFilterString );
+
+                // Check if a new musici record has been inserted
+                if ( editMusiciDialog.musiciUpdated( ) ) {
+                    // Get the id of the new musici record
+                    int selectedMusiciId = editMusiciDialog.getMusiciId( );
+
+                    // Setup the musici combo box again
+                    musiciComboBox.setupMusiciComboBox( selectedMusiciId );
+                }
+            }
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 8;
 	constraints.gridheight = 1;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Musici:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( musiciComboBox, constraints );
 
-	class SelectMusiciActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Check if a musici record needs to be inserted
-		if ( musiciComboBox.newMusiciSelected( ) ) {
-		    // Insert new musici record
-		    EditMusiciDialog editMusiciDialog =
-			new EditMusiciDialog( conn, parentObject, musiciFilterString );
-
-		    // Check if a new musici record has been inserted
-		    if ( editMusiciDialog.musiciUpdated( ) ) {
-			// Get the id of the new musici record
-			int selectedMusiciId = editMusiciDialog.getMusiciId( );
-
-			// Setup the musici combo box again
-			musiciComboBox.setupMusiciComboBox( selectedMusiciId );
-		    }
-		}
-	    }
-	}
-	musiciComboBox.addActionListener( new SelectMusiciActionListener( ) );
-
 	JButton filterMusiciButton = new JButton( "Filter" );
 	filterMusiciButton.setActionCommand( "filterMusici" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        filterMusiciButton.addActionListener( ( ActionEvent actionEvent ) ->
+                musiciFilterString = musiciComboBox.filterMusiciComboBox( ) );
+
 	constraints.gridwidth = 1;
 	container.add( filterMusiciButton, constraints );
 
-	class FilterMusiciActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		musiciFilterString = musiciComboBox.filterMusiciComboBox( );
-	    }
-	}
-	filterMusiciButton.addActionListener( new FilterMusiciActionListener( ) );
-
 	JButton editMusiciButton = new JButton( "Edit" );
 	editMusiciButton.setActionCommand( "editMusici" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editMusiciButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Musici ID
+            int selectedMusiciId = musiciComboBox.getSelectedMusiciId( );
+
+            // Check if musici has been selected
+            if ( selectedMusiciId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen musici geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditMusiciDialog editMusiciDialog =
+                    new EditMusiciDialog( conn, dialog, selectedMusiciId );
+
+            if ( editMusiciDialog.musiciUpdated( ) ) {
+                // Setup the musici combo box again
+                musiciComboBox.setupMusiciComboBox( );
+            }
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridwidth = 1;
 	container.add( editMusiciButton, constraints );
-
-	class EditMusiciActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Musici ID
-		int selectedMusiciId = musiciComboBox.getSelectedMusiciId( );
-
-		// Check if musici has been selected
-		if ( selectedMusiciId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen musici geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditMusiciDialog editMusiciDialog =
-		    new EditMusiciDialog( conn, dialog, selectedMusiciId );
-
-		if ( editMusiciDialog.musiciUpdated( ) ) {
-		    // Setup the musici combo box again
-		    musiciComboBox.setupMusiciComboBox( );
-		}
-	    }
-	}
-	editMusiciButton.addActionListener( new EditMusiciActionListener( ) );
 
 
 	//////////////////////////////////////////
@@ -769,79 +747,71 @@ public class EditOpnameDialog {
 
 	// Setup a JComboBox for opname_plaats
 	opnamePlaatsComboBox = new OpnamePlaatsComboBox( conn, dialog, defaultOpnamePlaatsId );
-	constraints.gridx = 0;
+        opnamePlaatsComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Check if a opname plaats record needs to be inserted
+            if ( opnamePlaatsComboBox.newOpnamePlaatsSelected( ) ) {
+                // Insert new opname plaats record
+                EditOpnamePlaatsDialog editOpnamePlaatsDialog =
+                        new EditOpnamePlaatsDialog( conn, parentObject, opnamePlaatsFilterString );
+
+                // Check if a new opname plaats record has been inserted
+                if ( editOpnamePlaatsDialog.opnamePlaatsUpdated( ) ) {
+                    // Get the id of the new opname plaats record
+                    int selectedOpnamePlaatsId = editOpnamePlaatsDialog.getOpnamePlaatsId( );
+
+                    // Setup the opname plaats combo box again
+                    opnamePlaatsComboBox.setupOpnamePlaatsComboBox( selectedOpnamePlaatsId );
+                }
+            }
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 9;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opname plaats:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 1;
 	container.add( opnamePlaatsComboBox, constraints );
 
-	class SelectOpnamePlaatsActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Check if a opname plaats record needs to be inserted
-		if ( opnamePlaatsComboBox.newOpnamePlaatsSelected( ) ) {
-		    // Insert new opname plaats record
-		    EditOpnamePlaatsDialog editOpnamePlaatsDialog =
-			new EditOpnamePlaatsDialog( conn, parentObject, opnamePlaatsFilterString );
-
-		    // Check if a new opname plaats record has been inserted
-		    if ( editOpnamePlaatsDialog.opnamePlaatsUpdated( ) ) {
-			// Get the id of the new opname plaats record
-			int selectedOpnamePlaatsId = editOpnamePlaatsDialog.getOpnamePlaatsId( );
-
-			// Setup the opname plaats combo box again
-			opnamePlaatsComboBox.setupOpnamePlaatsComboBox( selectedOpnamePlaatsId );
-		    }
-		}
-	    }
-	}
-	opnamePlaatsComboBox.addActionListener( new SelectOpnamePlaatsActionListener( ) );
-
 	JButton filterOpnamePlaatsButton = new JButton( "Filter" );
 	filterOpnamePlaatsButton.setActionCommand( "filterOpnamePlaats" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        filterOpnamePlaatsButton.addActionListener( ( ActionEvent actionEvent ) ->
+                opnamePlaatsFilterString = opnamePlaatsComboBox.filterOpnamePlaatsComboBox( ) );
+
 	container.add( filterOpnamePlaatsButton, constraints );
-
-	class FilterOpnamePlaatsActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opnamePlaatsFilterString = opnamePlaatsComboBox.filterOpnamePlaatsComboBox( );
-	    }
-	}
-	filterOpnamePlaatsButton.addActionListener( new FilterOpnamePlaatsActionListener( ) );
-
 
 	JButton editOpnamePlaatsButton = new JButton( "Edit" );
 	editOpnamePlaatsButton.setActionCommand( "editOpnamePlaats" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editOpnamePlaatsButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected opname_plaats ID
+            int selectedOpnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
+
+            // Check if opname plaats has been selected
+            if ( selectedOpnamePlaatsId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen opname plaats geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditOpnamePlaatsDialog editOpnamePlaatsDialog =
+                    new EditOpnamePlaatsDialog( conn, dialog, selectedOpnamePlaatsId );
+
+            if ( editOpnamePlaatsDialog.opnamePlaatsUpdated( ) ) {
+                // Setup the opname_plaats combo box again
+                opnamePlaatsComboBox.setupOpnamePlaatsComboBox( );
+            }
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	container.add( editOpnamePlaatsButton, constraints );
-
-	class EditOpnamePlaatsActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected opname_plaats ID
-		int selectedOpnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
-
-		// Check if opname plaats has been selected
-		if ( selectedOpnamePlaatsId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen opname plaats geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditOpnamePlaatsDialog editOpnamePlaatsDialog =
-		    new EditOpnamePlaatsDialog( conn, dialog, selectedOpnamePlaatsId );
-
-		if ( editOpnamePlaatsDialog.opnamePlaatsUpdated( ) ) {
-		    // Setup the opname_plaats combo box again
-		    opnamePlaatsComboBox.setupOpnamePlaatsComboBox( );
-		}
-	    }
-	}
-	editOpnamePlaatsButton.addActionListener( new EditOpnamePlaatsActionListener( ) );
 
 
 	//////////////////////////////////////////
@@ -850,78 +820,71 @@ public class EditOpnameDialog {
 
 	// Setup a JComboBox for opname datum
 	opnameDatumComboBox = new OpnameDatumComboBox( conn, dialog, defaultOpnameDatumId );
+        opnameDatumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Check if a opname datum record needs to be inserted
+            if ( opnameDatumComboBox.newOpnameDatumSelected( ) ) {
+                // Insert new opname datum record
+                EditOpnameDatumDialog editOpnameDatumDialog =
+                        new EditOpnameDatumDialog( conn, parentObject, opnameDatumFilterString );
+
+                // Check if a new opname datum record has been inserted
+                if ( editOpnameDatumDialog.opnameDatumUpdated( ) ) {
+                    // Get the id of the new opname datum record
+                    int selectedOpnameDatumId = editOpnameDatumDialog.getOpnameDatumId( );
+
+                    // Setup the opname datum combo box again
+                    opnameDatumComboBox.setupOpnameDatumComboBox( selectedOpnameDatumId );
+                }
+            }
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 10;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opname datum:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 1;
 	container.add( opnameDatumComboBox, constraints );
 
-	class SelectOpnameDatumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Check if a opname datum record needs to be inserted
-		if ( opnameDatumComboBox.newOpnameDatumSelected( ) ) {
-		    // Insert new opname datum record
-		    EditOpnameDatumDialog editOpnameDatumDialog =
-			new EditOpnameDatumDialog( conn, parentObject, opnameDatumFilterString );
-
-		    // Check if a new opname datum record has been inserted
-		    if ( editOpnameDatumDialog.opnameDatumUpdated( ) ) {
-			// Get the id of the new opname datum record
-			int selectedOpnameDatumId = editOpnameDatumDialog.getOpnameDatumId( );
-
-			// Setup the opname datum combo box again
-			opnameDatumComboBox.setupOpnameDatumComboBox( selectedOpnameDatumId );
-		    }
-		}
-	    }
-	}
-	opnameDatumComboBox.addActionListener( new SelectOpnameDatumActionListener( ) );
-
 	JButton filterOpnameDatumButton = new JButton( "Filter" );
 	filterOpnameDatumButton.setActionCommand( "filterOpnameDatum" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( filterOpnameDatumButton, constraints );
+        filterOpnameDatumButton.addActionListener( ( ActionEvent actionEvent ) ->
+                opnameDatumFilterString = opnameDatumComboBox.filterOpnameDatumComboBox( ) );
 
-	class FilterOpnameDatumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opnameDatumFilterString = opnameDatumComboBox.filterOpnameDatumComboBox( );
-	    }
-	}
-	filterOpnameDatumButton.addActionListener( new FilterOpnameDatumActionListener( ) );
+	container.add( filterOpnameDatumButton, constraints );
 
 	JButton editOpnameDatumButton = new JButton( "Edit" );
 	editOpnameDatumButton.setActionCommand( "editOpnameDatum" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editOpnameDatumButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected opname_datum ID
+            int selectedOpnameDatumId = opnameDatumComboBox.getSelectedOpnameDatumId( );
+
+            // Check if opname datum has been selected
+            if ( selectedOpnameDatumId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen opname datum geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditOpnameDatumDialog editOpnameDatumDialog =
+                    new EditOpnameDatumDialog( conn, dialog, selectedOpnameDatumId );
+
+            if ( editOpnameDatumDialog.opnameDatumUpdated( ) ) {
+                // Setup the opname datum combo box again
+                opnameDatumComboBox.setupOpnameDatumComboBox( );
+            }
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	container.add( editOpnameDatumButton, constraints );
-
-	class EditOpnameDatumActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected opname_datum ID
-		int selectedOpnameDatumId = opnameDatumComboBox.getSelectedOpnameDatumId( );
-
-		// Check if opname datum has been selected
-		if ( selectedOpnameDatumId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen opname datum geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditOpnameDatumDialog editOpnameDatumDialog =
-		    new EditOpnameDatumDialog( conn, dialog, selectedOpnameDatumId );
-
-		if ( editOpnameDatumDialog.opnameDatumUpdated( ) ) {
-		    // Setup the opname datum combo box again
-		    opnameDatumComboBox.setupOpnameDatumComboBox( );
-		}
-	    }
-	}
-	editOpnameDatumButton.addActionListener( new EditOpnameDatumActionListener( ) );
 
 
 	//////////////////////////////////////////
@@ -930,84 +893,79 @@ public class EditOpnameDialog {
 
 	// Setup a JComboBox for producers
 	producersComboBox = new ProducersComboBox( conn, dialog, defaultProducersId );
+        producersComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Check if a producers record needs to be inserted
+            if ( producersComboBox.newProducersSelected( ) ) {
+                // Insert new producers record
+                EditProducersDialog editProducersDialog =
+                        new EditProducersDialog( conn, parentObject, producersFilterString );
+
+                // Check if a new producers record has been inserted
+                if ( editProducersDialog.producersUpdated( ) ) {
+                    // Get the id of the new producers record
+                    int selectedProducersId = editProducersDialog.getProducersId( );
+
+                    // Setup the producers combo box again
+                    producersComboBox.setupProducersComboBox( selectedProducersId );
+                }
+            }
+        } );
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 11;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Producers:" ), constraints );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 1;
 	container.add( producersComboBox, constraints );
 
-	class SelectProducersActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Check if a producers record needs to be inserted
-		if ( producersComboBox.newProducersSelected( ) ) {
-		    // Insert new producers record
-		    EditProducersDialog editProducersDialog =
-			new EditProducersDialog( conn, parentObject, producersFilterString );
-
-		    // Check if a new producers record has been inserted
-		    if ( editProducersDialog.producersUpdated( ) ) {
-			// Get the id of the new producers record
-			int selectedProducersId = editProducersDialog.getProducersId( );
-
-			// Setup the producers combo box again
-			producersComboBox.setupProducersComboBox( selectedProducersId );
-		    }
-		}
-	    }
-	}
-	producersComboBox.addActionListener( new SelectProducersActionListener( ) );
-
 	JButton filterProducersButton = new JButton( "Filter" );
 	filterProducersButton.setActionCommand( "filterProducers" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( filterProducersButton, constraints );
+        filterProducersButton.addActionListener( ( ActionEvent actionEvent ) ->
+                producersFilterString = producersComboBox.filterProducersComboBox( ) );
 
-	class FilterProducersActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		producersFilterString = producersComboBox.filterProducersComboBox( );
-	    }
-	}
-	filterProducersButton.addActionListener( new FilterProducersActionListener( ) );
+	container.add( filterProducersButton, constraints );
 
 	JButton editProducersButton = new JButton( "Edit" );
 	editProducersButton.setActionCommand( "editProducers" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+        editProducersButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Producers ID
+            int selectedProducersId = producersComboBox.getSelectedProducersId( );
+
+            // Check if producers has been selected
+            if ( selectedProducersId == 0 ) {
+                JOptionPane.showMessageDialog( dialog,
+                        "Geen producers geselecteerd",
+                        "Edit opname error",
+                        JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+
+            // Do dialog
+            EditProducersDialog editProducersDialog =
+                    new EditProducersDialog( conn, dialog, selectedProducersId );
+
+            if ( editProducersDialog.producersUpdated( ) ) {
+                // Setup the producers combo box again
+                producersComboBox.setupProducersComboBox( );
+            }
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	container.add( editProducersButton, constraints );
-
-	class EditProducersActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Producers ID
-		int selectedProducersId = producersComboBox.getSelectedProducersId( );
-
-		// Check if producers has been selected
-		if ( selectedProducersId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen producers geselecteerd",
-						   "Edit opname error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditProducersDialog editProducersDialog =
-		    new EditProducersDialog( conn, dialog, selectedProducersId );
-
-		if ( editProducersDialog.producersUpdated( ) ) {
-		    // Setup the producers combo box again
-		    producersComboBox.setupProducersComboBox( );
-		}
-	    }
-	}
-	editProducersButton.addActionListener( new EditProducersActionListener( ) );
 
 
 	//////////////////////////////////////////
 	// Opname Techniek Radio Buttons
 	//////////////////////////////////////////
 
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 12;
 	constraints.gridwidth = 1;
@@ -1016,13 +974,10 @@ public class EditOpnameDialog {
 	JPanel opnameTechniekPanel = new JPanel( );
 	ButtonGroup opnameTechniekButtonGroup = new ButtonGroup( );
 
-	class opnameTechniekActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		opnameTechniekString = actionEvent.getActionCommand( );
-		logger.finest( "opnameTechniekString: " + opnameTechniekString );
-	    }
-	}
-	opnameTechniekActionListener opnameTechniekActionListener = new opnameTechniekActionListener( );
+        ActionListener opnameTechniekActionListener = ( ActionEvent actionEvent ) -> {
+            opnameTechniekString = actionEvent.getActionCommand( );
+            logger.finest( "opnameTechniekString: " + opnameTechniekString );
+        };
 
 	JRadioButton analogOpnameTechniekRadioButton = new JRadioButton( "Analog" );
 	analogOpnameTechniekRadioButton.setActionCommand( "A" );
@@ -1048,6 +1003,8 @@ public class EditOpnameDialog {
 	    if ( defaultOpnameTechniekString.equals( "D" ) ) digitalOpnameTechniekRadioButton.setSelected( true );
 	}
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( opnameTechniekPanel, constraints );
@@ -1057,6 +1014,8 @@ public class EditOpnameDialog {
 	// Mix Techniek Radio Buttons
 	//////////////////////////////////////////
 
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 13;
 	constraints.gridwidth = 1;
@@ -1065,13 +1024,10 @@ public class EditOpnameDialog {
 	JPanel mixTechniekPanel = new JPanel( );
 	ButtonGroup mixTechniekButtonGroup = new ButtonGroup( );
 
-	class mixTechniekActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		mixTechniekString = actionEvent.getActionCommand( );
-		logger.finest( "mixTechniekString: " + mixTechniekString );
-	    }
-	}
-	mixTechniekActionListener mixTechniekActionListener = new mixTechniekActionListener( );
+	ActionListener mixTechniekActionListener = ( ActionEvent actionEvent ) -> {
+            mixTechniekString = actionEvent.getActionCommand( );
+            logger.finest( "mixTechniekString: " + mixTechniekString );
+        };
 
 	JRadioButton analogMixTechniekRadioButton = new JRadioButton( "Analog" );
 	analogMixTechniekRadioButton.setActionCommand( "A" );
@@ -1097,6 +1053,8 @@ public class EditOpnameDialog {
 	    if ( defaultMixTechniekString.equals( "D" ) ) digitalMixTechniekRadioButton.setSelected( true );
 	}
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( mixTechniekPanel, constraints );
@@ -1108,40 +1066,40 @@ public class EditOpnameDialog {
 
 	JPanel buttonPanel = new JPanel( );
 
-	class EditOpnameActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		boolean result = true;
+	ActionListener buttonPanelActionListener = ( ActionEvent actionEvent ) -> {
+            boolean result = true;
 
-		if ( actionEvent.getActionCommand( ).equals( insertOpnameActionCommand ) ) {
-		    result = insertOpname( );
-		} else if ( actionEvent.getActionCommand( ).equals( updateOpnameActionCommand ) ) {
-		    result = updateOpname( );
-		}
+            if ( actionEvent.getActionCommand( ).equals( insertOpnameActionCommand ) ) {
+                result = insertOpname( );
+            } else if ( actionEvent.getActionCommand( ).equals( updateOpnameActionCommand ) ) {
+                result = updateOpname( );
+            }
 
-		// Any other actionCommand, including cancel, has no action
-		if ( result ) {
-		    dialog.setVisible( false );
-		}
-	    }
-	}
+            // Any other actionCommand, including cancel, has no action
+            if ( result ) {
+                dialog.setVisible( false );
+            }
+        };
 
 	JButton editOpnameButton = new JButton( editOpnameButtonText );
 	editOpnameButton.setActionCommand( editOpnameButtonActionCommand );
-	editOpnameButton.addActionListener( new EditOpnameActionListener( ) );
+	editOpnameButton.addActionListener( buttonPanelActionListener );
 	buttonPanel.add( editOpnameButton );
 
 	JButton cancelOpnameButton = new JButton( "Cancel" );
 	cancelOpnameButton.setActionCommand( "cancelOpname" );
-	cancelOpnameButton.addActionListener( new EditOpnameActionListener( ) );
+	cancelOpnameButton.addActionListener( buttonPanelActionListener );
 	buttonPanel.add( cancelOpnameButton );
 
-	constraints.gridx = 1;
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets( 5, 20, 20, 20 );
+	constraints.gridx = 0;
 	constraints.gridy = 14;
-	constraints.gridwidth = 2;
+	constraints.gridwidth = 6;
 	container.add( buttonPanel, constraints );
 
 
-	dialog.setSize( 1050, 700 );
+	dialog.setSize( 1020, 700 );
 	dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	dialog.setVisible( true );
     }
@@ -1175,7 +1133,7 @@ public class EditOpnameDialog {
 	    return false;
 	}
 
-	int opnameNummer = ( ( Integer )opnameNummerSpinner.getValue( ) ).intValue( );
+	int opnameNummer = ( Integer )opnameNummerSpinner.getValue( );
 
 	String insertString = ( "INSERT INTO opname SET" +
 				" medium_id = " + selectedMediumId +
@@ -1226,7 +1184,7 @@ public class EditOpnameDialog {
 	return true;
     }
 
-    String updateString = null;
+    private String updateString = null;
 
     private void addToUpdateString( String additionalUpdateString ) {
 	if ( updateString == null ) {
@@ -1288,7 +1246,7 @@ public class EditOpnameDialog {
 	    addToUpdateString( "musici_id = " + selectedMusiciId );
 	}
 
-	int opnameNummer = ( ( Integer )opnameNummerSpinner.getValue( ) ).intValue( );
+	int opnameNummer = ( Integer )opnameNummerSpinner.getValue( );
 	// Check if opnameNummer changed
 	if ( opnameNummer != opnameKey.getOpnameNummer( ) ) {
 	    // Opname nummer changed: add opnameNummer to update string
@@ -1438,7 +1396,7 @@ public class EditOpnameDialog {
 	// Return the new, possibly updated opname key
 	return new OpnameKey( mediumComboBox.getSelectedMediumId( ),
 			      opusComboBox.getSelectedOpusId( ),
-			      ( ( Integer )opnameNummerSpinner.getValue( ) ).intValue( ),
+			      ( Integer )opnameNummerSpinner.getValue( ),
 			      musiciComboBox.getSelectedMusiciId( ) );
     }
 }
