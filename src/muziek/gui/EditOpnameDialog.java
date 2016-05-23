@@ -34,13 +34,10 @@ public class EditOpnameDialog {
 
     private int selectedComponistenPersoonId = 0;
     private int selectedComponistenId = 0;
-    private String selectedComponistenString = null;
 
     private int selectedGenreId = 0;
-    private String selectedGenreString = null;
 
     private int selectedTypeId = 0;
-    private String selectedTypeString = null;
 
     private OpnameKey opnameKey = new OpnameKey( );
 
@@ -93,11 +90,8 @@ public class EditOpnameDialog {
 			     String	opusFilterString,
 			     int	selectedComponistenPersoonId,
 			     int        selectedComponistenId,
-			     String     selectedComponistenString,
 			     int        selectedGenreId,
-			     String     selectedGenreString,
 			     int        selectedTypeId,
-			     String     selectedTypeString,
 			     int        selectedMusiciPersoonId,
 			     int        selectedMusiciId,
 			     int        selectedMusiciEnsembleId,
@@ -110,11 +104,8 @@ public class EditOpnameDialog {
 	this.opusFilterString = opusFilterString;
 	this.selectedComponistenPersoonId = selectedComponistenPersoonId;
 	this.selectedComponistenId = selectedComponistenId;
-	this.selectedComponistenString = selectedComponistenString;
 	this.selectedGenreId = selectedGenreId;
-	this.selectedGenreString = selectedGenreString;
 	this.selectedTypeId = selectedTypeId;
-	this.selectedTypeString = selectedTypeString;
 	this.defaultMusiciPersoonId = selectedMusiciPersoonId;
 	this.defaultMusiciId = selectedMusiciId;
 	this.defaultMusiciEnsembleId = selectedMusiciEnsembleId;
@@ -197,6 +188,9 @@ public class EditOpnameDialog {
 	    return;
 	}
 
+        // Default dialog size
+        final Dimension dialogSize = new Dimension( 1020, 700 );
+
 	// Set grid bag layout manager
 	Container container = dialog.getContentPane( );
 	container.setLayout( new GridBagLayout( ) );
@@ -247,19 +241,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 20, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
-	container.add( mediumComboBox, constraints );
+        final JPanel mediumPanel = new JPanel();
+	mediumPanel.add( mediumComboBox );
 
 	JButton filterMediumButton = new JButton( "Filter" );
 	filterMediumButton.setActionCommand( "filterMedium" );
         filterMediumButton.addActionListener( ( ActionEvent actionEvent ) ->
                 mediumFilterString = mediumComboBox.filterMediumComboBox( ) );
 
-	constraints.gridwidth = 1;
-	container.add( filterMediumButton, constraints );
+	mediumPanel.add( filterMediumButton );
 
 	JButton editMediumButton = new JButton( "Edit" );
 	editMediumButton.setActionCommand( "editMedium" );
@@ -290,13 +280,17 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 20, 5, 5, 20 );
-	constraints.gridwidth = 1;
-	container.add( editMediumButton, constraints );
+        mediumPanel.add( editMediumButton );
+
+        constraints.insets = new Insets( 20, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( mediumPanel, constraints );
 
 
 	///////////////////////////////////////////////////
-	// Opus pre-selection on genre, type, componisten
+	// Opus pre-selection on componisten, genre, type
 	///////////////////////////////////////////////////
 
 	if ( ( selectedComponistenPersoonId != 0 ) ||
@@ -311,52 +305,95 @@ public class EditOpnameDialog {
 	    constraints.gridwidth = 1;
 	    container.add( new JLabel( "Opus selection:" ), constraints );
 
-	    JPanel opusSelectionPanel = new JPanel( );
+	    final JPanel opusSelectionPanel = new JPanel( );
+            final GridBagConstraints opusSelectionConstraints = new GridBagConstraints(  );
+            opusSelectionPanel.setLayout( new GridBagLayout( ) );
 
-	    final JLabel componistenSelectionLabel = new JLabel( "" );
 	    if ( ( selectedComponistenPersoonId != 0 ) || ( selectedComponistenId != 0 ) ) {
-		componistenSelectionLabel.setText( "Componisten: " + selectedComponistenString );
-		opusSelectionPanel.add( componistenSelectionLabel );
+                opusSelectionConstraints.anchor = GridBagConstraints.EAST;
+                opusSelectionConstraints.gridx = 0;
+                opusSelectionConstraints.gridy = 0;
+                opusSelectionPanel.add( new JLabel( "Componist: " ), opusSelectionConstraints );
+
+                // Setup a JComboBox with the selected componisten
+                final ComponistenPersoonComboBox componistenPersoonComboBox =
+                        new ComponistenPersoonComboBox( conn, dialog, selectedComponistenPersoonId, selectedComponistenId );
+                componistenPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+                    // Get the selected componisten-persoon ID and componisten ID from the combo box
+                    selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
+                    selectedComponistenId = componistenPersoonComboBox.getSelectedComponistenId( );
+                    opusComboBox.setupOpusComboBox( opusFilterString,
+                            selectedComponistenPersoonId,
+                            selectedComponistenId,
+                            selectedGenreId,
+                            selectedTypeId );
+                } );
+
+                opusSelectionConstraints.anchor = GridBagConstraints.WEST;
+                opusSelectionConstraints.gridx = GridBagConstraints.RELATIVE;
+                opusSelectionPanel.add( componistenPersoonComboBox, opusSelectionConstraints );
+
+                // Increment the height of the dialog to allow for the opus selection line
+                dialogSize.setSize( dialogSize.width, dialogSize.height + 50 );
 	    }
 
-	    final JLabel genreSelectionLabel = new JLabel( "" );
 	    if ( selectedGenreId != 0 ) {
-		genreSelectionLabel.setText( "Genre: " + selectedGenreString + "  " );
-		opusSelectionPanel.add( genreSelectionLabel );
+                opusSelectionConstraints.anchor = GridBagConstraints.EAST;
+                opusSelectionConstraints.gridx = 0;
+                opusSelectionConstraints.gridy = 1;
+                opusSelectionPanel.add( new JLabel( "Genre: " ), opusSelectionConstraints );
+
+                // Setup a JComboBox for genre
+                final GenreComboBox genreComboBox = new GenreComboBox( conn, selectedGenreId );
+                genreComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+                    // Get the selected genre ID from the combo box
+                    selectedGenreId = genreComboBox.getSelectedGenreId( );
+                    opusComboBox.setupOpusComboBox( opusFilterString,
+                            selectedComponistenPersoonId,
+                            selectedComponistenId,
+                            selectedGenreId,
+                            selectedTypeId );
+                } );
+
+                opusSelectionConstraints.anchor = GridBagConstraints.WEST;
+                opusSelectionConstraints.gridx = GridBagConstraints.RELATIVE;
+                opusSelectionPanel.add( genreComboBox, opusSelectionConstraints );
+
+                // Increment the height of the dialog to allow for the opus selection line
+                dialogSize.setSize( dialogSize.width, dialogSize.height + 50 );
 	    }
 
-	    final JLabel typeSelectionLabel = new JLabel( "" );
 	    if ( selectedTypeId != 0 ) {
-		typeSelectionLabel.setText( "Type: " + selectedTypeString );
-		opusSelectionPanel.add( typeSelectionLabel );
+                opusSelectionConstraints.anchor = GridBagConstraints.EAST;
+                opusSelectionConstraints.gridx = 0;
+                opusSelectionConstraints.gridy = 2;
+                opusSelectionPanel.add( new JLabel( "Type: " ), opusSelectionConstraints );
+
+                // Setup a JComboBox for type
+                TypeComboBox typeComboBox = new TypeComboBox( conn, selectedTypeId );
+                typeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+                    // Get the selected type ID from the combo box
+                    selectedTypeId = typeComboBox.getSelectedTypeId( );
+                    opusComboBox.setupOpusComboBox( opusFilterString,
+                            selectedComponistenPersoonId,
+                            selectedComponistenId,
+                            selectedGenreId,
+                            selectedTypeId );
+                } );
+
+                opusSelectionConstraints.anchor = GridBagConstraints.WEST;
+                opusSelectionConstraints.gridx = GridBagConstraints.RELATIVE;
+                opusSelectionPanel.add( typeComboBox, opusSelectionConstraints );
+
+                // Increment the height of the dialog to allow for the opus selection line
+                dialogSize.setSize( dialogSize.width, dialogSize.height + 50 );
 	    }
 
+            constraints.insets = new Insets( 5, 10, 5, 20 );
             constraints.anchor = GridBagConstraints.WEST;
-            constraints.insets = new Insets( 5, 5, 5, 5 );
-	    constraints.gridx = GridBagConstraints.RELATIVE;
-	    container.add( opusSelectionPanel, constraints );
-
-	    JButton resetOpusSelectionButton = new JButton( "Reset" );
-	    resetOpusSelectionButton.setActionCommand( "resetOpusSelection" );
-	    resetOpusSelectionButton.addActionListener( ( ActionEvent actionEvent ) -> {
-                opusFilterString = null;
-                selectedComponistenPersoonId = 0;
-                selectedComponistenId = 0;
-                selectedGenreId = 0;
-                selectedTypeId = 0;
-                componistenSelectionLabel.setText( "" );
-                genreSelectionLabel.setText( "" );
-                typeSelectionLabel.setText( "" );
-                opusComboBox.setupOpusComboBox( opusFilterString,
-                        selectedComponistenPersoonId,
-                        selectedComponistenId,
-                        selectedGenreId,
-                        selectedTypeId );
-            } );
-
-            constraints.insets = new Insets( 5, 5, 5, 20 );
-            constraints.gridwidth = 1;
-            container.add( resetOpusSelectionButton, constraints );
+            constraints.gridx = GridBagConstraints.RELATIVE;
+            constraints.gridwidth = 2;
+            container.add( opusSelectionPanel, constraints );
         }
 
 
@@ -415,19 +452,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opus:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
-	container.add( opusComboBox, constraints );
+        final JPanel opusPanel = new JPanel();
+	opusPanel.add( opusComboBox );
 
 	JButton filterOpusButton = new JButton( "Filter" );
 	filterOpusButton.setActionCommand( "filterOpus" );
         filterOpusButton.addActionListener( ( ActionEvent actionEvent ) ->
                 opusFilterString = opusComboBox.filterOpusComboBox( ) );
 
-	constraints.gridwidth = 1;
-	container.add( filterOpusButton, constraints );
+	opusPanel.add( filterOpusButton );
 
 	JButton editOpusButton = new JButton( "Edit" );
 	editOpusButton.setActionCommand( "editOpus" );
@@ -458,9 +491,13 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-	constraints.gridwidth = 1;
-	container.add( editOpusButton, constraints );
+        opusPanel.add( editOpusButton );
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( opusPanel, constraints );
 
 
 	//////////////////////////////////////////
@@ -481,10 +518,10 @@ public class EditOpnameDialog {
 	    opnameNummerSpinnerTextField.setColumns( 1 );
 	}
 
-        constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 2;
 	container.add( opnameNummerSpinner, constraints );
 
 
@@ -497,8 +534,6 @@ public class EditOpnameDialog {
 	constraints.gridx = 0;
 	constraints.gridy = 4;
 	constraints.gridwidth = 1;
-	// Set gridheigth to allow for two buttons next to the table
-	constraints.gridheight = 3;
 	container.add( new JLabel( "Tracks tabel:" ), constraints );
 
 	// Create tracks table model with connection and current opus id
@@ -516,7 +551,7 @@ public class EditOpnameDialog {
 	tracksTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth( 60 );  // track #
 	tracksTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 70 );  // tijd
 	tracksTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 90 );  // opus-deel #
-	tracksTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 340 ); // opus-deel titel
+	tracksTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 400 ); // opus-deel titel
 	// Set vertical size just enough for 10 entries
 	tracksTable.setPreferredScrollableViewportSize( new Dimension( 670, 160 ) );
 
@@ -562,7 +597,9 @@ public class EditOpnameDialog {
         constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 1;
+        // Set gridheigth to allow for three buttons next to the table
+        constraints.gridheight = 3;
         constraints.weightx = 1d;
         constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
@@ -578,7 +615,7 @@ public class EditOpnameDialog {
 
         constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 2;
+	constraints.gridwidth = 1;
 	constraints.gridheight = 1;
 	container.add( addTrackToTableButton, constraints );
 
@@ -697,19 +734,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Musici:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
-	container.add( musiciComboBox, constraints );
+        final JPanel musiciPanel = new JPanel( );
+	musiciPanel.add( musiciComboBox );
 
 	JButton filterMusiciButton = new JButton( "Filter" );
 	filterMusiciButton.setActionCommand( "filterMusici" );
         filterMusiciButton.addActionListener( ( ActionEvent actionEvent ) ->
                 musiciFilterString = musiciComboBox.filterMusiciComboBox( ) );
 
-	constraints.gridwidth = 1;
-	container.add( filterMusiciButton, constraints );
+        musiciPanel.add( filterMusiciButton );
 
 	JButton editMusiciButton = new JButton( "Edit" );
 	editMusiciButton.setActionCommand( "editMusici" );
@@ -736,9 +769,13 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-	constraints.gridwidth = 1;
-	container.add( editMusiciButton, constraints );
+        musiciPanel.add( editMusiciButton );
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( musiciPanel, constraints );
 
 
 	//////////////////////////////////////////
@@ -772,18 +809,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opname plaats:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 1;
-	container.add( opnamePlaatsComboBox, constraints );
+        final JPanel opnamePlaatsPanel = new JPanel( );
+	opnamePlaatsPanel.add( opnamePlaatsComboBox );
 
 	JButton filterOpnamePlaatsButton = new JButton( "Filter" );
 	filterOpnamePlaatsButton.setActionCommand( "filterOpnamePlaats" );
         filterOpnamePlaatsButton.addActionListener( ( ActionEvent actionEvent ) ->
                 opnamePlaatsFilterString = opnamePlaatsComboBox.filterOpnamePlaatsComboBox( ) );
 
-	container.add( filterOpnamePlaatsButton, constraints );
+        opnamePlaatsPanel.add( filterOpnamePlaatsButton );
 
 	JButton editOpnamePlaatsButton = new JButton( "Edit" );
 	editOpnamePlaatsButton.setActionCommand( "editOpnamePlaats" );
@@ -810,8 +844,13 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-	container.add( editOpnamePlaatsButton, constraints );
+        opnamePlaatsPanel.add( editOpnamePlaatsButton );
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( opnamePlaatsPanel, constraints );
 
 
 	//////////////////////////////////////////
@@ -845,18 +884,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opname datum:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 1;
-	container.add( opnameDatumComboBox, constraints );
+        final JPanel opnameDatumPanel = new JPanel( );
+        opnameDatumPanel.add( opnameDatumComboBox );
 
 	JButton filterOpnameDatumButton = new JButton( "Filter" );
 	filterOpnameDatumButton.setActionCommand( "filterOpnameDatum" );
         filterOpnameDatumButton.addActionListener( ( ActionEvent actionEvent ) ->
                 opnameDatumFilterString = opnameDatumComboBox.filterOpnameDatumComboBox( ) );
 
-	container.add( filterOpnameDatumButton, constraints );
+        opnameDatumPanel.add( filterOpnameDatumButton );
 
 	JButton editOpnameDatumButton = new JButton( "Edit" );
 	editOpnameDatumButton.setActionCommand( "editOpnameDatum" );
@@ -883,8 +919,13 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-	container.add( editOpnameDatumButton, constraints );
+        opnameDatumPanel.add( editOpnameDatumButton );
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( opnameDatumPanel, constraints );
 
 
 	//////////////////////////////////////////
@@ -918,18 +959,15 @@ public class EditOpnameDialog {
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Producers:" ), constraints );
 
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 1;
-	container.add( producersComboBox, constraints );
+        final JPanel producersPanel = new JPanel( );
+        producersPanel.add( producersComboBox );
 
 	JButton filterProducersButton = new JButton( "Filter" );
 	filterProducersButton.setActionCommand( "filterProducers" );
         filterProducersButton.addActionListener( ( ActionEvent actionEvent ) ->
                 producersFilterString = producersComboBox.filterProducersComboBox( ) );
 
-	container.add( filterProducersButton, constraints );
+        producersPanel.add( filterProducersButton );
 
 	JButton editProducersButton = new JButton( "Edit" );
 	editProducersButton.setActionCommand( "editProducers" );
@@ -956,8 +994,13 @@ public class EditOpnameDialog {
             }
         } );
 
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-	container.add( editProducersButton, constraints );
+        producersPanel.add( editProducersButton );
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+	container.add( producersPanel, constraints );
 
 
 	//////////////////////////////////////////
@@ -1003,10 +1046,10 @@ public class EditOpnameDialog {
 	    if ( defaultOpnameTechniekString.equals( "D" ) ) digitalOpnameTechniekRadioButton.setSelected( true );
 	}
 
+        constraints.insets = new Insets( 5, 0, 5, 20 );
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 2;
 	container.add( opnameTechniekPanel, constraints );
 
 
@@ -1053,10 +1096,10 @@ public class EditOpnameDialog {
 	    if ( defaultMixTechniekString.equals( "D" ) ) digitalMixTechniekRadioButton.setSelected( true );
 	}
 
+        constraints.insets = new Insets( 5, 0, 5, 20 );
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
+	constraints.gridwidth = 2;
 	container.add( mixTechniekPanel, constraints );
 
 
@@ -1095,11 +1138,11 @@ public class EditOpnameDialog {
         constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 14;
-	constraints.gridwidth = 6;
+	constraints.gridwidth = 3;
 	container.add( buttonPanel, constraints );
 
 
-	dialog.setSize( 1020, 700 );
+	dialog.setSize( dialogSize );
 	dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	dialog.setVisible( true );
     }
