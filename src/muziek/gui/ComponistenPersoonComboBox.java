@@ -1,11 +1,11 @@
-//
-// Project:	muziek
-// Component:	gui
-// File:	ComponistenPersoonComboBox.java
-// Description:	ComboBox for selection of either a composer or a group of composers (componisten)
-// Author:	Chris van Engelen
-// History:	2008/12/27: Initial version
-//
+/**
+ * ComboBox for selection of either a composer or a group of composers (componisten)
+ *
+ * @author Chris van Engelen
+ *
+ * History:     2008/12/27: Initial version
+ *              2016/05/23: Add generics
+ */
 
 package muziek.gui;
 
@@ -16,12 +16,10 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
-public class ComponistenPersoonComboBox extends JComboBox {
-    final private Logger logger = Logger.getLogger( "muziek.gui.ComponistenPersoonComboBox" );
+public class ComponistenPersoonComboBox extends JComboBox< String > {
+    final private Logger logger = Logger.getLogger( ComponistenPersoonComboBox.class.getCanonicalName() );
 
     private Connection conn;
 
@@ -30,14 +28,14 @@ public class ComponistenPersoonComboBox extends JComboBox {
     private Object parentObject;
 
     // Map of number of composers in componisten group, indexed by componisten_id
-    private Map nComponistenMap = new HashMap( );
+    private Map< Integer, Integer > nComponistenMap = new HashMap< >( );
 
     // Map of persoon_id indexed by composer (a single person)
-    private Map componistenPersoonMap = new HashMap( );
+    private Map< String, Integer > componistenPersoonMap = new HashMap< >( );
     private int selectedComponistenPersoonId = 0;
 
     // Map of componisten_id indexed by the label of the group of composers (componisten)
-    private Map componistenMap = new HashMap( );
+    private Map< String, Integer > componistenMap = new HashMap< >( );
     private int selectedComponistenId = 0;
 
     private String componistenFilterString = null;
@@ -82,7 +80,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
     }
 
 
-    public void setupComponistenPersoonComboBox( ) {
+    private void setupComponistenPersoonComboBox( ) {
 	// Remove all existing items in the componisten combo box
 	removeAllItems( );
 
@@ -114,7 +112,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 
 	    while ( resultSet.next( ) ) {
 		// Store the number of groups of composers in , indexed by persoon_id
-		nComponistenMap.put( resultSet.getObject( 1 ), resultSet.getObject( 2 ) );
+		nComponistenMap.put( resultSet.getInt( 1 ), resultSet.getInt( 2 ) );
 	    }
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
@@ -161,16 +159,16 @@ public class ComponistenPersoonComboBox extends JComboBox {
 
 		// If the composer is a member of more than one group of composers,
 		// then add a separate entry in the combobox for the composer as a person
-		if ( nComponistenMap.containsKey( resultSet.getObject( 3 ) ) ) {
+		if ( nComponistenMap.containsKey( resultSet.getInt( 3 ) ) ) {
 		    try {
-			long nComponisten = ( ( Long )nComponistenMap.get( resultSet.getObject( 3 ) ) ).longValue( );
+			int nComponisten = nComponistenMap.get( resultSet.getInt( 3 ) );
 			if ( nComponisten > 1 ) {
 			    String componistenPersoonString = componistString + " (*)";
 
 			    // Check if the componistenPersoonMap does not already contains this entry
 			    if ( !componistenPersoonMap.containsKey( componistenPersoonString ) ) {
 				// Store the persoon_id in the componistenPersoonMap indexed by the componistString
-				componistenPersoonMap.put( componistenPersoonString, resultSet.getObject( 3 ) );
+				componistenPersoonMap.put( componistenPersoonString, resultSet.getInt( 3 ) );
 
 				// Add the componistString to the combo box
 				addItem( componistenPersoonString );
@@ -184,7 +182,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 			}
 		    }
 		    catch ( Exception exception ) {
-			    logger.severe( "nComponistenMap exception for key " + resultSet.getString( 3 ) + 
+			    logger.severe( "nComponistenMap exception for key " + resultSet.getString( 3 ) +
 					   ": " + exception.getMessage( ) );
 		    }
 		}
@@ -202,7 +200,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 		}
 
 		// Store the componisten_id in the map indexed by the componistenString
-		componistenMap.put( componistString, resultSet.getObject( 1 ) );
+		componistenMap.put( componistString, resultSet.getInt( 1 ) );
 
 		// Add the componistString to the combo box
 		addItem( componistString );
@@ -245,7 +243,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 						       componistenFilterString );
 	}
 
-	// Check if dialog was completed successfully (i.e., not canceled) 
+	// Check if dialog was completed successfully (i.e., not canceled)
 	if ( newComponistenFilterString != null ) {
 	    // Store the new componisten filter
 	    componistenFilterString = newComponistenFilterString;
@@ -270,7 +268,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 
 	// Get the persoon_id from the map
 	if ( componistenPersoonMap.containsKey( componistenPersoonString ) ) {
-	    return ( ( Integer )componistenPersoonMap.get( componistenPersoonString ) ).intValue( );
+	    return componistenPersoonMap.get( componistenPersoonString );
 	}
 
 	return 0;
@@ -287,7 +285,7 @@ public class ComponistenPersoonComboBox extends JComboBox {
 
 	// Get the componisten_id from the map
 	if ( componistenMap.containsKey( componistenString ) ) {
-	    return ( ( Integer )componistenMap.get( componistenString ) ).intValue( );
+	    return componistenMap.get( componistenString );
 	}
 
 	return 0;
