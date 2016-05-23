@@ -5,6 +5,7 @@
  *
  * History:     2005/03/28: Initial version
  *              2009/01/01: Add selection on Componist-Persoon
+ *              2016/05/20: Add generics
  */
 
 package muziek.gui;
@@ -19,7 +20,7 @@ import java.util.logging.*;
 import javax.swing.*;
 
 public class ComponistenComboBox extends JComboBox< String > {
-    final private Logger logger = Logger.getLogger( "muziek.gui.ComponistenComboBox" );
+    final private Logger logger = Logger.getLogger( ComponistenComboBox.class.getCanonicalName() );
 
     private Connection conn;
 

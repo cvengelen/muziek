@@ -1,11 +1,12 @@
-// Project:	muziek
-// Package:	muziek.gui
-// File:	OpusComboBox.java
-// Description:	ComboBox for selection of record in opus table
-// Author:	Chris van Engelen
-// History:	2005/04/02: Initial version
-//		2009/01/01: Add selection on Componist-Persoon
-//              2016/05/20: Refactoring, and use of Java 7, 8 features
+/**
+ * ComboBox for selection of an opus record
+ *
+ * @author Chris van Engelen
+ *
+ * History:     2005/04/02: Initial version
+ *              2009/01/01: Add selection on Componist-Persoon
+ *              2016/05/20: Add generics
+ */
 
 package muziek.gui;
 
@@ -33,7 +34,7 @@ public class OpusComboBox extends JComboBox< String > {
     private int selectedGenreId = 0;
     private int selectedTypeId = 0;
 
-    private Map< String, Integer > opusMap = new HashMap< >( 2000 );
+    private Map< String, Integer > opusMap = new HashMap< >( 20 );
     private int selectedOpusId = 0;
     private String opusFilterString = null;
     private String newOpusString = null;
