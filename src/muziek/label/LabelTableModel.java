@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -15,7 +16,9 @@ import java.util.regex.*;
 class LabelTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( "muziek.label.LabelTableModel" );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Label" };
 
     private class LabelRecord {
@@ -37,8 +40,9 @@ class LabelTableModel extends AbstractTableModel {
 
 
     // Constructor
-    LabelTableModel( Connection connection ) {
+    LabelTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupLabelTableModel( null );
     }
@@ -75,6 +79,10 @@ class LabelTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "LabelTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -172,6 +180,10 @@ class LabelTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "LabelTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

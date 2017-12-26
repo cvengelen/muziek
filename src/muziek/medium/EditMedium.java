@@ -17,14 +17,10 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the medium table in schema muziek.
- * An instance of MediumFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class MediumFrame {
-    private final Logger logger = Logger.getLogger( MediumFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Medium");
+public class EditMedium extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditMedium.class.getCanonicalName() );
 
     private JTextField mediumTitelFilterTextField;
 
@@ -53,10 +49,11 @@ public class MediumFrame {
     private MediumTableModel mediumTableModel;
     private TableSorter mediumTableSorter;
 
-    public MediumFrame( final Connection connection ) {
+    public EditMedium( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit medium", true, true, true, true);
 
 	// put the controls the content pane
-	Container container = frame.getContentPane();
+	Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -267,7 +264,7 @@ public class MediumFrame {
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Label:" ), constraints );
 
-	labelComboBox = new LabelComboBox( connection, frame, selectedLabelId );
+	labelComboBox = new LabelComboBox( connection, parentFrame, selectedLabelId );
 
         constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
@@ -300,7 +297,7 @@ public class MediumFrame {
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opslag:" ), constraints );
 
-	opslagComboBox = new OpslagComboBox( connection, frame, selectedLabelId );
+	opslagComboBox = new OpslagComboBox( connection, parentFrame, selectedLabelId );
 
         constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
@@ -359,6 +356,7 @@ public class MediumFrame {
 
 	// Create medium table from title table model
 	mediumTableModel = new MediumTableModel( connection,
+                                                 parentFrame,
 						 cancelRowEditButton,
 						 saveRowEditButton );
 	mediumTableSorter = new TableSorter( mediumTableModel );
@@ -437,7 +435,7 @@ public class MediumFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -447,9 +445,9 @@ public class MediumFrame {
 			if ( result == JOptionPane.YES_OPTION ) {
 			    // Save the changes in the table model, and in the database
 			    if ( !( mediumTableModel.saveEditRow( selectedRow ) ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Error: row not saved",
-							       "Save medium record error",
+							       "Edit medium error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -506,12 +504,12 @@ public class MediumFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new medium record
-                    new EditMediumDialog( connection, frame,
+                    new EditMediumDialog( connection, parentFrame,
                                           mediumTitelFilterTextField.getText( ),
                                           uitvoerendenFilterTextField.getText( ),
                                           selectedGenreId,
@@ -533,9 +531,9 @@ public class MediumFrame {
 		} else {
 		    int selectedRow = mediumListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen medium geselecteerd",
-						       "Medium frame error",
+						       "Edit medium error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -545,16 +543,16 @@ public class MediumFrame {
 
 		    // Check if medium has been selected
 		    if ( selectedMediumId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen medium geselecteerd",
-						       "Medium frame error",
+						       "Edit medium error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
 
 		    if ( actionEvent.getActionCommand( ).equals( "openDialog" ) ) {
 			// Do dialog
-                        new EditMediumDialog( connection, frame, selectedMediumId );
+                        new EditMediumDialog( connection, parentFrame, selectedMediumId );
 
 			// Records may have been modified: setup the table model again
 			mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
@@ -582,22 +580,26 @@ public class MediumFrame {
 				statement.executeQuery( "SELECT medium_id FROM opname WHERE medium_id = " +
 							selectedMediumId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel opname heeft nog verwijzing naar '" +
 							       selectedMediumTitelString + "'",
-							       "Medium frame error",
+							       "Edit medium error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditMedium SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + selectedMediumTitelString + "' ?",
-							   "Delete Medium record",
+							   "Delete medium record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
@@ -615,14 +617,18 @@ public class MediumFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with medium_id  = " +
 						       selectedMediumId + " in medium" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete medium record",
+							       "Edit medium error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditMedium SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -660,9 +666,9 @@ public class MediumFrame {
 		    } else if ( actionEvent.getActionCommand( ).equals( "saveRowEdit" ) ) {
 			// Save the changes in the table model, and in the database
 			if ( !( mediumTableModel.saveEditRow( selectedRow ) ) ) {
-			    JOptionPane.showMessageDialog( frame,
+			    JOptionPane.showMessageDialog( parentFrame,
 							   "Error: row not saved",
-							   "Save medium record error",
+							   "Edit medium error",
 							   JOptionPane.ERROR_MESSAGE );
 			    return;
 			}
@@ -678,7 +684,7 @@ public class MediumFrame {
 			saveRowEditButton.setEnabled( false );
 		    } else if ( actionEvent.getActionCommand( ).equals( "showMediumTracks" ) ) {
 			// Do dialog
-                        new ShowMediumTracksDialog( connection, frame, selectedMediumId );
+                        new ShowMediumTracksDialog( connection, parentFrame, selectedMediumId );
 		    }
 		}
 	    }
@@ -735,21 +741,9 @@ public class MediumFrame {
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 1470, 820 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 1470, 820 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

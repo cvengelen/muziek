@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -15,7 +16,9 @@ import java.util.regex.*;
 class EnsembleTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( "muziek.ensemble.EnsembleTableModel" );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Ensemble" };
 
     private class EnsembleRecord {
@@ -37,8 +40,9 @@ class EnsembleTableModel extends AbstractTableModel {
 
 
     // Constructor
-    EnsembleTableModel( Connection connection ) {
+    EnsembleTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupEnsembleTableModel( null );
     }
@@ -75,6 +79,10 @@ class EnsembleTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "EnsembleTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -172,6 +180,10 @@ class EnsembleTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "EnsembleTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

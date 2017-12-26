@@ -1,24 +1,22 @@
 // Project:	muziek
 // Package:	muziek.opname
-// File:	OpnameFrame.java
+// File:	EditOpname.java
 // Description:	Frame to show all or selected records in the opname table in schema muziek
 // Author:	Chris van Engelen
 // History:	2006/02/19: Initial version
 //		2009/01/01: Add selection on Componist-Persoon
 //              2011/08/13: Add selection on medium status, default selection available
 //              2016/04/27: Refactoring, and use of Java 7, 8 features
+//              2017/12/26: Application with internal frames
 
 package muziek.opname;
 
 import java.sql.Connection;
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-
-import java.sql.SQLException;
 import java.util.logging.*;
 
 import muziek.gui.*;
@@ -26,14 +24,10 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opname table in schema muziek.
- * An instance of OpnameFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class OpnameFrame {
-    private final Logger logger = Logger.getLogger( OpnameFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Opname");
+public class EditOpname extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditOpname.class.getCanonicalName() );
 
     static private final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
@@ -75,10 +69,11 @@ public class OpnameFrame {
     private OpnameTableModel opnameTableModel;
     private TableSorter opnameTableSorter;
 
-    public OpnameFrame( final Connection connection ) {
+    public EditOpname( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit opname", true, true, true, true);
 
 	// put the controls the content pane
-	Container container = frame.getContentPane();
+	Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -119,7 +114,7 @@ public class OpnameFrame {
 	mediumPanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox for medium with the selected medium ID
-	mediumComboBox = new MediumComboBox( connection, frame, false );
+	mediumComboBox = new MediumComboBox( connection, parentFrame, false );
 	mediumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected medium ID from the combo box
             selectedMediumId = mediumComboBox.getSelectedMediumId( );
@@ -234,7 +229,7 @@ public class OpnameFrame {
 	componistenPanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox with the results of the query on componisten
-	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, frame, false );
+	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, parentFrame, false );
 	componistenPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected componisten-persoon ID and componisten ID from the combo box
             selectedComponistenPersoonId = componistenPersoonComboBox.getSelectedComponistenPersoonId( );
@@ -361,7 +356,7 @@ public class OpnameFrame {
 	musiciPanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox for musici-persoon
-	musiciPersoonComboBox = new MusiciPersoonComboBox( connection, frame );
+	musiciPersoonComboBox = new MusiciPersoonComboBox( connection, parentFrame );
 	musiciPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected persoon or musici ID from the combo box
             selectedPersoonAllMusiciId = musiciPersoonComboBox.getSelectedPersoonAllMusiciId( );
@@ -410,7 +405,7 @@ public class OpnameFrame {
 	ensemblePanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox for musici-ensemble
-	musiciEnsembleComboBox = new MusiciEnsembleComboBox( connection, frame );
+	musiciEnsembleComboBox = new MusiciEnsembleComboBox( connection, parentFrame );
 	musiciEnsembleComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected musici-ensemble ID from the combo box
             selectedMusiciEnsembleId = musiciEnsembleComboBox.getSelectedMusiciEnsembleId( );
@@ -458,7 +453,7 @@ public class OpnameFrame {
 	opnamePlaatsPanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox for opname_plaats
-	opnamePlaatsComboBox = new OpnamePlaatsComboBox( connection, frame, false );
+	opnamePlaatsComboBox = new OpnamePlaatsComboBox( connection, parentFrame, false );
 	opnamePlaatsComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected opname plaats ID from the combo box
             selectedOpnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
@@ -506,7 +501,7 @@ public class OpnameFrame {
         opnameDatumPanel.setBorder( emptyBorder );
 
         // Setup a JComboBox for opname datum
-        opnameDatumComboBox = new OpnameDatumComboBox( connection, frame, false );
+        opnameDatumComboBox = new OpnameDatumComboBox( connection, parentFrame, false );
         opnameDatumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected opname datum ID from the combo box
             selectedOpnameDatumId = opnameDatumComboBox.getSelectedOpnameDatumId( );
@@ -554,7 +549,7 @@ public class OpnameFrame {
 	producersPanel.setBorder( emptyBorder );
 
 	// Setup a JComboBox for producers
-	producersComboBox = new ProducersComboBox( connection, frame, selectedProducersId );
+	producersComboBox = new ProducersComboBox( connection, parentFrame, selectedProducersId );
 	producersComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected producers ID from the combo box
             selectedProducersId = producersComboBox.getSelectedProducersId( );
@@ -589,7 +584,7 @@ public class OpnameFrame {
 
 
 	// Create opname table from opname table model
-	opnameTableModel = new OpnameTableModel( connection );
+	opnameTableModel = new OpnameTableModel( connection, parentFrame );
 	opnameTableSorter = new TableSorter( opnameTableModel );
 	final JTable opnameTable = new JTable( opnameTableSorter );
 	opnameTableSorter.setTableHeader( opnameTable.getTableHeader( ) );
@@ -658,12 +653,12 @@ public class OpnameFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opname record
-		    new EditOpnameDialog( connection, frame,
+		    new EditOpnameDialog( connection, parentFrame,
                                           selectedMediumId,
                                           opusFilterTextField.getText( ),
                                           selectedComponistenPersoonId,
@@ -679,7 +674,7 @@ public class OpnameFrame {
 		} else {
 		    int selectedRow = opnameListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opname geselecteerd",
 						       "Opname frame error",
 						       JOptionPane.ERROR_MESSAGE );
@@ -692,7 +687,7 @@ public class OpnameFrame {
 
 			// Check if opname has been selected
 			if ( selectedOpnameKey == new OpnameKey( ) ) {
-			    JOptionPane.showMessageDialog( frame,
+			    JOptionPane.showMessageDialog( parentFrame,
 							   "Geen opname geselecteerd",
 							   "Opname frame error",
 							   JOptionPane.ERROR_MESSAGE );
@@ -700,7 +695,7 @@ public class OpnameFrame {
 			}
 
 			// Do edit opname dialog
-			new EditOpnameDialog( connection, frame, selectedOpnameKey );
+			new EditOpnameDialog( connection, parentFrame, selectedOpnameKey );
 
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			logger.severe( "Delete not yet implemented" );
@@ -763,21 +758,9 @@ public class OpnameFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 1360, 800 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 1360, 800 );
+        setLocation(x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

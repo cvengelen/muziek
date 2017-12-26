@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class ComponistenTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( ComponistenTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Componisten", "Persoon" };
 
     private class ComponistenRecord {
@@ -44,8 +47,9 @@ class ComponistenTableModel extends AbstractTableModel {
 
 
     // Constructor
-    ComponistenTableModel( Connection connection ) {
+    ComponistenTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupComponistenTableModel( null, 0 );
     }
@@ -100,6 +104,10 @@ class ComponistenTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "ComponistenTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -202,6 +210,10 @@ class ComponistenTableModel extends AbstractTableModel {
 		return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "ComponistenTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

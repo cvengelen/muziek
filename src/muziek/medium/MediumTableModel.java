@@ -19,7 +19,9 @@ import java.util.regex.*;
 class MediumTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( MediumTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Medium", "Uitvoerenden",
                                          "Genre", "Subgenre", "Type", "Status", "Label", "Nummer",
                                          "Aankoopdatum", "Opslag", "Opmerkingen" };
@@ -130,9 +132,11 @@ class MediumTableModel extends AbstractTableModel {
 
     // Constructor
     MediumTableModel( final Connection connection,
+                      final JFrame     parentFrame,
                       final JButton    cancelRowEditButton,
                       final JButton    saveRowEditButton ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 	this.cancelRowEditButton = cancelRowEditButton;
 	this.saveRowEditButton = saveRowEditButton;
 
@@ -326,6 +330,10 @@ class MediumTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "MediumTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -723,6 +731,10 @@ class MediumTableModel extends AbstractTableModel {
 	    	return false;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "MediumTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}

@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -27,7 +28,9 @@ import java.util.regex.*;
 class OpnameTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( "muziek.opname.OpnameTableModel" );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Medium", "Opus", "Componisten", "Genre", "Type",
 				   "Musici", "Opname datum", "Opname plaats", "Producers" };
 
@@ -123,8 +126,9 @@ class OpnameTableModel extends AbstractTableModel {
     private final static Pattern componistPattern = Pattern.compile( "(.+?), (.*)" );
 
     // Constructor
-    OpnameTableModel( Connection connection ) {
+    OpnameTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupOpnameTableModel( mediumId, mediumStatusId, null,
 			       componistenPersoonId, componistenId, genreId, typeId,
@@ -405,6 +409,10 @@ class OpnameTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "OpnameTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }

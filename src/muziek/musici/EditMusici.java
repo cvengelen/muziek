@@ -21,15 +21,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the musici table in schema muziek.
- * An instance of MusiciFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class MusiciFrame {
-    private final Logger logger = Logger.getLogger( MusiciFrame.class.getCanonicalName() );
+public class EditMusici extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditMusici.class.getCanonicalName() );
 
-    private Connection connection;
-    private final JFrame frame = new JFrame( "Musici" );
+    private final Connection connection;
+    private final JFrame parentFrame;
 
     private JTextField musiciFilterTextField;
 
@@ -62,10 +60,10 @@ public class MusiciFrame {
 		ResultSet resultSet = statement.executeQuery( "SELECT musici_id FROM " + tableString +
 							      " WHERE musici_id = " + id );
 		if ( resultSet.next( ) ) {
-		    JOptionPane.showMessageDialog( frame,
+		    JOptionPane.showMessageDialog( parentFrame,
 						   "Tabel " + tableString +
 						   " heeft nog verwijzing naar '" + string + "'",
-						   "Musici frame error",
+						   "Edit musici error",
 						   JOptionPane.ERROR_MESSAGE );
 		    return true;
 		}
@@ -77,11 +75,13 @@ public class MusiciFrame {
 	}
     }
 
-    public MusiciFrame( final Connection connection ) {
+    public EditMusici( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit musici", true, true, true, true);
         this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	// put the controls the content pane
-	Container container = frame.getContentPane();
+	Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -132,7 +132,7 @@ public class MusiciFrame {
 
 	// Setup a JComboBox with the results of the query on persoon
 	// Do not allow to enter new record in persoon
-	persoonComboBox = new PersoonComboBox( connection, frame, false );
+	persoonComboBox = new PersoonComboBox( connection, parentFrame, false );
 	persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected persoon ID from the combo box
             selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
@@ -172,7 +172,7 @@ public class MusiciFrame {
 
 	// Setup a JComboBox with the results of the query on rol
 	// Do not allow to enter new record in rol
-	rolComboBox = new RolComboBox( connection, frame, false );
+	rolComboBox = new RolComboBox( connection, parentFrame, false );
 	rolComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected rol ID from the combo box
             selectedRolId = rolComboBox.getSelectedRolId( );
@@ -212,7 +212,7 @@ public class MusiciFrame {
 
 	// Setup a JComboBox with the results of the query on ensemble
 	// Do not allow to enter new record in ensemble
-	ensembleComboBox = new EnsembleComboBox( connection, frame, false );
+	ensembleComboBox = new EnsembleComboBox( connection, parentFrame, false );
 	ensembleComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected ensemble ID from the combo box
             selectedEnsembleId = ensembleComboBox.getSelectedEnsembleId( );
@@ -238,7 +238,7 @@ public class MusiciFrame {
 
 
 	// Create musici table from title table model
-	musiciTableModel = new MusiciTableModel( connection );
+	musiciTableModel = new MusiciTableModel( connection, parentFrame );
 	musiciTableSorter = new TableSorter( musiciTableModel );
 	final JTable musiciTable = new JTable( musiciTableSorter );
 	musiciTableSorter.setTableHeader( musiciTable.getTableHeader( ) );
@@ -306,19 +306,19 @@ public class MusiciFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
                     return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new musici record
-		    new EditMusiciDialog( connection, frame,
+		    new EditMusiciDialog( connection, parentFrame,
                                           musiciFilterTextField.getText( ) );
 		} else {
 		    int selectedRow = musiciListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen musici geselecteerd",
-						       "Musici frame error",
+						       "Edit musici error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -328,16 +328,16 @@ public class MusiciFrame {
 
 		    // Check if musici has been selected
 		    if ( selectedMusiciId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen musici geselecteerd",
-						       "Musici frame error",
+						       "Edit musici error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			// Do dialog
-			new EditMusiciDialog( connection, frame, selectedMusiciId );
+			new EditMusiciDialog( connection, parentFrame, selectedMusiciId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			final Musici musici = new Musici( musiciTableModel.getMusiciId( selectedRow ),
 							  musiciTableModel.getMusiciString( selectedRow ) );
@@ -353,9 +353,9 @@ public class MusiciFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + musici.string + "' ?",
-							   "Delete Musici record",
+							   "Delete musici record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
@@ -373,14 +373,18 @@ public class MusiciFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with musici_id  = " +
 						       musici.id + " in musici" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Musici record",
+							       "Edit musici error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditMusici SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -427,21 +431,9 @@ public class MusiciFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 910, 600 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 910, 600 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

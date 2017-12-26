@@ -16,24 +16,21 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the ensemble table in schema muziek.
- * An instance of EnsembleFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class EnsembleFrame {
-    private final Logger logger = Logger.getLogger( EnsembleFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Ensemble" );
+public class EditEnsemble extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditEnsemble.class.getCanonicalName() );
 
     private JTextField ensembleFilterTextField;
 
     private EnsembleTableModel ensembleTableModel;
     private TableSorter ensembleTableSorter;
 
-    public EnsembleFrame( final Connection connection ) {
+    public EditEnsemble( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit ensemble", true, true, true, true);
 
 	// put the controls the content pane
-	Container container = frame.getContentPane();
+	Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -62,7 +59,7 @@ public class EnsembleFrame {
         } );
 
 	// Create ensemble table from title table model
-	ensembleTableModel = new EnsembleTableModel( connection );
+	ensembleTableModel = new EnsembleTableModel( connection, parentFrame );
 	ensembleTableSorter = new TableSorter( ensembleTableModel );
 	final JTable ensembleTable = new JTable( ensembleTableSorter );
 	ensembleTableSorter.setTableHeader( ensembleTable.getTableHeader( ) );
@@ -128,8 +125,8 @@ public class EnsembleFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
                     return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new ensemble record
@@ -148,16 +145,20 @@ public class EnsembleFrame {
 			    logger.severe( "Could not insert in ensemble" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception in insert: " + sqlException.getMessage(),
+                                                       "EditEnsemble SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
 		    int selectedRow = ensembleListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen ensemble geselecteerd",
-						       "Ensemble frame error",
+						       "Edit ensemble error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -167,9 +168,9 @@ public class EnsembleFrame {
 
 		    // Check if ensemble has been selected
 		    if ( selectedEnsembleId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen ensemble geselecteerd",
-						       "Ensemble frame error",
+						       "Edit ensemble error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -188,22 +189,25 @@ public class EnsembleFrame {
 			    ResultSet resultSet = statement.executeQuery( "SELECT ensemble_id FROM musici_ensemble" +
 									  " WHERE ensemble_id = " + selectedEnsembleId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel musici_ensemble heeft nog verwijzing naar '" +
-							       ensembleString + "'",
-							       "Ensemble frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel musici_ensemble heeft nog verwijzing naar '" + ensembleString + "'",
+							       "Edit ensemble error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditEnsemble SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + ensembleString + "' ?",
-							   "Delete Ensemble record",
+							   "Delete ensemble record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
@@ -221,14 +225,18 @@ public class EnsembleFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with ensemble_id  = " +
 						       selectedEnsembleId + " in ensemble" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Ensemble record",
+							       "Edit ensemble error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditEnsemble SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -267,21 +275,9 @@ public class EnsembleFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 510, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 510, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

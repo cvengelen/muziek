@@ -19,15 +19,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the componisten table in schema muziek.
- * An instance of ComponistenFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class ComponistenFrame {
-    private final Logger logger = Logger.getLogger(ComponistenFrame.class.getCanonicalName());
+public class EditComponisten extends JInternalFrame {
+    private final Logger logger = Logger.getLogger(EditComponisten.class.getCanonicalName());
 
-    private Connection connection;
-    private final JFrame frame = new JFrame( "Componisten" );
+    private final Connection connection;
+    private final JFrame parentFrame;
 
     private JTextField componistenFilterTextField;
 
@@ -54,14 +52,17 @@ public class ComponistenFrame {
                 ResultSet resultSet = statement.executeQuery( "SELECT componisten_id FROM " + tableString +
                                                               " WHERE componisten_id = " + id );
                 if ( resultSet.next( ) ) {
-                    JOptionPane.showMessageDialog( frame,
-                                                   "Tabel " + tableString +
-                                                   " heeft nog verwijzing naar '" + string + "'",
-                                                   "Componisten frame error",
+                    JOptionPane.showMessageDialog( parentFrame,
+                                                   "Tabel " + tableString + " heeft nog verwijzing naar '" + string + "'",
+                                                   "Edit componisten error",
                                                    JOptionPane.ERROR_MESSAGE );
                     return true;
                 }
             } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                                               "SQL exception in select: " + sqlException.getMessage(),
+                                               "EditComponisten SQL exception",
+                                               JOptionPane.ERROR_MESSAGE );
                 logger.severe( "SQLException: " + sqlException.getMessage( ) );
                 return true;
             }
@@ -69,11 +70,14 @@ public class ComponistenFrame {
         }
     }
 
-    public ComponistenFrame( final Connection connection ) {
+    public EditComponisten( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit componisten", true, true, true, true);
+
         this.connection = connection;
+        this.parentFrame = parentFrame;
 
         // put the controls the content pane
-        Container container = frame.getContentPane();
+        Container container = getContentPane();
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
@@ -120,7 +124,7 @@ public class ComponistenFrame {
 
         // Setup a JComboBox with the results of the query on persoon
         // Do not allow to enter new record in persoon
-        persoonComboBox = new PersoonComboBox( connection, frame, false );
+        persoonComboBox = new PersoonComboBox( connection, parentFrame, false );
         persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected persoon ID from the combo box
             selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
@@ -144,7 +148,7 @@ public class ComponistenFrame {
 
 
         // Create componisten table from title table model
-        componistenTableModel = new ComponistenTableModel( connection );
+        componistenTableModel = new ComponistenTableModel( connection, parentFrame );
         componistenTableSorter = new TableSorter( componistenTableModel );
         JTable componistenTable = new JTable( componistenTableSorter );
         componistenTableSorter.setTableHeader( componistenTable.getTableHeader( ) );
@@ -210,19 +214,19 @@ public class ComponistenFrame {
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                    frame.setVisible( false );
-                    frame.dispose();
+                    setVisible( false );
+                    dispose();
                     return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     // Insert new componisten record
-                    new EditComponistenDialog( connection, frame,
+                    new EditComponistenDialog( connection, parentFrame,
                                                componistenFilterTextField.getText( ) );
                 } else {
                     int selectedRow = componistenListSelectionListener.getSelectedRow( );
                     if ( selectedRow < 0 ) {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                                        "Geen componisten geselecteerd",
-                                                       "Componisten frame error",
+                                                       "Edit componisten error",
                                                        JOptionPane.ERROR_MESSAGE );
                         return;
                     }
@@ -232,16 +236,16 @@ public class ComponistenFrame {
 
                     // Check if componisten has been selected
                     if ( selectedComponistenId == 0 ) {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                                        "Geen componisten geselecteerd",
-                                                       "Componisten frame error",
+                                                       "Edit componisten error",
                                                        JOptionPane.ERROR_MESSAGE );
                         return;
                     }
 
                     if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
                         // Do dialog
-                        new EditComponistenDialog( connection, frame, selectedComponistenId );
+                        new EditComponistenDialog( connection, parentFrame, selectedComponistenId );
 
                     } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
                         final Componisten componisten = new Componisten( componistenTableModel.getComponistenId( selectedRow ),
@@ -257,7 +261,7 @@ public class ComponistenFrame {
                         }
 
                         int result =
-                            JOptionPane.showConfirmDialog( frame,
+                            JOptionPane.showConfirmDialog( parentFrame,
                                                            "Delete '" + componisten.string + "' ?",
                                                            "Delete Componisten record",
                                                            JOptionPane.YES_NO_OPTION,
@@ -277,14 +281,18 @@ public class ComponistenFrame {
                             if ( nUpdate != 1 ) {
                                 String errorString = ( "Could not delete record with componisten_id  = " +
                                                        componisten.id + " in componisten" );
-                                JOptionPane.showMessageDialog( frame,
+                                JOptionPane.showMessageDialog( parentFrame,
                                                                errorString,
-                                                               "Delete Componisten record",
+                                                               "Edit componisten error",
                                                                JOptionPane.ERROR_MESSAGE);
                                 logger.severe( errorString );
                                 return;
                             }
                         } catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditComponisten SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
                             logger.severe( "SQLException: " + sqlException.getMessage( ) );
                             return;
                         }
@@ -329,21 +337,9 @@ public class ComponistenFrame {
         constraints.fill = GridBagConstraints.NONE;
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 610, 550 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.setVisible(true);
+        setSize( 610, 550 );
+        setLocation( x, y );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setVisible(true);
     }
 }

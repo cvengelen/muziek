@@ -16,24 +16,21 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the label table in schema muziek.
- * An instance of LabelFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class LabelFrame {
-    private final Logger logger = Logger.getLogger( LabelFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Label" );
+public class EditLabel extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditLabel.class.getCanonicalName() );
 
     private JTextField labelFilterTextField;
 
     private LabelTableModel labelTableModel;
     private TableSorter labelTableSorter;
 
-    public LabelFrame( final Connection connection ) {
+    public EditLabel( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit label", true, true, true, true);
 
 	// put the controls the content pane
-	Container container = frame.getContentPane();
+	Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -68,7 +65,7 @@ public class LabelFrame {
 
 
 	// Create label table from title table model
-	labelTableModel = new LabelTableModel( connection );
+	labelTableModel = new LabelTableModel( connection, parentFrame );
 	labelTableSorter = new TableSorter( labelTableModel );
 	final JTable labelTable = new JTable( labelTableSorter );
 	labelTableSorter.setTableHeader( labelTable.getTableHeader( ) );
@@ -130,8 +127,8 @@ public class LabelFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-		    frame.dispose();
+		    setVisible( false );
+		    dispose();
                     return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new label record
@@ -157,9 +154,9 @@ public class LabelFrame {
 		} else {
 		    int selectedRow = labelListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen label geselecteerd",
-						       "Label frame error",
+						       "Edit label error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -169,9 +166,9 @@ public class LabelFrame {
 
 		    // Check if label has been selected
 		    if ( selectedLabelId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen label geselecteerd",
-						       "Label frame error",
+						       "Edit label error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -189,10 +186,10 @@ public class LabelFrame {
 			    ResultSet resultSet = statement.executeQuery( "SELECT label_id FROM medium" +
 									  " WHERE label_id = " + selectedLabelId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel medium heeft nog verwijzing naar '" +
 							       labelString + "'",
-							       "Label frame error",
+							       "Edit label error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -202,7 +199,7 @@ public class LabelFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + labelString + "' ?",
 							   "Delete Label record",
 							   JOptionPane.YES_NO_OPTION,
@@ -222,7 +219,7 @@ public class LabelFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with label_id  = " +
 						       selectedLabelId + " in label" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Delete Label record",
 							       JOptionPane.ERROR_MESSAGE);
@@ -230,6 +227,10 @@ public class LabelFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditLabel SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -268,21 +269,9 @@ public class LabelFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 330, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 330, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }
