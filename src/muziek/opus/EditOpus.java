@@ -1,6 +1,6 @@
 // Project:	muziek
 // Package:	muziek.opus
-// File:	OpusFrame.java
+// File:	EditOpus.java
 // Description:	Frame to show all or selected records in the opus table
 // Author:	Chris van Engelen
 // History:	2006/02/26: Initial version
@@ -29,14 +29,10 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opus table in schema muziek.
- * An instance of OpusDatumFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class OpusFrame {
-    private final Logger logger = Logger.getLogger( OpusFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Opus");
+public class EditOpus extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditOpus.class.getCanonicalName() );
 
     static private final Border emptyBorder = new EmptyBorder( -5, -5, -5, -5 );
 
@@ -63,10 +59,11 @@ public class OpusFrame {
     private OpusTableModel opusTableModel;
     private TableSorter opusTableSorter;
 
-    public OpusFrame( final Connection connection ) {
+    public EditOpus( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit opus", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -147,7 +144,7 @@ public class OpusFrame {
         componistenPanel.setBorder( emptyBorder );
 
         // Setup a JComboBox with the results of the query on componisten
-	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, frame, false );
+	componistenPersoonComboBox = new ComponistenPersoonComboBox( connection, parentFrame, false );
         componistenPersoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Number of rows may have changed: reset the table sorter
             opusTableSorter.clearSortingState( );
@@ -293,7 +290,7 @@ public class OpusFrame {
 	container.add( new JLabel( "Subtype:" ), constraints );
 
         // Setup a JComboBox for subtype
-        subtypeComboBox = new SubtypeComboBox( connection, frame, selectedSubtypeId );
+        subtypeComboBox = new SubtypeComboBox( connection, parentFrame, selectedSubtypeId );
         subtypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Number of rows may have changed: reset the table sorter
             opusTableSorter.clearSortingState( );
@@ -328,6 +325,7 @@ public class OpusFrame {
 
 	// Create opus table from opus table model
 	opusTableModel = new OpusTableModel( connection,
+                                             parentFrame,
 					     cancelRowEditButton,
 					     saveRowEditButton );
 	opusTableSorter = new TableSorter( opusTableModel );
@@ -392,7 +390,7 @@ public class OpusFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -402,9 +400,9 @@ public class OpusFrame {
 			if ( result == JOptionPane.YES_OPTION ) {
 			    // Save the changes in the table model, and in the database
 			    if ( !( opusTableModel.saveEditRow( selectedRow ) ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Error: row not saved",
-							       "Save opus record error",
+							       "Edit opus error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -459,12 +457,12 @@ public class OpusFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opus record
-		    new EditOpusDialog( connection, frame,
+		    new EditOpusDialog( connection, parentFrame,
                                         opusTitelFilterTextField.getText( ),
                                         opusNummerFilterTextField.getText( ),
                                         selectedComponistenPersoonId,
@@ -493,9 +491,9 @@ public class OpusFrame {
 		} else {
 		    int selectedRow = opusListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opus geselecteerd",
-						       "Opus frame error",
+						       "Edit opus error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -505,16 +503,16 @@ public class OpusFrame {
 
 		    // Check if opus has been selected
 		    if ( selectedOpusId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opus geselecteerd",
-						       "Opus frame error",
+						       "Edit opus error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
 
 		    if ( actionEvent.getActionCommand( ).equals( "openDialog" ) ) {
 			// Do dialog
-			new EditOpusDialog( connection, frame, selectedOpusId );
+			new EditOpusDialog( connection, parentFrame, selectedOpusId );
 
 			// Number of rows may have changed: reset the table sorter
 			opusTableSorter.clearSortingState( );
@@ -545,13 +543,11 @@ public class OpusFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT opus_id FROM opname WHERE opus_id = " +
-							selectedOpusId );
+				statement.executeQuery( "SELECT opus_id FROM opname WHERE opus_id = " + selectedOpusId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel opname heeft nog verwijzing naar '" +
-							       selectedOpusTitelString + "'",
-							       "Opus frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel opname heeft nog verwijzing naar '" + selectedOpusTitelString + "'",
+							       "Edit opus error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -561,17 +557,16 @@ public class OpusFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + selectedOpusTitelString + "' ?",
-							   "Delete Opus record",
+							   "Delete opus record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM opus";
-			deleteString += " WHERE opus_id = " + selectedOpusId;
+			final String deleteString = "DELETE FROM opus WHERE opus_id = " + selectedOpusId;
 
 			logger.info( "deleteString: " + deleteString );
 
@@ -579,16 +574,19 @@ public class OpusFrame {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with opus_id  = " +
-						       selectedOpusId + " in opus" );
-				JOptionPane.showMessageDialog( frame,
+				final String errorString = "Could not delete record with opus_id  = " + selectedOpusId + " in opus";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete opus record",
+							       "Edit opus error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditOpus SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -631,7 +629,7 @@ public class OpusFrame {
 		    } else if ( actionEvent.getActionCommand( ).equals( "saveRowEdit" ) ) {
 			// Save the changes in the table model, and in the database
 			if ( !( opusTableModel.saveEditRow( selectedRow ) ) ) {
-			    JOptionPane.showMessageDialog( frame,
+			    JOptionPane.showMessageDialog( parentFrame,
 							   "Error: row not saved",
 							   "Save opus record error",
 							   JOptionPane.ERROR_MESSAGE );
@@ -699,21 +697,9 @@ public class OpusFrame {
         constraints.weighty = 0d;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 1040, 700 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 1040, 700 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

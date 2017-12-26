@@ -133,6 +133,29 @@ public class Muziek extends JFrame implements ActionListener {
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
+        // Edit opname datum
+        menuItem = new JMenuItem("Opname datum");
+        menuItem.setActionCommand("editOpnameDatum");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit opname plaats
+        menuItem = new JMenuItem("Opname plaats");
+        menuItem.setActionCommand("editOpnamePlaats");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit opslag
+        menuItem = new JMenuItem("Opslag");
+        menuItem.setActionCommand("editOpslag");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit opus
+        menuItem = new JMenuItem("Opus");
+        menuItem.setActionCommand("editOpus");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
         return menuBar;
     }
 
@@ -156,6 +179,18 @@ public class Muziek extends JFrame implements ActionListener {
         }
         else if ("editMusici".equals(actionEvent.getActionCommand())) {
             internalFrame = new muziek.musici.EditMusici( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editOpnameDatum".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.opnamedatum.EditOpnameDatum( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editOpnamePlaats".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.opnameplaats.EditOpnamePlaats( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editOpslag".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.opslag.EditOpslag( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editOpus".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.opus.EditOpus( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         }
 
         if (internalFrame == null) {

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class OpslagTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( OpslagTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Opslag" };
 
     private class OpslagRecord {
@@ -37,8 +40,9 @@ class OpslagTableModel extends AbstractTableModel {
     private final Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    OpslagTableModel( Connection connection ) {
-	this.connection = connection;
+    OpslagTableModel( Connection connection, JFrame parentFrame ) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupOpslagTableModel( null );
     }
@@ -47,9 +51,7 @@ class OpslagTableModel extends AbstractTableModel {
 
 	// Setup the table
 	try {
-	    String opslagQueryString =
-		"SELECT opslag.opslag_id, opslag.opslag " +
-		"FROM opslag ";
+	    String opslagQueryString = "SELECT opslag.opslag_id, opslag.opslag FROM opslag ";
 
 	    if ( ( opslagFilterString != null ) && ( opslagFilterString.length( ) > 0 ) ) {
 		// Matcher to find single quotes in opslagFilterString, in order to replace these
@@ -77,6 +79,10 @@ class OpslagTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "OpslagTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -174,6 +180,10 @@ class OpslagTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "OpslagTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

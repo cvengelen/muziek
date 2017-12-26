@@ -76,12 +76,12 @@ public class EditComponisten extends JInternalFrame {
         this.connection = connection;
         this.parentFrame = parentFrame;
 
-        // put the controls the content pane
-        Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
-        GridBagConstraints constraints = new GridBagConstraints( );
+        final GridBagConstraints constraints = new GridBagConstraints( );
 
         constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
@@ -263,24 +263,21 @@ public class EditComponisten extends JInternalFrame {
                         int result =
                             JOptionPane.showConfirmDialog( parentFrame,
                                                            "Delete '" + componisten.string + "' ?",
-                                                           "Delete Componisten record",
+                                                           "Delete componisten record",
                                                            JOptionPane.YES_NO_OPTION,
                                                            JOptionPane.QUESTION_MESSAGE,
                                                            null );
 
                         if ( result != JOptionPane.YES_OPTION ) return;
 
-                        String deleteString  = "DELETE FROM componisten";
-                        deleteString += " WHERE componisten_id = " + componisten.id;
-
-                        logger.info( "deleteString: " + deleteString );
+                        final String deleteString  = "DELETE FROM componisten WHERE componisten_id = " + componisten.id;
+                        logger.fine( "deleteString: " + deleteString );
 
                         try {
                             Statement statement = connection.createStatement( );
                             int nUpdate = statement.executeUpdate( deleteString );
                             if ( nUpdate != 1 ) {
-                                String errorString = ( "Could not delete record with componisten_id  = " +
-                                                       componisten.id + " in componisten" );
+                                String errorString = "Could not delete record with componisten_id  = " + componisten.id + " in componisten";
                                 JOptionPane.showMessageDialog( parentFrame,
                                                                errorString,
                                                                "Edit componisten error",

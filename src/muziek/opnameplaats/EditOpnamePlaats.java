@@ -16,28 +16,25 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opname_plaats table in schema muziek.
- * An instance of OpnamePlaatsFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class OpnamePlaatsFrame {
-    private final Logger logger = Logger.getLogger( OpnamePlaatsFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Opname Plaats");
+public class EditOpnamePlaats extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditOpnamePlaats.class.getCanonicalName() );
 
     private JTextField opnamePlaatsFilterTextField;
 
     private OpnamePlaatsTableModel opnamePlaatsTableModel;
     private TableSorter opnamePlaatsTableSorter;
 
-    public OpnamePlaatsFrame( final Connection connection ) {
+    public EditOpnamePlaats( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit opname plaats", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
 	/////////////////////////////////
 	// Opname plaats filter string
@@ -69,7 +66,7 @@ public class OpnamePlaatsFrame {
 	/////////////////////////////////
 
 	// Create opnamePlaats table from title table model
-	opnamePlaatsTableModel = new OpnamePlaatsTableModel( connection );
+	opnamePlaatsTableModel = new OpnamePlaatsTableModel( connection, parentFrame );
 	opnamePlaatsTableSorter = new TableSorter( opnamePlaatsTableModel );
 	final JTable opnamePlaatsTable = new JTable( opnamePlaatsTableSorter );
 	opnamePlaatsTableSorter.setTableHeader( opnamePlaatsTable.getTableHeader( ) );
@@ -131,8 +128,8 @@ public class OpnamePlaatsFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
                     return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
@@ -157,9 +154,9 @@ public class OpnamePlaatsFrame {
 		} else {
 		    int selectedRow = opnamePlaatsListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opname plaats geselecteerd",
-						       "Opname Plaats frame error",
+						       "Edit opname plaats error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -169,9 +166,9 @@ public class OpnamePlaatsFrame {
 
 		    // Check if opnamePlaats has been selected
 		    if ( selectedOpnamePlaatsId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opname plaats geselecteerd",
-						       "Opname Plaats frame error",
+						       "Edit opname plaats error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -184,13 +181,11 @@ public class OpnamePlaatsFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT opname_plaats_id FROM opname WHERE opname_plaats_id = " +
-							selectedOpnamePlaatsId );
+				statement.executeQuery( "SELECT opname_plaats_id FROM opname WHERE opname_plaats_id = " + selectedOpnamePlaatsId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel opname heeft nog verwijzing naar '" +
-							       opnamePlaatsString + "'",
-							       "Opname Plaats frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel opname heeft nog verwijzing naar '" + opnamePlaatsString + "'",
+							       "Edit opname plaats error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -200,38 +195,43 @@ public class OpnamePlaatsFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + opnamePlaatsString + "' ?",
-							   "Delete Opname_Plaats record",
+							   "Delete opname plaats record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM opname_plaats";
-			deleteString += " WHERE opname_plaats_id = " + selectedOpnamePlaatsId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM opname_plaats WHERE opname_plaats_id = " + selectedOpnamePlaatsId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with opname_plaats_id  = " +
-						       selectedOpnamePlaatsId + " in opname_plaats" );
-				JOptionPane.showMessageDialog( frame,
+				String errorString = "Could not delete record with opname_plaats_id  = " + selectedOpnamePlaatsId + " in opname_plaats";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Opname Plaats record",
+							       "Edit opname plaats error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditOpnamePlaats SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 		    } else {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Unimplemented command: " + actionEvent.getActionCommand( ),
+                                                       "Edit opname plaats error",
+                                                       JOptionPane.ERROR_MESSAGE );
 			logger.severe( "Unimplemented command: " + actionEvent.getActionCommand( ) );
 		    }
 		}
@@ -268,21 +268,9 @@ public class OpnamePlaatsFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 510, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+        setSize( 510, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

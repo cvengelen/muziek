@@ -72,12 +72,12 @@ public class EditOpname extends JInternalFrame {
     public EditOpname( final Connection connection, final JFrame parentFrame, int x, int y ) {
         super("Edit opname", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
         constraints.gridwidth = 1;
 
 	// Text filter action listener

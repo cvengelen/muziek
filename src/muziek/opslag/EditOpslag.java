@@ -16,22 +16,19 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opslag table in schema muziek.
- * An instance of OpslagFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class OpslagFrame {
-    private final Logger logger = Logger.getLogger( OpslagFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Opslag" );
+public class EditOpslag extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditOpslag.class.getCanonicalName() );
 
     private OpslagTableModel opslagTableModel;
     private TableSorter opslagTableSorter;
 
-    public OpslagFrame( final Connection connection ) {
+    public EditOpslag( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit opslag", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -59,7 +56,7 @@ public class OpslagFrame {
 	container.add( opslagFilterTextField, constraints );
 
 	// Create opslag table from title table model
-	opslagTableModel = new OpslagTableModel( connection );
+	opslagTableModel = new OpslagTableModel( connection, parentFrame );
 	opslagTableSorter = new TableSorter( opslagTableModel );
 	final JTable opslagTable = new JTable( opslagTableSorter );
 	opslagTableSorter.setTableHeader( opslagTable.getTableHeader( ) );
@@ -124,8 +121,8 @@ public class OpslagFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
@@ -150,9 +147,9 @@ public class OpslagFrame {
 		} else {
 		    int selectedRow = opslagListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen Opslag geselecteerd",
-						       "Opslag frame error",
+						       "Edit opslag error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -162,9 +159,9 @@ public class OpslagFrame {
 
 		    // Check if opslag has been selected
 		    if ( selectedOpslagId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opslag geselecteerd",
-						       "Opslag frame error",
+						       "Edit opslag error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -182,10 +179,9 @@ public class OpslagFrame {
 			    ResultSet resultSet = statement.executeQuery( "SELECT opslag_id FROM medium " +
 									  " WHERE opslag_id = " + selectedOpslagId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel medium heeft nog verwijzing naar '" +
-							       selectedOpslagString + "'",
-							       "Opslag frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel medium heeft nog verwijzing naar '" + selectedOpslagString + "'",
+							       "Edit opslag error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -195,34 +191,35 @@ public class OpslagFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + selectedOpslagString + "' ?",
-							   "Delete Opslag record",
+							   "Delete opslag record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM opslag";
-			deleteString += " WHERE opslag_id = " + selectedOpslagId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM opslag WHERE opslag_id = " + selectedOpslagId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with opslag_id  = " +
-                                                        selectedOpslagId + " in opslag" );
-				JOptionPane.showMessageDialog( frame,
+				String errorString = "Could not delete record with opslag_id  = " + selectedOpslagId + " in opslag";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Opslag record",
+							       "Edit opslag error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditOpslag SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -262,21 +259,9 @@ public class OpslagFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 360, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 360, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

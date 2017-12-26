@@ -61,8 +61,7 @@ public class EditMusici extends JInternalFrame {
 							      " WHERE musici_id = " + id );
 		if ( resultSet.next( ) ) {
 		    JOptionPane.showMessageDialog( parentFrame,
-						   "Tabel " + tableString +
-						   " heeft nog verwijzing naar '" + string + "'",
+						   "Tabel " + tableString + " heeft nog verwijzing naar '" + string + "'",
 						   "Edit musici error",
 						   JOptionPane.ERROR_MESSAGE );
 		    return true;
@@ -80,12 +79,12 @@ public class EditMusici extends JInternalFrame {
         this.connection = connection;
         this.parentFrame = parentFrame;
 
-	// put the controls the content pane
-	Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
 	final ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
             // Setup the musici table
@@ -362,17 +361,14 @@ public class EditMusici extends JInternalFrame {
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM musici";
-			deleteString += " WHERE musici_id = " + musici.id;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM musici WHERE musici_id = " + musici.id;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with musici_id  = " +
-						       musici.id + " in musici" );
+				String errorString = "Could not delete record with musici_id  = " + musici.id + " in musici";
 				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Edit musici error",

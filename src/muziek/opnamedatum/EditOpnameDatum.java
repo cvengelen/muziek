@@ -18,28 +18,25 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the opname_datum table in schema muziek.
- * An instance of OpnameDatumFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class OpnameDatumFrame {
-    private final Logger logger = Logger.getLogger( OpnameDatumFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Opname Datum");
+public class EditOpnameDatum extends JInternalFrame {
+        private final Logger logger = Logger.getLogger( EditOpnameDatum.class.getCanonicalName() );
 
     private JTextField opnameDatumFilterTextField;
 
     private OpnameDatumTableModel opnameDatumTableModel;
     private TableSorter opnameDatumTableSorter;
 
-    public OpnameDatumFrame( final Connection connection ) {
+    public EditOpnameDatum( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit opname datum", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
 	/////////////////////////////////
 	// Opname datum filter string
@@ -71,7 +68,7 @@ public class OpnameDatumFrame {
 	/////////////////////////////////
 
 	// Create opnameDatum table from title table model
-	opnameDatumTableModel = new OpnameDatumTableModel( connection );
+	opnameDatumTableModel = new OpnameDatumTableModel( connection, parentFrame );
 	opnameDatumTableSorter = new TableSorter( opnameDatumTableModel );
 	final JTable opnameDatumTable = new JTable( opnameDatumTableSorter );
 	opnameDatumTableSorter.setTableHeader( opnameDatumTable.getTableHeader( ) );
@@ -137,12 +134,12 @@ public class OpnameDatumFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
                     return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new opnameDatum record
-		    new EditOpnameDatumDialog( connection, frame,
+		    new EditOpnameDatumDialog( connection, parentFrame,
                                                opnameDatumFilterTextField.getText( ) );
 
 		    // Records may have been modified: setup the table model again
@@ -150,9 +147,9 @@ public class OpnameDatumFrame {
 		} else {
 		    int selectedRow = opnameDatumListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opnameDatum geselecteerd",
-						       "OpnameDatum frame error",
+						       "Edit opname datum error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -162,9 +159,9 @@ public class OpnameDatumFrame {
 
 		    // Check if opnameDatum has been selected
 		    if ( selectedOpnameDatumId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen opnameDatum geselecteerd",
-						       "OpnameDatum frame error",
+						       "Edit opname datum error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -177,13 +174,11 @@ public class OpnameDatumFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT opname_datum_id FROM opname WHERE opname_datum_id = " +
-							selectedOpnameDatumId );
+				statement.executeQuery( "SELECT opname_datum_id FROM opname WHERE opname_datum_id = " + selectedOpnameDatumId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel opname heeft nog verwijzing naar '" +
-							       opnameDatumString + "'",
-							       "Opname Datum frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel opname heeft nog verwijzing naar '" + opnameDatumString + "'",
+							       "Edit opname datum error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -193,38 +188,43 @@ public class OpnameDatumFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + opnameDatumString + "' ?",
-							   "Delete Opname_Datum record",
+							   "Delete opname datum record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM opname_datum";
-			deleteString += " WHERE opname_datum_id = " + selectedOpnameDatumId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM opname_datum WHERE opname_datum_id = " + selectedOpnameDatumId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with opname_datum_id  = " +
-						       selectedOpnameDatumId + " in opname_datum" );
-				JOptionPane.showMessageDialog( frame,
+				String errorString = "Could not delete record with opname_datum_id  = " + selectedOpnameDatumId + " in opname_datum";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Opname Datum record",
+							       "Edit opname datum error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditOpnameDatum SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 		    } else {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Unimplemented command: " + actionEvent.getActionCommand( ),
+                                                       "Edit opname datum error",
+                                                       JOptionPane.ERROR_MESSAGE );
 			logger.severe( "Unimplemented command: " + actionEvent.getActionCommand( ) );
 		    }
 		}
@@ -262,21 +262,9 @@ public class OpnameDatumFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 630, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 630, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

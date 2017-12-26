@@ -1,2 +1,0 @@
-# Start muziek.Main, met muziek.opnameplaats.OpnamePlaatsFrame als argument
-java -cp /Users/cvengelen/java/muziek/build/muziek.jar:${JAVA_LIBS}/table.jar -Djava.util.logging.config.file=/Users/cvengelen/java/muziek/resources/logging.properties muziek.Main muziek.opnameplaats.OpnamePlaatsFrame

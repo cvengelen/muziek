@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class OpnameDatumTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( OpnameDatumTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id",
                                          "Jaar 1", "Maand 1",
                                          "Jaar 2", "Maand 2",
@@ -49,12 +52,13 @@ class OpnameDatumTableModel extends AbstractTableModel {
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    OpnameDatumTableModel( Connection connection ) {
+    OpnameDatumTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupOpnameDatumTableModel( null );
     }
@@ -97,6 +101,10 @@ class OpnameDatumTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "OpnameDatumTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -250,6 +258,10 @@ class OpnameDatumTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "OpnameDatumTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

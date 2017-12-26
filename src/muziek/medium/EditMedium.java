@@ -52,12 +52,12 @@ public class EditMedium extends JInternalFrame {
     public EditMedium( final Connection connection, final JFrame parentFrame, int x, int y ) {
         super("Edit medium", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
 	// Text filter action listener
 	ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
@@ -577,12 +577,10 @@ public class EditMedium extends JInternalFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT medium_id FROM opname WHERE medium_id = " +
-							selectedMediumId );
+				statement.executeQuery( "SELECT medium_id FROM opname WHERE medium_id = " + selectedMediumId );
 			    if ( resultSet.next( ) ) {
 				JOptionPane.showMessageDialog( parentFrame,
-							       "Tabel opname heeft nog verwijzing naar '" +
-							       selectedMediumTitelString + "'",
+							       "Tabel opname heeft nog verwijzing naar '" + selectedMediumTitelString + "'",
 							       "Edit medium error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
@@ -606,17 +604,14 @@ public class EditMedium extends JInternalFrame {
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM medium";
-			deleteString += " WHERE medium_id = " + selectedMediumId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM medium WHERE medium_id = " + selectedMediumId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with medium_id  = " +
-						       selectedMediumId + " in medium" );
+				String errorString = "Could not delete record with medium_id  = " + selectedMediumId + " in medium";
 				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Edit medium error",

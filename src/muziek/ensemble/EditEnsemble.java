@@ -29,12 +29,12 @@ public class EditEnsemble extends JInternalFrame {
     public EditEnsemble( final Connection connection, final JFrame parentFrame, int x, int y ) {
         super("Edit ensemble", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
         constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
@@ -214,17 +214,14 @@ public class EditEnsemble extends JInternalFrame {
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM ensemble";
-			deleteString += " WHERE ensemble_id = " + selectedEnsembleId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString  = "DELETE FROM ensemble WHERE ensemble_id = " + selectedEnsembleId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with ensemble_id  = " +
-						       selectedEnsembleId + " in ensemble" );
+				String errorString = "Could not delete record with ensemble_id  = " + selectedEnsembleId + " in ensemble";
 				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Edit ensemble error",

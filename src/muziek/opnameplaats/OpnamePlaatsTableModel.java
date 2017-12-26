@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class OpnamePlaatsTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( OpnamePlaatsTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Opname Plaats" };
 
     private class OpnamePlaatsRecord {
@@ -34,12 +37,13 @@ class OpnamePlaatsTableModel extends AbstractTableModel {
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    OpnamePlaatsTableModel( Connection connection ) {
+    OpnamePlaatsTableModel( Connection connection, JFrame parentFrame ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupOpnamePlaatsTableModel( null );
     }
@@ -74,6 +78,10 @@ class OpnamePlaatsTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "OpnamePlaatsTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -170,6 +178,10 @@ class OpnamePlaatsTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "OpnamePlaatsTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

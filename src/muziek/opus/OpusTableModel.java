@@ -30,7 +30,9 @@ import java.util.regex.*;
 class OpusTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( OpusTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Titel", "Componisten", "Opus", "Genre",
                                          "Tijdperk", "Type", "Subtype" };
 
@@ -144,9 +146,11 @@ class OpusTableModel extends AbstractTableModel {
 
     // Constructor
     OpusTableModel( final Connection connection,
+                    final JFrame     parentFrame,
                     final JButton    cancelRowEditButton,
                     final JButton    saveRowEditButton ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 	this.cancelRowEditButton = cancelRowEditButton;
 	this.saveRowEditButton = saveRowEditButton;
 
@@ -304,6 +308,10 @@ class OpusTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "OpusTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -596,6 +604,10 @@ class OpusTableModel extends AbstractTableModel {
 	    	return false;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "OpusTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}

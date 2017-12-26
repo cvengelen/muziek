@@ -29,12 +29,12 @@ public class EditLabel extends JInternalFrame {
     public EditLabel( final Connection connection, final JFrame parentFrame, int x, int y ) {
         super("Edit label", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
-	GridBagConstraints constraints = new GridBagConstraints( );
+	final GridBagConstraints constraints = new GridBagConstraints( );
 
 	constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
@@ -183,12 +183,10 @@ public class EditLabel extends JInternalFrame {
 			// Check if labelId is present in table musici_label
 			try {
 			    Statement statement = connection.createStatement( );
-			    ResultSet resultSet = statement.executeQuery( "SELECT label_id FROM medium" +
-									  " WHERE label_id = " + selectedLabelId );
+			    ResultSet resultSet = statement.executeQuery( "SELECT label_id FROM medium" + " WHERE label_id = " + selectedLabelId );
 			    if ( resultSet.next( ) ) {
 				JOptionPane.showMessageDialog( parentFrame,
-							       "Tabel medium heeft nog verwijzing naar '" +
-							       labelString + "'",
+							       "Tabel medium heeft nog verwijzing naar '" + labelString + "'",
 							       "Edit label error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
@@ -208,17 +206,14 @@ public class EditLabel extends JInternalFrame {
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM label";
-			deleteString += " WHERE label_id = " + selectedLabelId;
-
-			logger.info( "deleteString: " + deleteString );
+			String deleteString  = "DELETE FROM label WHERE label_id = " + selectedLabelId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with label_id  = " +
-						       selectedLabelId + " in label" );
+				String errorString = "Could not delete record with label_id  = " + selectedLabelId + " in label";
 				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Delete Label record",
