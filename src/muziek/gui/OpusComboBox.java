@@ -278,7 +278,7 @@ public class OpusComboBox extends JComboBox< String > {
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
-        logger.info("#opus: " + opusMap.size());
+        logger.fine("#opus: " + opusMap.size());
 
 	setMaximumRowCount( 20 );
     }

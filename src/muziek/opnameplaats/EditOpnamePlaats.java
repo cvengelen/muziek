@@ -139,16 +139,20 @@ public class EditOpnamePlaats extends JInternalFrame {
 			    logger.severe( "Could not get maximum for opname_plaats_id in opname_plaats" );
 			    return;
 			}
-			int opnamePlaatsId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO opname_plaats SET opname_plaats_id = " + opnamePlaatsId;
 
-			logger.info( "insertString: " + insertString );
+			int opnamePlaatsId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO opname_plaats SET opname_plaats_id = " + opnamePlaatsId;
+                        logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in opname_plaats" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditOpnamePlaats SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
@@ -190,6 +194,10 @@ public class EditOpnamePlaats extends JInternalFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditOpnamePlaats SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}

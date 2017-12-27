@@ -67,6 +67,10 @@ public class EditMusici extends JInternalFrame {
 		    return true;
 		}
 	    } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                                               "SQL exception in select: " + sqlException.getMessage(),
+                                               "EditMusici SQL exception",
+                                               JOptionPane.ERROR_MESSAGE );
 		logger.severe( "SQLException: " + sqlException.getMessage( ) );
 		return true;
 	    }

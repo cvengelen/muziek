@@ -112,9 +112,8 @@ public class ComponistenPersoonTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE persoon SET " + updateString +
-			 " WHERE persoon_id = " + componistRecord.persoonId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE persoon SET " + updateString + " WHERE persoon_id = " + componistRecord.persoonId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

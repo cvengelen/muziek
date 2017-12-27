@@ -592,9 +592,8 @@ class OpusTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return true;
 
-	updateString = ( "UPDATE opus SET " + updateString +
-			 " WHERE opus_id = " + originalOpusRecord.opusId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE opus SET " + updateString + " WHERE opus_id = " + originalOpusRecord.opusId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -613,7 +612,6 @@ class OpusTableModel extends AbstractTableModel {
 	}
 
 	// Store record in list
-	// logger.info( "storing record at row " + row );
 	opusRecordList.set( row, opusRecord );
 
 	// Initialize row modified status

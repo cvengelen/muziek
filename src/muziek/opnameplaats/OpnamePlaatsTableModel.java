@@ -166,9 +166,8 @@ class OpnamePlaatsTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE opname_plaats SET " + updateString +
-			 " WHERE opname_plaats_id = " + opnamePlaatsRecord.opnamePlaatsId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE opname_plaats SET " + updateString + " WHERE opname_plaats_id = " + opnamePlaatsRecord.opnamePlaatsId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

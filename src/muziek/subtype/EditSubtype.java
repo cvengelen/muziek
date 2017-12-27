@@ -12,29 +12,25 @@ import javax.swing.event.*;
 
 import java.util.logging.Logger;
 
-import com.sun.deploy.panel.JreTableModel;
 import table.*;
 
 /**
  * Frame to show, insert and update records in the subtype table in schema muziek.
- * An instance of SubtypeFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class SubtypeFrame {
-    private final Logger logger = Logger.getLogger( SubtypeFrame.class.getCanonicalName() );
-
-    private JFrame frame = new JFrame( "Subtype");
+public class EditSubtype extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditSubtype.class.getCanonicalName() );
 
     private JTextField subtypeFilterTextField;
 
     private SubtypeTableModel subtypeTableModel;
     private TableSorter subtypeTableSorter;
 
-    public SubtypeFrame( final Connection connection ) {
+    public EditSubtype( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit subtype", true, true, true, true);
 
-	// put the contsubtypes the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -70,7 +66,7 @@ public class SubtypeFrame {
 	/////////////////////////////////
 
 	// Create subtype table from title table model
-	subtypeTableModel = new SubtypeTableModel( connection );
+	subtypeTableModel = new SubtypeTableModel( connection, parentFrame );
 	subtypeTableSorter = new TableSorter( subtypeTableModel );
 	final JTable subtypeTable = new JTable( subtypeTableSorter );
 	subtypeTableSorter.setTableHeader( subtypeTable.getTableHeader( ) );
@@ -94,7 +90,6 @@ public class SubtypeFrame {
         constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( subtypeTable ), constraints );
-
 
 	// Define the delete button because it is enabled/disabled by the list selection listener
 	final JButton deleteSubtypeButton = new JButton( "Delete" );
@@ -132,8 +127,8 @@ public class SubtypeFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
@@ -143,24 +138,28 @@ public class SubtypeFrame {
 			    logger.severe( "Could not get maximum for subtype_id in subtype" );
 			    return;
 			}
-			int subtypeId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO subtype SET subtype_id = " + subtypeId;
 
-			logger.info( "insertString: " + insertString );
+			int subtypeId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO subtype SET subtype_id = " + subtypeId;
+                        logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in subtype" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditSubtype SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
 		    int selectedRow = subtypeListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen subtype geselecteerd",
-						       "Subtype frame error",
+						       "Edit subtype error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -170,9 +169,9 @@ public class SubtypeFrame {
 
 		    // Check if subtype has been selected
 		    if ( selectedSubtypeId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen subtype geselecteerd",
-						       "Subtype frame error",
+						       "Edit subtype error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -185,50 +184,54 @@ public class SubtypeFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT subtype_id FROM opus WHERE subtype_id = " +
-							selectedSubtypeId );
+				statement.executeQuery( "SELECT subtype_id FROM opus WHERE subtype_id = " + selectedSubtypeId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel opus heeft nog verwijzing naar '" +
 							       subtypeString + "'",
-							       "Subtype frame error",
+							       "Edit subtype error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditSubtype SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + subtypeString + "' ?",
-							   "Delete Subtype record",
+							   "Delete subtype record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM subtype";
-			deleteString += " WHERE subtype_id = " + selectedSubtypeId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM subtype WHERE subtype_id = " + selectedSubtypeId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with subtype_id  = " +
-						       selectedSubtypeId + " in subtype" );
-				JOptionPane.showMessageDialog( frame,
+				final String errorString = "Could not delete record with subtype_id  = " + selectedSubtypeId + " in subtype";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Subtype record",
+							       "Edit subtype error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditSubtype SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -269,21 +272,9 @@ public class SubtypeFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 410, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 410, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

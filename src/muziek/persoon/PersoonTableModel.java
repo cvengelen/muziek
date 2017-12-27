@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class PersoonTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( PersoonTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Persoon" };
 
     private class PersoonRecord {
@@ -37,8 +40,9 @@ class PersoonTableModel extends AbstractTableModel {
     private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    PersoonTableModel( Connection connection ) {
-	this.connection = connection;
+    PersoonTableModel( Connection connection, JFrame parentFrame ) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupPersoonTableModel( null );
     }
@@ -47,9 +51,7 @@ class PersoonTableModel extends AbstractTableModel {
 
 	// Setup the table
 	try {
-	    String persoonQueryString =
-		"SELECT persoon.persoon_id, persoon.persoon " +
-		"FROM persoon ";
+	    String persoonQueryString = "SELECT persoon.persoon_id, persoon.persoon FROM persoon ";
 
 	    if ( ( persoonFilterString != null ) && ( persoonFilterString.length( ) > 0 ) ) {
 		// Matcher to find single quotes in persoonFilterString, in order to replace these
@@ -73,11 +75,15 @@ class PersoonTableModel extends AbstractTableModel {
 	    }
 
 	    persoonRecordList.trimToSize( );
-            logger.info("Table shows " + persoonRecordList.size() + " persoon records");
+            logger.fine("Table shows " + persoonRecordList.size() + " persoon records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "PersoonTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -161,10 +167,8 @@ class PersoonTableModel extends AbstractTableModel {
 	// Store record in list
 	persoonRecordList.set( row, persoonRecord );
 
-	updateString = ( "UPDATE persoon SET " + updateString +
-			 " WHERE persoon_id = " + persoonRecord.persoonId );
-
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE persoon SET " + updateString + " WHERE persoon_id = " + persoonRecord.persoonId;
+        logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -175,6 +179,10 @@ class PersoonTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "PersoonTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

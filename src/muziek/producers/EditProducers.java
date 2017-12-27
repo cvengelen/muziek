@@ -19,15 +19,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the producers table in schema muziek.
- * An instance of ProducersFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class ProducersFrame {
-    private final Logger logger = Logger.getLogger( ProducersFrame.class.getCanonicalName() );
+public class EditProducers extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditProducers.class.getCanonicalName() );
 
     private final Connection connection;
-    private final JFrame frame = new JFrame( "Producers" );
+    private final JFrame parentFrame;
 
     private JTextField producersFilterTextField;
 
@@ -54,14 +52,17 @@ public class ProducersFrame {
 		ResultSet resultSet = statement.executeQuery( "SELECT producers_id FROM " + tableString +
 							      " WHERE producers_id = " + id );
 		if ( resultSet.next( ) ) {
-		    JOptionPane.showMessageDialog( frame,
-						   "Tabel " + tableString +
-						   " heeft nog verwijzing naar '" + string + "'",
-						   "Producers frame error",
+		    JOptionPane.showMessageDialog( parentFrame,
+						   "Tabel " + tableString + " heeft nog verwijzing naar '" + string + "'",
+						   "Edit producers error",
 						   JOptionPane.ERROR_MESSAGE );
 		    return true;
 		}
 	    } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                                               "SQL exception in select: " + sqlException.getMessage(),
+                                               "EditProducers SQL exception",
+                                               JOptionPane.ERROR_MESSAGE );
 		logger.severe( "SQLException: " + sqlException.getMessage( ) );
 		return true;
 	    }
@@ -69,11 +70,14 @@ public class ProducersFrame {
 	}
     }
 
-    public ProducersFrame( final Connection connection ) {
-	this.connection = connection;
+    public EditProducers( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit producers", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        this.connection = connection;
+        this.parentFrame = parentFrame;
+
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -119,7 +123,7 @@ public class ProducersFrame {
 
 	// Setup a JComboBox with the results of the query on persoon
 	// Do not allow to enter new record in persoon
-	persoonComboBox = new PersoonComboBox( connection, frame, false );
+	persoonComboBox = new PersoonComboBox( connection, parentFrame, false );
         persoonComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected persoon ID from the combo box
             selectedPersoonId = persoonComboBox.getSelectedPersoonId( );
@@ -142,7 +146,7 @@ public class ProducersFrame {
 	container.add( persoonPanel, constraints );
 
 	// Create producers table from title table model
-	producersTableModel = new ProducersTableModel( connection );
+	producersTableModel = new ProducersTableModel( connection, parentFrame );
 	producersTableSorter = new TableSorter( producersTableModel );
 	final JTable producersTable = new JTable( producersTableSorter );
 	producersTableSorter.setTableHeader( producersTable.getTableHeader( ) );
@@ -210,19 +214,19 @@ public class ProducersFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // Insert new producers record
-		    new EditProducersDialog( connection, frame,
+		    new EditProducersDialog( connection, parentFrame,
                                              producersFilterTextField.getText( ) );
 		} else {
 		    int selectedRow = producersListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen producers geselecteerd",
-						       "Producers frame error",
+						       "Edit producers error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -232,18 +236,18 @@ public class ProducersFrame {
 
 		    // Check if producers has been selected
 		    if ( selectedProducersId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen producers geselecteerd",
-						       "Producers frame error",
+						       "Edit producers error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			// Do dialog
-			new EditProducersDialog( connection, frame, selectedProducersId );
-
-		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
+			new EditProducersDialog( connection, parentFrame, selectedProducersId );
+		    }
+                    else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			final Producers producers = new Producers( producersTableModel.getProducersId( selectedRow ),
 								   producersTableModel.getProducersString( selectedRow ) );
 
@@ -256,35 +260,34 @@ public class ProducersFrame {
 			    producers.string = " ";
 			}
 
-			int result =
-			    JOptionPane.showConfirmDialog( frame,
-							   "Delete '" + producers.string + "' ?",
-							   "Delete Producers record",
-							   JOptionPane.YES_NO_OPTION,
-							   JOptionPane.QUESTION_MESSAGE,
-							   null );
-
+			int result = JOptionPane.showConfirmDialog( parentFrame,
+                                                                    "Delete '" + producers.string + "' ?",
+                                                                    "Delete producers record",
+                                                                    JOptionPane.YES_NO_OPTION,
+                                                                    JOptionPane.QUESTION_MESSAGE,
+                                                                    null );
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM producers";
-			deleteString += " WHERE producers_id = " + producers.id;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM producers WHERE producers_id = " + producers.id;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with producers_id  = " +
-						       producers.id + " in producers" );
-				JOptionPane.showMessageDialog( frame,
+				final String errorString = "Could not delete record with producers_id  = " + producers.id + " in producers";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Producers record",
+							       "Edit producers error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditProducers SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -326,21 +329,9 @@ public class ProducersFrame {
 	constraints.gridy = 3;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 610, 550 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 610, 550 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

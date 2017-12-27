@@ -126,9 +126,8 @@ public class MusiciPersoonTableModel extends AbstractTableModel {
 		    return;
 		}
 
-		updateString = ( "UPDATE persoon SET " + updateString +
-				 " WHERE persoon_id = " + musicusRecord.persoonId );
-		logger.info( "updateString: " + updateString );
+		updateString = "UPDATE persoon SET " + updateString + " WHERE persoon_id = " + musicusRecord.persoonId;
+		logger.fine( "updateString: " + updateString );
 
 		try {
 		    Statement statement = connection.createStatement( );

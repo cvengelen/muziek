@@ -242,9 +242,8 @@ class MusiciTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE musici SET " + updateString +
-			 " WHERE musici_id = " + musiciRecord.musiciId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE musici SET " + updateString + " WHERE musici_id = " + musiciRecord.musiciId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

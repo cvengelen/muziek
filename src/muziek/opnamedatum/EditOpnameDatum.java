@@ -183,6 +183,10 @@ public class EditOpnameDatum extends JInternalFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditOpnameDatum SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}

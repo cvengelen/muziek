@@ -359,7 +359,6 @@ class OpnameTableModel extends AbstractTableModel {
 
 	    opnameQueryString += "ORDER BY genre.genre, componist.persoon, type.type, ";
 	    opnameQueryString += "opus.opus_nummer, opus.opus_titel";
-            // logger.info( "opnameQueryString: "  + opnameQueryString );
 
 	    Statement statement = connection.createStatement( );
 	    ResultSet resultSet = statement.executeQuery( opnameQueryString );

@@ -197,9 +197,8 @@ class ComponistenTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE componisten SET " + updateString +
-			 " WHERE componisten_id = " + componistenRecord.componistenId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE componisten SET " + updateString + " WHERE componisten_id = " + componistenRecord.componistenId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

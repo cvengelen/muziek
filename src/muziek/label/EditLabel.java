@@ -139,16 +139,20 @@ public class EditLabel extends JInternalFrame {
 			    logger.severe( "Could not get maximum for label_id in label" );
 			    return;
 			}
-			int labelId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO label SET label_id = " + labelId;
 
-			logger.info( "insertString: " + insertString );
+			int labelId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO label SET label_id = " + labelId;
+                        logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in label" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditLabel SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
@@ -192,6 +196,10 @@ public class EditLabel extends JInternalFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditLabel SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}

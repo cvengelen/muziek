@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class SubtypeTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( SubtypeTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Subtype" };
 
     private class SubtypeRecord {
@@ -37,8 +40,9 @@ class SubtypeTableModel extends AbstractTableModel {
     private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    SubtypeTableModel( Connection connection ) {
-	this.connection = connection;
+    SubtypeTableModel( Connection connection, JFrame parentFrame ) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupSubtypeTableModel( null );
     }
@@ -68,11 +72,15 @@ class SubtypeTableModel extends AbstractTableModel {
 	    }
 
 	    subtypeRecordList.trimToSize( );
-            logger.info("Table shows " + subtypeRecordList.size() + " subtype records");
+            logger.fine("Table shows " + subtypeRecordList.size() + " subtype records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "SubtypeTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -155,9 +163,8 @@ class SubtypeTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE subtype SET " + updateString +
-			 " WHERE subtype_id = " + subtypeRecord.subtypeId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE subtype SET " + updateString + " WHERE subtype_id = " + subtypeRecord.subtypeId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -167,6 +174,10 @@ class SubtypeTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "SubtypeTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

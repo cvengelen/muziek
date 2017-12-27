@@ -413,14 +413,13 @@ public class EditOpnameDatumDialog {
 	    return;
 	}
 
-	updateString += ( ", opname_datum = '" +
-			  getOpnameDatumString( opnameJaar1, opnameMaand1,
-						opnameJaar2, opnameMaand2 ) +
-			  "'" );
+	updateString += ", opname_datum = '" +
+                        getOpnameDatumString( opnameJaar1, opnameMaand1,
+                                              opnameJaar2, opnameMaand2 ) +
+                        "'";
 
-	updateString  = "UPDATE opname_datum SET " + updateString;
-	updateString += " WHERE opname_datum_id = " + opnameDatumId;
-	logger.info( "EditOpnameDatumDialog.updateOpnameDatum, updateString: " + updateString );
+	updateString = "UPDATE opname_datum SET " + updateString + " WHERE opname_datum_id = " + opnameDatumId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = conn.createStatement( );

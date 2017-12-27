@@ -16,15 +16,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the persoon table in schema muziek.
- * An instance of PersoonFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class PersoonFrame {
-    private final Logger logger = Logger.getLogger( PersoonFrame.class.getCanonicalName() );
+public class EditPersoon extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditPersoon.class.getCanonicalName() );
 
     private final Connection connection;
-    private final JFrame frame = new JFrame( "Persoon" );
+    private final JFrame parentFrame;
 
     private PersoonTableModel persoonTableModel;
     private TableSorter persoonTableSorter;
@@ -46,14 +44,17 @@ public class PersoonFrame {
 		ResultSet resultSet = statement.executeQuery( "SELECT persoon_id FROM " + tableString +
 							      " WHERE persoon_id = " + id );
 		if ( resultSet.next( ) ) {
-		    JOptionPane.showMessageDialog( frame,
-						   "Tabel " + tableString +
-						   " heeft nog verwijzing naar '" + name + "'",
-						   "Persoon frame error",
+		    JOptionPane.showMessageDialog( parentFrame,
+						   "Tabel " + tableString + " heeft nog verwijzing naar '" + name + "'",
+						   "Edit persoon error",
 						   JOptionPane.ERROR_MESSAGE );
 		    return true;
 		}
 	    } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                                               "SQL exception in select: " + sqlException.getMessage(),
+                                               "EditPersoon SQL exception",
+                                               JOptionPane.ERROR_MESSAGE );
 		logger.severe( "SQLException: " + sqlException.getMessage( ) );
 		return true;
 	    }
@@ -61,11 +62,14 @@ public class PersoonFrame {
 	}
     }
 
-    public PersoonFrame( final Connection connection ) {
-	this.connection = connection;
+    public EditPersoon( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit persoon", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        this.connection = connection;
+        this.parentFrame = parentFrame;
+
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -91,7 +95,7 @@ public class PersoonFrame {
 	container.add( persoonFilterTextField, constraints );
 
 	// Create persoon table from title table model
-	persoonTableModel = new PersoonTableModel( connection );
+	persoonTableModel = new PersoonTableModel( connection, parentFrame );
 	persoonTableSorter = new TableSorter( persoonTableModel );
 	final JTable persoonTable = new JTable( persoonTableSorter );
 	persoonTableSorter.setTableHeader( persoonTable.getTableHeader( ) );
@@ -159,8 +163,8 @@ public class PersoonFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
@@ -170,24 +174,28 @@ public class PersoonFrame {
 			    logger.severe( "Could not get maximum for persoon_id in persoon" );
 			    return;
 			}
-			int persoonId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO persoon SET persoon_id = " + persoonId;
 
-			logger.info( "insertString: " + insertString );
+			int persoonId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO persoon SET persoon_id = " + persoonId;
+			logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in persoon" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditPersoon SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
 		    int selectedRow = persoonListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen Persoon geselecteerd",
-						       "Persoon frame error",
+						       "Edit persoon error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -197,9 +205,9 @@ public class PersoonFrame {
 
 		    // Check if persoon has been selected
 		    if ( selectedPersoonId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen persoon geselecteerd",
-						       "Persoon frame error",
+						       "Edit persoon error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -218,35 +226,34 @@ public class PersoonFrame {
 			    persoon.name = " ";
 			}
 
-			int result =
-			    JOptionPane.showConfirmDialog( frame,
-							   "Delete '" + persoon.name + "' ?",
-							   "Delete Persoon record",
-							   JOptionPane.YES_NO_OPTION,
-							   JOptionPane.QUESTION_MESSAGE,
-							   null );
+			int result = JOptionPane.showConfirmDialog( parentFrame,
+                                                                    "Delete '" + persoon.name + "' ?",
+                                                                    "Delete Persoon record",
+                                                                    JOptionPane.YES_NO_OPTION,
+                                                                    JOptionPane.QUESTION_MESSAGE,
+                                                                    null );
+                        if ( result != JOptionPane.YES_OPTION ) return;
 
-			if ( result != JOptionPane.YES_OPTION ) return;
-
-			String deleteString  = "DELETE FROM persoon";
-			deleteString += " WHERE persoon_id = " + persoon.id;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString  = "DELETE FROM persoon WHERE persoon_id = " + persoon.id;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with persoon_id  = " +
-						       persoon.id + " in persoon" );
-				JOptionPane.showMessageDialog( frame,
+				final String errorString = "Could not delete record with persoon_id  = " + persoon.id + " in persoon";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Persoon record",
+							       "Edit persoon error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditPersoon SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -283,21 +290,9 @@ public class PersoonFrame {
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 360, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 360, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

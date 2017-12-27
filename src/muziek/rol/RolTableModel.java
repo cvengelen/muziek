@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class RolTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( RolTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Rol" };
 
     private class RolRecord {
@@ -37,8 +40,9 @@ class RolTableModel extends AbstractTableModel {
     private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    RolTableModel( Connection connection ) {
-	this.connection = connection;
+    RolTableModel( Connection connection, JFrame parentFrame ) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupRolTableModel( null );
     }
@@ -68,11 +72,15 @@ class RolTableModel extends AbstractTableModel {
 	    }
 
 	    rolRecordList.trimToSize( );
-            logger.info("Table shows " + rolRecordList.size() + " rol records");
+            logger.fine("Table shows " + rolRecordList.size() + " rol records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "RolTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -155,9 +163,8 @@ class RolTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE rol SET " + updateString +
-			 " WHERE rol_id = " + rolRecord.rolId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE rol SET " + updateString + " WHERE rol_id = " + rolRecord.rolId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -167,6 +174,10 @@ class RolTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "RolTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}

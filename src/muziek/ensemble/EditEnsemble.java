@@ -137,17 +137,17 @@ public class EditEnsemble extends JInternalFrame {
 			    logger.severe( "Could not get maximum for ensemble_id in ensemble" );
 			    return;
 			}
-			int ensembleId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO ensemble SET ensemble_id = " + ensembleId;
 
-			logger.info( "insertString: " + insertString );
+			int ensembleId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO ensemble SET ensemble_id = " + ensembleId;
+			logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in ensemble" );
 			    return;
 			}
 		    } catch ( SQLException sqlException ) {
                         JOptionPane.showMessageDialog( parentFrame,
-                                                       "SQL exception in insert: " + sqlException.getMessage(),
+                                                       "SQL exception: " + sqlException.getMessage(),
                                                        "EditEnsemble SQL exception",
                                                        JOptionPane.ERROR_MESSAGE );
 			logger.severe( "SQLException: " + sqlException.getMessage( ) );

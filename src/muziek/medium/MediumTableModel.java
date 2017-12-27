@@ -503,8 +503,8 @@ class MediumTableModel extends AbstractTableModel {
 		} else {
 		    // Convert the string to a Date object
 		    try {
-			Date aankoopDatumDate = dateFormat.parse( aankoopDatumString );
-			logger.info( "Date: " + aankoopDatumDate );
+			final Date aankoopDatumDate = dateFormat.parse( aankoopDatumString );
+			logger.fine( "Date: " + aankoopDatumDate );
 
 			// Check if aankoopDatumDate is valid, and unequal to aankoopDatumDate in record
 			if ( ( aankoopDatumDate != null ) &&
@@ -719,9 +719,8 @@ class MediumTableModel extends AbstractTableModel {
 	   return true;
 	}
 
-	updateString = ( "UPDATE medium SET " + updateString +
-			 " WHERE medium_id = " + originalMediumRecord.mediumId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE medium SET " + updateString + " WHERE medium_id = " + originalMediumRecord.mediumId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -740,7 +739,6 @@ class MediumTableModel extends AbstractTableModel {
 	}
 
 	// Store record in list
-	// logger.info( "storing record at row " + row );
 	mediumRecordList.set( row, mediumRecord );
 
 	// Initialize row modified status

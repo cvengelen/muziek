@@ -166,10 +166,8 @@ class LabelTableModel extends AbstractTableModel {
 	// Store record in list
 	labelRecordList.set( row, labelRecord );
 
-	updateString = ( "UPDATE label SET " + updateString +
-			 " WHERE label_id = " + labelRecord.labelId );
-
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE label SET " + updateString + " WHERE label_id = " + labelRecord.labelId;
+        logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

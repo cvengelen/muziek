@@ -115,9 +115,8 @@ public class ProducersPersoonTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE persoon SET " + updateString +
-			 " WHERE persoon_id = " + producerRecord.persoonId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE persoon SET " + updateString + " WHERE persoon_id = " + producerRecord.persoonId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

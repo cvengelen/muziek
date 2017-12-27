@@ -166,10 +166,8 @@ class OpslagTableModel extends AbstractTableModel {
 	// Store record in list
 	opslagRecordList.set( row, opslagRecord );
 
-	updateString = ( "UPDATE opslag SET " + updateString +
-			 " WHERE opslag_id = " + opslagRecord.opslagId );
-
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE opslag SET " + updateString + " WHERE opslag_id = " + opslagRecord.opslagId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

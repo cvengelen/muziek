@@ -132,16 +132,20 @@ public class EditOpslag extends JInternalFrame {
 			    logger.severe( "Could not get maximum for opslag_id in opslag" );
 			    return;
 			}
-			int opslagId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO opslag SET opslag_id = " + opslagId;
 
-			logger.info( "insertString: " + insertString );
+			int opslagId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO opslag SET opslag_id = " + opslagId;
+			logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in opslag" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditOpslag SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
@@ -186,6 +190,10 @@ public class EditOpslag extends JInternalFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditOpslag SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}

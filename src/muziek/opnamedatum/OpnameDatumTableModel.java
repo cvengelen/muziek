@@ -245,9 +245,8 @@ class OpnameDatumTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE opname_datum SET " + updateString +
-			 " WHERE opname_datum_id = " + opnameDatumRecord.opnameDatumId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE opname_datum SET " + updateString + " WHERE opname_datum_id = " + opnameDatumRecord.opnameDatumId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

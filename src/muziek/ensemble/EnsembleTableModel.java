@@ -166,10 +166,8 @@ class EnsembleTableModel extends AbstractTableModel {
 	// Store record in list
 	ensembleRecordList.set( row, ensembleRecord );
 
-	updateString = ( "UPDATE ensemble SET " + updateString +
-			 " WHERE ensemble_id = " + ensembleRecord.ensembleId );
-
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE ensemble SET " + updateString + " WHERE ensemble_id = " + ensembleRecord.ensembleId;
+        logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );

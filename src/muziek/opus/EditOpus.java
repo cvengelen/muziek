@@ -552,6 +552,10 @@ public class EditOpus extends JInternalFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditOpus SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -567,8 +571,7 @@ public class EditOpus extends JInternalFrame {
 			if ( result != JOptionPane.YES_OPTION ) return;
 
 			final String deleteString = "DELETE FROM opus WHERE opus_id = " + selectedOpusId;
-
-			logger.info( "deleteString: " + deleteString );
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );

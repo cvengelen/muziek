@@ -16,14 +16,10 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the rol table in schema muziek.
- * An instance of RolFrame is created by class muziek.Main.
- *
  * @author Chris van Engelen
  */
-public class RolFrame {
-    private final Logger logger = Logger.getLogger( RolFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Rol");
+public class EditRol extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditRol.class.getCanonicalName() );
 
     private JTextField rolFilterTextField;
 
@@ -31,10 +27,11 @@ public class RolFrame {
     private TableSorter rolTableSorter;
 
 
-    public RolFrame( final Connection connection ) {
+    public EditRol( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit rol", true, true, true, true);
 
-	// put the controls the content pane
-	Container container = frame.getContentPane();
+        // Get the container from the internal frame
+        final Container container = getContentPane();
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -70,7 +67,7 @@ public class RolFrame {
 	/////////////////////////////////
 
 	// Create rol table from title table model
-	rolTableModel = new RolTableModel( connection );
+	rolTableModel = new RolTableModel( connection, parentFrame );
 	rolTableSorter = new TableSorter( rolTableModel );
 	final JTable rolTable = new JTable( rolTableSorter );
 	rolTableSorter.setTableHeader( rolTable.getTableHeader( ) );
@@ -131,8 +128,8 @@ public class RolFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    try {
@@ -142,24 +139,28 @@ public class RolFrame {
 			    logger.severe( "Could not get maximum for rol_id in rol" );
 			    return;
 			}
-			int rolId = resultSet.getInt( 1 ) + 1;
-			String insertString = "INSERT INTO rol SET rol_id = " + rolId;
 
-			logger.info( "insertString: " + insertString );
+			int rolId = resultSet.getInt( 1 ) + 1;
+			final String insertString = "INSERT INTO rol SET rol_id = " + rolId;
+                        logger.fine( "insertString: " + insertString );
 			if ( statement.executeUpdate( insertString ) != 1 ) {
 			    logger.severe( "Could not insert in rol" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "SQL exception: " + sqlException.getMessage(),
+                                                       "EditRol SQL exception",
+                                                       JOptionPane.ERROR_MESSAGE );
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 		} else {
 		    int selectedRow = rolListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen rol geselecteerd",
-						       "Rol frame error",
+						       "Edit rol error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -169,9 +170,9 @@ public class RolFrame {
 
 		    // Check if rol has been selected
 		    if ( selectedRolId == 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen rol geselecteerd",
-						       "Rol frame error",
+						       "Edit rol error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -184,50 +185,53 @@ public class RolFrame {
 			try {
 			    Statement statement = connection.createStatement( );
 			    ResultSet resultSet =
-				statement.executeQuery( "SELECT rol_id FROM musici_persoon WHERE rol_id = " +
-							selectedRolId );
+				statement.executeQuery( "SELECT rol_id FROM musici_persoon WHERE rol_id = " + selectedRolId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
-							       "Tabel musici_persoon heeft nog verwijzing naar '" +
-							       rolString + "'",
-							       "Rol frame error",
+				JOptionPane.showMessageDialog( parentFrame,
+							       "Tabel musici_persoon heeft nog verwijzing naar '" + rolString + "'",
+							       "Edit rol error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in select: " + sqlException.getMessage(),
+                                                           "EditRol SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete '" + rolString + "' ?",
-							   "Delete Rol record",
+							   "Delete rol record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
 
 			if ( result != JOptionPane.YES_OPTION ) return;
 
-			String deleteString  = "DELETE FROM rol";
-			deleteString += " WHERE rol_id = " + selectedRolId;
-
-			logger.info( "deleteString: " + deleteString );
+			final String deleteString = "DELETE FROM rol WHERE rol_id = " + selectedRolId;
+			logger.fine( "deleteString: " + deleteString );
 
 			try {
 			    Statement statement = connection.createStatement( );
 			    int nUpdate = statement.executeUpdate( deleteString );
 			    if ( nUpdate != 1 ) {
-				String errorString = ( "Could not delete record with rol_id  = " +
-						       selectedRolId + " in rol" );
-				JOptionPane.showMessageDialog( frame,
+				final String errorString = "Could not delete record with rol_id  = " + selectedRolId + " in rol";
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Rol record",
+							       "Edit rol error",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                                           "SQL exception in delete: " + sqlException.getMessage(),
+                                                           "EditRol SQL exception",
+                                                           JOptionPane.ERROR_MESSAGE );
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -268,21 +272,9 @@ public class RolFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 310, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible(true);
+	setSize( 310, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible(true);
     }
 }

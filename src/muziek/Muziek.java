@@ -156,6 +156,31 @@ public class Muziek extends JFrame implements ActionListener {
         menuItem.setActionCommand("editOpus");
         menuItem.addActionListener(this);
         menu.add(menuItem);
+
+        // Edit persoon
+        menuItem = new JMenuItem("Persoon");
+        menuItem.setActionCommand("editPersoon");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit producers
+        menuItem = new JMenuItem("Producers");
+        menuItem.setActionCommand("editProducers");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit rol
+        menuItem = new JMenuItem("Rol");
+        menuItem.setActionCommand("editRol");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit subtype
+        menuItem = new JMenuItem("Subtype");
+        menuItem.setActionCommand("editSubtype");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
         return menuBar;
     }
 
@@ -191,6 +216,18 @@ public class Muziek extends JFrame implements ActionListener {
         }
         else if ("editOpus".equals(actionEvent.getActionCommand())) {
             internalFrame = new muziek.opus.EditOpus( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editPersoon".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.persoon.EditPersoon( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editProducers".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.producers.EditProducers( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editRol".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.rol.EditRol( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        }
+        else if ("editSubtype".equals(actionEvent.getActionCommand())) {
+            internalFrame = new muziek.subtype.EditSubtype( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         }
 
         if (internalFrame == null) {

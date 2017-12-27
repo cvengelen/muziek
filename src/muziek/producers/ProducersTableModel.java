@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,7 +17,9 @@ import java.util.regex.*;
 class ProducersTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( ProducersTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[ ] headings = { "Id", "Producers", "Persoon" };
 
     private class ProducersRecord {
@@ -43,14 +46,15 @@ class ProducersTableModel extends AbstractTableModel {
     private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    ProducersTableModel( Connection connection ) {
-	this.connection = connection;
+    ProducersTableModel( Connection connection, JFrame parentFrame ) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	setupProducersTableModel( null, 0 );
     }
 
     void setupProducersTableModel( String producersFilterString,
-					    int selectedPersoonId ) {
+                                   int selectedPersoonId ) {
 
 	// Setup the table
 	try {
@@ -95,11 +99,15 @@ class ProducersTableModel extends AbstractTableModel {
 	    }
 
 	    producersRecordList.trimToSize( );
-            logger.info("Table shows " + producersRecordList.size() + " producers records");
+            logger.fine("Table shows " + producersRecordList.size() + " producers records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in select: " + sqlException.getMessage(),
+                                           "ProducersTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -189,9 +197,8 @@ class ProducersTableModel extends AbstractTableModel {
 	// Check if update is not necessary
 	if ( updateString == null ) return;
 
-	updateString = ( "UPDATE producers SET " + updateString +
-			 " WHERE producers_id = " + producersRecord.producersId );
-	logger.info( "updateString: " + updateString );
+	updateString = "UPDATE producers SET " + updateString + " WHERE producers_id = " + producersRecord.producersId;
+	logger.fine( "updateString: " + updateString );
 
 	try {
 	    Statement statement = connection.createStatement( );
@@ -202,6 +209,10 @@ class ProducersTableModel extends AbstractTableModel {
 		return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           "SQL exception in update: " + sqlException.getMessage(),
+                                           "ProducersTableModel SQL exception",
+                                           JOptionPane.ERROR_MESSAGE );
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}
