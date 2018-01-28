@@ -500,6 +500,39 @@ public class EditMedium extends JInternalFrame {
 	final MediumListSelectionListener mediumListSelectionListener = new MediumListSelectionListener( );
 	mediumListSelectionModel.addListSelectionListener( mediumListSelectionListener );
 
+        // Add mouse listener for double click action
+        mediumTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent mouseEvent) {
+                // Check for double clicks
+                if (mouseEvent.getClickCount() == 2) {
+                    // Get the selected opname key
+                    Point point = mouseEvent.getPoint();
+                    int row = mediumTable.rowAtPoint(point);
+                    int selectedRow = mediumListSelectionListener.getSelectedRow( );
+                    if ( selectedRow < 0 ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen medium geselecteerd",
+                                                       "Edit medium error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    // Get the selected medium id
+                    int selectedMediumId = mediumTableModel.getMediumId( selectedRow );
+                    if ( selectedMediumId == 0 ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen medium geselecteerd",
+                                                       "Edit medium error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    // Do edit medium dialog
+                    new EditMediumDialog( connection, parentFrame, selectedMediumId );
+                }
+            }
+        });
+
 	// Class to handle button actions: uses mediumListSelectionListener
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
@@ -507,7 +540,7 @@ public class EditMedium extends JInternalFrame {
 		    setVisible( false );
                     dispose();
 		    return;
-		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
+		} else if ( actionEvent.getActionCommand( ).equals( "new" ) ) {
 		    // Insert new medium record
                     new EditMediumDialog( connection, parentFrame,
                                           mediumTitelFilterTextField.getText( ),
@@ -688,10 +721,10 @@ public class EditMedium extends JInternalFrame {
 
 	JPanel buttonPanel = new JPanel( );
 
-	final JButton insertMediumButton = new JButton( "Insert" );
-	insertMediumButton.setActionCommand( "insert" );
-	insertMediumButton.addActionListener( buttonActionListener );
-	buttonPanel.add( insertMediumButton );
+	final JButton newMediumButton = new JButton( "New" );
+	newMediumButton.setActionCommand( "new" );
+	newMediumButton.addActionListener( buttonActionListener );
+	buttonPanel.add( newMediumButton );
 
 	openMediumDialogButton.setActionCommand( "openDialog" );
 	openMediumDialogButton.setEnabled( false );

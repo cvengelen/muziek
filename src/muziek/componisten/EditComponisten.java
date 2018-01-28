@@ -210,6 +210,39 @@ public class EditComponisten extends JInternalFrame {
         final ComponistenListSelectionListener componistenListSelectionListener = new ComponistenListSelectionListener( );
         componistenListSelectionModel.addListSelectionListener( componistenListSelectionListener );
 
+        // Add mouse listener for double click action
+        componistenTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent mouseEvent) {
+                // Check for double clicks
+                if (mouseEvent.getClickCount() == 2) {
+                    // Get the selected opname key
+                    Point point = mouseEvent.getPoint();
+                    int row = componistenTable.rowAtPoint(point);
+                    int selectedRow = componistenListSelectionListener.getSelectedRow( );
+                    if ( selectedRow < 0 ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen componisten geselecteerd",
+                                                       "Edit componisten error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    // Get the selected componisten id
+                    int selectedComponistenId = componistenTableModel.getComponistenId( selectedRow );
+                    if ( selectedComponistenId == 0 ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen componisten geselecteerd",
+                                                       "Edit componisten error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    // Do edit componisten dialog
+                    new EditComponistenDialog( connection, parentFrame, selectedComponistenId );
+                }
+            }
+        });
+
         // Class to handle button actions: uses componistenListSelectionListener
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
@@ -217,7 +250,7 @@ public class EditComponisten extends JInternalFrame {
                     setVisible( false );
                     dispose();
                     return;
-                } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
+                } else if ( actionEvent.getActionCommand( ).equals( "new" ) ) {
                     // Insert new componisten record
                     new EditComponistenDialog( connection, parentFrame,
                                                componistenFilterTextField.getText( ) );
@@ -306,10 +339,10 @@ public class EditComponisten extends JInternalFrame {
 
         JPanel buttonPanel = new JPanel( );
 
-        final JButton insertComponistenButton = new JButton( "Insert" );
-        insertComponistenButton.setActionCommand( "insert" );
-        insertComponistenButton.addActionListener( buttonActionListener );
-        buttonPanel.add( insertComponistenButton );
+        final JButton newComponistenButton = new JButton( "New" );
+        newComponistenButton.setActionCommand( "new" );
+        newComponistenButton.addActionListener( buttonActionListener );
+        buttonPanel.add( newComponistenButton );
 
         editComponistenButton.setActionCommand( "edit" );
         editComponistenButton.setEnabled( false );

@@ -649,6 +649,31 @@ public class EditOpname extends JInternalFrame {
 	final OpnameListSelectionListener opnameListSelectionListener = new OpnameListSelectionListener( );
 	opnameListSelectionModel.addListSelectionListener( opnameListSelectionListener );
 
+	// Add mouse listener for double click action
+        opnameTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent mouseEvent) {
+                // Check for double clicks
+                if (mouseEvent.getClickCount() == 2) {
+                    // Get the selected opname key
+                    Point point = mouseEvent.getPoint();
+                    int row = opnameTable.rowAtPoint(point);
+                    OpnameKey selectedOpnameKey = opnameTableModel.getSelectedOpnameKey( row );
+
+                    // Check if opname has been selected
+                    if ( selectedOpnameKey == new OpnameKey( ) ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen opname geselecteerd",
+                                                       "Opname frame error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    // Do edit opname dialog
+                    new EditOpnameDialog( connection, parentFrame, selectedOpnameKey );
+                }
+            }
+        });
+
 	// Class to handle button actions: uses opnameListSelectionListener
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
@@ -656,7 +681,7 @@ public class EditOpname extends JInternalFrame {
 		    setVisible( false );
                     dispose();
 		    return;
-		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
+		} else if ( actionEvent.getActionCommand( ).equals( "new" ) ) {
 		    // Insert new opname record
 		    new EditOpnameDialog( connection, parentFrame,
                                           selectedMediumId,
@@ -733,10 +758,10 @@ public class EditOpname extends JInternalFrame {
 
 	JPanel buttonPanel = new JPanel( );
 
-	final JButton insertOpnameButton = new JButton( "Insert" );
-	insertOpnameButton.setActionCommand( "insert" );
-	insertOpnameButton.addActionListener( buttonActionListener );
-	buttonPanel.add( insertOpnameButton );
+	final JButton newOpnameButton = new JButton( "New" );
+	newOpnameButton.setActionCommand( "new" );
+	newOpnameButton.addActionListener( buttonActionListener );
+	buttonPanel.add( newOpnameButton );
 
 
 	openOpnameDialogButton.setActionCommand( "openDialog" );
