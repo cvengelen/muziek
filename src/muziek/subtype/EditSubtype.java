@@ -53,6 +53,15 @@ public class EditSubtype extends JInternalFrame {
             subtypeTableSorter.clearSortingState();
             subtypeTableModel.setupSubtypeTableModel( subtypeFilterTextField.getText( ) );
         } );
+        subtypeFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the subtype table
+                subtypeTableSorter.clearSortingState();
+                subtypeTableModel.setupSubtypeTableModel( subtypeFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

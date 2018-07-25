@@ -58,6 +58,16 @@ public class EditEnsemble extends JInternalFrame {
             ensembleTableModel.setupEnsembleTableModel( ensembleFilterTextField.getText( ) );
         } );
 
+        ensembleFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the ensemble table
+                ensembleTableSorter.clearSortingState();
+                ensembleTableModel.setupEnsembleTableModel( ensembleFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
+
 	// Create ensemble table from title table model
 	ensembleTableModel = new EnsembleTableModel( connection, parentFrame );
 	ensembleTableSorter = new TableSorter( ensembleTableModel );

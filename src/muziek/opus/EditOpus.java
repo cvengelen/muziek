@@ -86,6 +86,26 @@ public class EditOpus extends JInternalFrame {
                     selectedSubtypeId );
         };
 
+        // Focus listener
+        final FocusListener textFieldFocusListener = new FocusListener() {
+            public void focusLost(FocusEvent focusEvent) {
+                // Number of rows may have changed: reset the table sorter
+                opusTableSorter.clearSortingState( );
+
+                // Setup the opus table
+                opusTableModel.setupOpusTableModel( opusTitelFilterTextField.getText( ),
+                                                    opusNummerFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTijdperkId,
+                                                    selectedTypeId,
+                                                    selectedSubtypeId );
+            }
+
+            public void focusGained(FocusEvent focusEvent) {}
+        };
+
 	/////////////////////////////////
 	// Opus Titel filter string
 	/////////////////////////////////
@@ -98,6 +118,7 @@ public class EditOpus extends JInternalFrame {
 
 	opusTitelFilterTextField = new JTextField( 40 );
         opusTitelFilterTextField.addActionListener( textFieldActionListener );
+        opusTitelFilterTextField.addFocusListener( textFieldFocusListener );
 
         constraints.insets = new Insets( 20, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
@@ -120,6 +141,7 @@ public class EditOpus extends JInternalFrame {
 
 	opusNummerFilterTextField = new JTextField( 40 );
         opusNummerFilterTextField.addActionListener( textFieldActionListener );
+        opusNummerFilterTextField.addFocusListener( textFieldFocusListener );
 
         constraints.insets = new Insets( 5, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

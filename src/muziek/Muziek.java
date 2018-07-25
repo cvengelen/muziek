@@ -89,97 +89,92 @@ public class Muziek extends JFrame implements ActionListener {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // Set up the Edit menu
-        JMenu menu = new JMenu("Edit");
-        menu.setMnemonic(KeyEvent.VK_E);
-        menuBar.add(menu);
-
         // Edit opname
         JMenuItem menuItem = new JMenuItem("Opname", KeyEvent.VK_O);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editOpname");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit medium
         menuItem = new JMenuItem("Medium", KeyEvent.VK_M);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editMedium");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit componisten
         menuItem = new JMenuItem("Componisten", KeyEvent.VK_C);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editComponisten");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit ensemble
         menuItem = new JMenuItem("Ensemble");
         menuItem.setActionCommand("editEnsemble");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit label
         menuItem = new JMenuItem("Label");
         menuItem.setActionCommand("editLabel");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit musici
         menuItem = new JMenuItem("Musici");
         menuItem.setActionCommand("editMusici");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit opname datum
         menuItem = new JMenuItem("Opname datum");
         menuItem.setActionCommand("editOpnameDatum");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit opname plaats
         menuItem = new JMenuItem("Opname plaats");
         menuItem.setActionCommand("editOpnamePlaats");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit opslag
         menuItem = new JMenuItem("Opslag");
         menuItem.setActionCommand("editOpslag");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit opus
         menuItem = new JMenuItem("Opus");
         menuItem.setActionCommand("editOpus");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit persoon
         menuItem = new JMenuItem("Persoon");
         menuItem.setActionCommand("editPersoon");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit producers
         menuItem = new JMenuItem("Producers");
         menuItem.setActionCommand("editProducers");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit rol
         menuItem = new JMenuItem("Rol");
         menuItem.setActionCommand("editRol");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         // Edit subtype
         menuItem = new JMenuItem("Subtype");
         menuItem.setActionCommand("editSubtype");
         menuItem.addActionListener(this);
-        menu.add(menuItem);
+        menuBar.add(menuItem);
 
         return menuBar;
     }
@@ -187,47 +182,49 @@ public class Muziek extends JFrame implements ActionListener {
     // React to menu selections.
     public void actionPerformed(ActionEvent actionEvent) {
         JInternalFrame internalFrame = null;
-        if ("editOpname".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.opname.EditOpname( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editMedium".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.medium.EditMedium( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editComponisten".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.componisten.EditComponisten( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editEnsemble".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.ensemble.EditEnsemble( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editLabel".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.label.EditLabel( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editMusici".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.musici.EditMusici( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editOpnameDatum".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.opnamedatum.EditOpnameDatum( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editOpnamePlaats".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.opnameplaats.EditOpnamePlaats( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editOpslag".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.opslag.EditOpslag( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editOpus".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.opus.EditOpus( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editPersoon".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.persoon.EditPersoon( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editProducers".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.producers.EditProducers( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editRol".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.rol.EditRol( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        }
-        else if ("editSubtype".equals(actionEvent.getActionCommand())) {
-            internalFrame = new muziek.subtype.EditSubtype( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        switch (actionEvent.getActionCommand()) {
+        case "editOpname":
+            internalFrame = new muziek.opname.EditOpname(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editMedium":
+            internalFrame = new muziek.medium.EditMedium(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editComponisten":
+            internalFrame = new muziek.componisten.EditComponisten(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editEnsemble":
+            internalFrame = new muziek.ensemble.EditEnsemble(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editLabel":
+            internalFrame = new muziek.label.EditLabel(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editMusici":
+            internalFrame = new muziek.musici.EditMusici(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editOpnameDatum":
+            internalFrame = new muziek.opnamedatum.EditOpnameDatum(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editOpnamePlaats":
+            internalFrame = new muziek.opnameplaats.EditOpnamePlaats(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editOpslag":
+            internalFrame = new muziek.opslag.EditOpslag(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editOpus":
+            internalFrame = new muziek.opus.EditOpus(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editPersoon":
+            internalFrame = new muziek.persoon.EditPersoon(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editProducers":
+            internalFrame = new muziek.producers.EditProducers(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editRol":
+            internalFrame = new muziek.rol.EditRol(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
+        case "editSubtype":
+            internalFrame = new muziek.subtype.EditSubtype(connection, this, xOffset * openFrameCount, yOffset * openFrameCount);
+            break;
         }
 
         if (internalFrame == null) {

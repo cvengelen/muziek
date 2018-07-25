@@ -55,6 +55,15 @@ public class EditOpnameDatum extends JInternalFrame {
             opnameDatumTableSorter.clearSortingState();
             opnameDatumTableModel.setupOpnameDatumTableModel( opnameDatumFilterTextField.getText( ) );
         } );
+	opnameDatumFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the opnameDatum table
+                opnameDatumTableSorter.clearSortingState();
+                opnameDatumTableModel.setupOpnameDatumTableModel( opnameDatumFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 200 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

@@ -74,6 +74,25 @@ public class EditMedium extends JInternalFrame {
                                                     selectedOpslagId );
         };
 
+        // Text filter focus listener
+        FocusListener textFilterFocusListener = new FocusListener() {
+            public void focusLost(FocusEvent focusEvent) {
+                mediumTableSorter.clearSortingState();
+                // Setup the medium table
+                mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                        uitvoerendenFilterTextField.getText( ),
+                                                        opmerkingenFilterTextField.getText( ),
+                                                        selectedGenreId,
+                                                        selectedSubgenreId,
+                                                        selectedMediumTypeId,
+                                                        selectedMediumStatusId,
+                                                        selectedLabelId,
+                                                        selectedOpslagId );
+            }
+
+            public void focusGained(FocusEvent focusEvent) {}
+        };
+
 	/////////////////////////////////
 	// Medium titel filter string
 	/////////////////////////////////
@@ -86,7 +105,8 @@ public class EditMedium extends JInternalFrame {
 	container.add( new JLabel( "Medium Titel Filter:" ), constraints );
 
 	mediumTitelFilterTextField = new JTextField( 55 );
-	mediumTitelFilterTextField.addActionListener( textFilterActionListener );
+        mediumTitelFilterTextField.addActionListener( textFilterActionListener );
+        mediumTitelFilterTextField.addFocusListener( textFilterFocusListener );
 
         constraints.insets = new Insets( 20, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
@@ -111,6 +131,7 @@ public class EditMedium extends JInternalFrame {
 
 	uitvoerendenFilterTextField = new JTextField( 55 );
 	uitvoerendenFilterTextField.addActionListener( textFilterActionListener );
+        uitvoerendenFilterTextField.addFocusListener( textFilterFocusListener );
 
         constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
@@ -332,7 +353,8 @@ public class EditMedium extends JInternalFrame {
 	container.add( new JLabel( "Opmerkingen Filter:" ), constraints );
 
 	opmerkingenFilterTextField = new JTextField( 55 );
-	opmerkingenFilterTextField.addActionListener( textFilterActionListener );
+        opmerkingenFilterTextField.addActionListener( textFilterActionListener );
+        opmerkingenFilterTextField.addFocusListener( textFilterFocusListener );
 
         constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

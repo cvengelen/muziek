@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Main program for schema muziek.
  * The first and only argument must specify the fully-qualified name of the class which should be started,
- * e.g.: java -cp ...  muziek.Main muziek.opname.OpnameFrame
+ * e.g.: java -cp ...  muziek.Main muziek.opname.EditOpname
  *
  * Created by cvengelen on 25-04-16.
  */
@@ -21,7 +21,7 @@ public class Main {
     public static void main( String[ ] args ) {
         if (args.length == 0 || args[0].length() == 0) {
             logger.severe("No class");
-            System.err.println("Geef de naam van de class die gestart moet worden, bijvoorbeeld: muziek.opname.OpnameFrame");
+            System.err.println("Geef de naam van de class die gestart moet worden, bijvoorbeeld: muziek.opname.EditOpname");
             System.exit(1);
         }
         final String muziekClassName = args[0];
@@ -55,7 +55,7 @@ public class Main {
             constructor.newInstance( DriverManager.getConnection( "jdbc:mysql://localhost/muziek?user=muziek&password=" + password ) );
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage( ) );
-            System.err.println("Class " + muziekClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: muziek.opname.OpnameFrame");
+            System.err.println("Class " + muziekClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: muziek.opname.EditOpname");
             System.exit( 1 );
         } catch ( SQLException sqlException ) {
             logger.severe( "SQLException: " + sqlException.getMessage( ) );

@@ -10,6 +10,7 @@
 
 package muziek.gui;
 
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -23,10 +24,7 @@ public class ComponistenComboBox extends JComboBox< String > {
     final private Logger logger = Logger.getLogger( ComponistenComboBox.class.getCanonicalName() );
 
     private Connection conn;
-
-    // The parent can be either a JFrame or a JDialog:
-    // No common ancestor other than Object, so store as Object
-    private Object parentObject;
+    private Component  parentComponent;
 
     private Map< String, Object > componistenMap = new HashMap< >( );
     private int selectedComponistenPersoonId = 0;
@@ -37,10 +35,10 @@ public class ComponistenComboBox extends JComboBox< String > {
     private boolean allowNewComponisten = true;
 
     public ComponistenComboBox( Connection conn,
-                                Object     parentObject,
+                                Component  parentComponent,
                                 boolean    allowNewComponisten ) {
         this.conn = conn;
-        this.parentObject = parentObject;
+        this.parentComponent = parentComponent;
         this.allowNewComponisten = allowNewComponisten;
 
         // Setup the componisten combo box
@@ -48,11 +46,11 @@ public class ComponistenComboBox extends JComboBox< String > {
     }
 
     public ComponistenComboBox( Connection conn,
-                                Object     parentObject,
-                                int            selectedComponistenPersoonId,
-                                int        selectedComponistenId ) {
+                                Component parentComponent,
+                                int       selectedComponistenPersoonId,
+                                int       selectedComponistenId ) {
         this.conn = conn;
-        this.parentObject = parentObject;
+        this.parentComponent = parentComponent;
         this.selectedComponistenPersoonId = selectedComponistenPersoonId;
         this.selectedComponistenId = selectedComponistenId;
 
@@ -164,34 +162,22 @@ public class ComponistenComboBox extends JComboBox< String > {
         String newComponistenFilterString = null;
 
         // Prompt for the componisten filter, using the current value as default
-        if ( parentObject instanceof JFrame ) {
-            newComponistenFilterString =
-                ( String )JOptionPane.showInputDialog( ( JFrame )parentObject,
-                                                       "Componisten filter:",
-                                                       "Componisten filter dialog",
-                                                       JOptionPane.QUESTION_MESSAGE,
-                                                       null,
-                                                       null,
-                                                       componistenFilterString );
-        } else if ( parentObject instanceof JDialog ) {
-            newComponistenFilterString =
-                ( String )JOptionPane.showInputDialog( ( JDialog )parentObject,
-                                                       "Componisten filter:",
-                                                       "Componisten filter dialog",
-                                                       JOptionPane.QUESTION_MESSAGE,
-                                                       null,
-                                                       null,
-                                                       componistenFilterString );
-        }
+        newComponistenFilterString = (String)JOptionPane.showInputDialog(parentComponent,
+                                                                         "Componisten filter:",
+                                                                         "Componisten filter dialog",
+                                                                         JOptionPane.QUESTION_MESSAGE,
+                                                                         null,
+                                                                         null,
+                                                                         componistenFilterString);
 
         // Check if dialog was completed successfully (i.e., not canceled)
-        if ( newComponistenFilterString != null ) {
+        if (newComponistenFilterString != null) {
             // Store the new componisten filter
             componistenFilterString = newComponistenFilterString;
 
             // Setup the componisten combo box with the componisten filter
             // Reset the selected componisten ID in order to avoid immediate selection
-            setupComponistenComboBox( 0 );
+            setupComponistenComboBox(0);
         }
 
         // Return current componisten filter string, also when dialog has been canceled

@@ -47,6 +47,15 @@ public class EditOpslag extends JInternalFrame {
             opslagTableSorter.clearSortingState();
             opslagTableModel.setupOpslagTableModel( opslagFilterTextField.getText( ) );
         } );
+        opslagFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the opslag table
+                opslagTableSorter.clearSortingState();
+                opslagTableModel.setupOpslagTableModel( opslagFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 100 );
         constraints.gridx = GridBagConstraints.RELATIVE;

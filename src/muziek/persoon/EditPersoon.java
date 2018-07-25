@@ -87,6 +87,15 @@ public class EditPersoon extends JInternalFrame {
             persoonTableSorter.clearSortingState();
             persoonTableModel.setupPersoonTableModel( persoonFilterTextField.getText( ) );
         } );
+        persoonFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the persoon table
+                persoonTableSorter.clearSortingState();
+                persoonTableModel.setupPersoonTableModel( persoonFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

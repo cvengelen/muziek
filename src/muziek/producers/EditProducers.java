@@ -95,7 +95,17 @@ public class EditProducers extends JInternalFrame {
             // Setup the producers table
             producersTableSorter.clearSortingState();
             producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
-                    selectedPersoonId );
+                                                          selectedPersoonId );
+        } );
+        producersFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the producers table
+                producersTableSorter.clearSortingState();
+                producersTableModel.setupProducersTableModel( producersFilterTextField.getText( ),
+                                                              selectedPersoonId );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
         } );
 
         constraints.insets = new Insets( 20, 5, 5, 100 );

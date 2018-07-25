@@ -105,6 +105,17 @@ public class EditComponisten extends JInternalFrame {
                                                               selectedPersoonId );
         } );
 
+        componistenFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the componisten table
+                componistenTableSorter.clearSortingState();
+                componistenTableModel.setupComponistenTableModel( componistenFilterTextField.getText( ),
+                                                                  selectedPersoonId );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
+
         ////////////////////////////////////////////////
         // Persoon ComboBox
         ////////////////////////////////////////////////

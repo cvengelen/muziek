@@ -54,6 +54,15 @@ public class EditRol extends JInternalFrame {
             rolTableSorter.clearSortingState();
             rolTableModel.setupRolTableModel( rolFilterTextField.getText( ) );
         });
+        rolFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the rol table
+                rolTableSorter.clearSortingState();
+                rolTableModel.setupRolTableModel( rolFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

@@ -53,6 +53,15 @@ public class EditOpnamePlaats extends JInternalFrame {
             opnamePlaatsTableSorter.clearSortingState();
             opnamePlaatsTableModel.setupOpnamePlaatsTableModel( opnamePlaatsFilterTextField.getText( ) );
         } );
+        opnamePlaatsFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the opnamePlaats table
+                opnamePlaatsTableSorter.clearSortingState();
+                opnamePlaatsTableModel.setupOpnamePlaatsTableModel( opnamePlaatsFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 100 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

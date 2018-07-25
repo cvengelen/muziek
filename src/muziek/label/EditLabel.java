@@ -51,18 +51,21 @@ public class EditLabel extends JInternalFrame {
         constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( labelFilterTextField, constraints );
 
-	class LabelFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the label table
-		labelTableModel.setupLabelTableModel( labelFilterTextField.getText( ) );
-	    }
-	}
 	labelFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
             // Setup the label table
             labelTableSorter.clearSortingState();
             labelTableModel.setupLabelTableModel( labelFilterTextField.getText( ) );
         } );
 
+        labelFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the label table
+                labelTableSorter.clearSortingState();
+                labelTableModel.setupLabelTableModel( labelFilterTextField.getText( ) );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
 	// Create label table from title table model
 	labelTableModel = new LabelTableModel( connection, parentFrame );

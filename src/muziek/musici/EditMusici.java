@@ -90,15 +90,6 @@ public class EditMusici extends JInternalFrame {
 	container.setLayout( new GridBagLayout( ) );
 	final GridBagConstraints constraints = new GridBagConstraints( );
 
-	final ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> {
-            // Setup the musici table
-            musiciTableSorter.clearSortingState();
-            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
-                    selectedPersoonId,
-                    selectedRolId,
-                    selectedEnsembleId );
-        };
-
         constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
@@ -107,7 +98,26 @@ public class EditMusici extends JInternalFrame {
 	container.add( new JLabel( "Musici Filter:" ), constraints );
 
 	musiciFilterTextField = new JTextField( 20 );
-	musiciFilterTextField.addActionListener( textFilterActionListener );
+	musiciFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the musici table
+            musiciTableSorter.clearSortingState();
+            musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                                                    selectedPersoonId,
+                                                    selectedRolId,
+                                                    selectedEnsembleId );
+        } );
+	musiciFilterTextField.addFocusListener( new FocusListener() {
+            public void focusLost(FocusEvent focusEven) {
+                // Setup the musici table
+                musiciTableSorter.clearSortingState();
+                musiciTableModel.setupMusiciTableModel( musiciFilterTextField.getText( ),
+                                                        selectedPersoonId,
+                                                        selectedRolId,
+                                                        selectedEnsembleId );
+            }
+
+            public void focusGained(FocusEvent focusEven) {}
+        } );
 
         constraints.insets = new Insets( 20, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;

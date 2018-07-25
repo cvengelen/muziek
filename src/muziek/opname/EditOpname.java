@@ -99,6 +99,29 @@ public class EditOpname extends JInternalFrame {
                                                     selectedProducersId );
         };
 
+        // Text filter focus listener
+        FocusListener textFilterFocusListener = new FocusListener() {
+            public void focusLost(FocusEvent focusEvent) {
+                // Setup the opname table
+                opnameTableSorter.clearSortingState();
+                opnameTableModel.setupOpnameTableModel(selectedMediumId,
+                                                       selectedMediumStatusId,
+                                                       opusFilterTextField.getText(),
+                                                       selectedComponistenPersoonId,
+                                                       selectedComponistenId,
+                                                       selectedGenreId,
+                                                       selectedTypeId,
+                                                       selectedPersoonAllMusiciId,
+                                                       selectedMusiciId,
+                                                       selectedMusiciEnsembleId,
+                                                       selectedOpnameDatumId,
+                                                       selectedOpnamePlaatsId,
+                                                       selectedProducersId);
+            }
+
+            public void focusGained(FocusEvent focusEvent) {}
+        };
+
 
 	/////////////////////////////////
 	// Medium Combo Box
@@ -202,7 +225,8 @@ public class EditOpname extends JInternalFrame {
 	container.add( new JLabel( "Opus Filter:" ), constraints );
 
 	opusFilterTextField = new JTextField( 40 );
-	opusFilterTextField.addActionListener( textFilterActionListener );
+        opusFilterTextField.addActionListener( textFilterActionListener );
+        opusFilterTextField.addFocusListener( textFilterFocusListener );
 
         constraints.insets = new Insets( 5, 5, 5, 600 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
