@@ -34,9 +34,11 @@ public class EditOpname extends JInternalFrame {
     private MediumComboBox mediumComboBox;
     private int selectedMediumId = 0;
 
-    // Select available mediums: MediumStatus 2
     private MediumStatusComboBox mediumStatusComboBox;
-    private int selectedMediumStatusId = 2;
+    private int selectedMediumStatusId = 0;
+
+    private ImportTypeComboBox importTypeComboBox;
+    private int selectedImportTypeId = 0;
 
     private JTextField opusFilterTextField;
 
@@ -86,6 +88,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -106,6 +109,7 @@ public class EditOpname extends JInternalFrame {
                 opnameTableSorter.clearSortingState();
                 opnameTableModel.setupOpnameTableModel(selectedMediumId,
                                                        selectedMediumStatusId,
+                                                       selectedImportTypeId,
                                                        opusFilterTextField.getText(),
                                                        selectedComponistenPersoonId,
                                                        selectedComponistenId,
@@ -146,6 +150,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -194,6 +199,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                     selectedMediumStatusId,
+                    selectedImportTypeId,
                     opusFilterTextField.getText( ),
                     selectedComponistenPersoonId,
                     selectedComponistenId,
@@ -214,13 +220,57 @@ public class EditOpname extends JInternalFrame {
 	container.add( mediumStatusPanel, constraints );
 
 
+        /////////////////////////////////
+        // Import Type Combo Box
+        /////////////////////////////////
+
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.anchor = GridBagConstraints.EAST;
+        container.add( new JLabel( "Import type:" ), constraints );
+
+        final JPanel importTypePanel = new JPanel( );
+        importTypePanel.setBorder( emptyBorder );
+
+        // Setup a JComboBox for import type with the selected import ID
+        importTypeComboBox = new ImportTypeComboBox( connection, selectedImportTypeId );
+        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected import type ID from the combo box
+            selectedImportTypeId = importTypeComboBox.getSelectedImportTypeId( );
+
+            // Setup the opname table for the selected import
+            opnameTableSorter.clearSortingState();
+            opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                    selectedMediumStatusId,
+                                                    selectedImportTypeId,
+                                                    opusFilterTextField.getText( ),
+                                                    selectedComponistenPersoonId,
+                                                    selectedComponistenId,
+                                                    selectedGenreId,
+                                                    selectedTypeId,
+                                                    selectedPersoonAllMusiciId,
+                                                    selectedMusiciId,
+                                                    selectedMusiciEnsembleId,
+                                                    selectedOpnameDatumId,
+                                                    selectedOpnamePlaatsId,
+                                                    selectedProducersId );
+        } );
+        importTypePanel.add( importTypeComboBox );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( importTypePanel, constraints );
+
+
 	/////////////////////////////////
 	// Opus filter string
 	/////////////////////////////////
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 2;
+	constraints.gridy = 3;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opus Filter:" ), constraints );
 
@@ -245,7 +295,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 4;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Componisten:" ), constraints );
 
@@ -263,6 +313,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -294,7 +345,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 4;
+	constraints.gridy = 5;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Genre:" ), constraints );
 
@@ -308,6 +359,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -333,7 +385,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 5;
+	constraints.gridy = 6;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Type:" ), constraints );
 
@@ -347,6 +399,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -372,7 +425,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 6;
+	constraints.gridy = 7;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Musici:" ), constraints );
 
@@ -390,6 +443,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -421,7 +475,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 7;
+	constraints.gridy = 8;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Ensemble:" ), constraints );
 
@@ -438,6 +492,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -469,7 +524,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 8;
+	constraints.gridy = 9;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opname plaats:" ), constraints );
 
@@ -486,6 +541,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                     selectedMediumStatusId,
+                    selectedImportTypeId,
                     opusFilterTextField.getText( ),
                     selectedComponistenPersoonId,
                     selectedComponistenId,
@@ -517,7 +573,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
-        constraints.gridy = 9;
+        constraints.gridy = 10;
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Opname datum:" ), constraints );
 
@@ -534,6 +590,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                     selectedMediumStatusId,
+                    selectedImportTypeId,
                     opusFilterTextField.getText( ),
                     selectedComponistenPersoonId,
                     selectedComponistenId,
@@ -565,7 +622,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
+	constraints.gridy = 11;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Producers:" ), constraints );
 
@@ -582,6 +639,7 @@ public class EditOpname extends JInternalFrame {
             opnameTableSorter.clearSortingState();
             opnameTableModel.setupOpnameTableModel( selectedMediumId,
                                                     selectedMediumStatusId,
+                                                    selectedImportTypeId,
                                                     opusFilterTextField.getText( ),
                                                     selectedComponistenPersoonId,
                                                     selectedComponistenId,
@@ -632,7 +690,7 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 11;
+	constraints.gridy = 12;
 	constraints.gridwidth = 2;
 	constraints.fill = GridBagConstraints.BOTH;
 	constraints.weightx = 1d;
@@ -755,6 +813,7 @@ public class EditOpname extends JInternalFrame {
                 opnameTableSorter.clearSortingState();
 		opnameTableModel.setupOpnameTableModel( selectedMediumId,
 		                                        selectedMediumStatusId,
+                                                        selectedImportTypeId,
 							opusFilterTextField.getText( ),
 							selectedComponistenPersoonId,
 							selectedComponistenId,
@@ -801,13 +860,13 @@ public class EditOpname extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 12;
+	constraints.gridy = 13;
         constraints.weightx = 0d;
         constraints.weighty = 0d;
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	setSize( 1360, 800 );
+	setSize( 1360, 850 );
         setLocation(x, y );
 	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	setVisible(true);

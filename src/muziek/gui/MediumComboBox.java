@@ -112,10 +112,11 @@ public class MediumComboBox extends JComboBox {
 	try {
 	    // Fill the combo box and hash table
 	    String mediumQueryString =
-		"SELECT medium_id, genre, medium_type, medium_titel, uitvoerenden FROM medium " +
+		"SELECT medium_id, genre, medium_type, import_type, medium_titel, uitvoerenden FROM medium " +
 		"LEFT JOIN genre ON medium.genre_id = genre.genre_id " +
 		"LEFT JOIN subgenre ON medium.subgenre_id = subgenre.subgenre_id " +
-		"LEFT JOIN medium_type ON medium.medium_type_id = medium_type.medium_type_id " +
+                "LEFT JOIN medium_type ON medium.medium_type_id = medium_type.medium_type_id " +
+                "LEFT JOIN import_type ON medium.import_type_id = import_type.import_type_id " +
 		"LEFT JOIN opslag ON medium.opslag_id = opslag.opslag_id ";
 
 	    // Check if a medium filter is present, or genre is selected, or medium type is selected
@@ -162,11 +163,20 @@ public class MediumComboBox extends JComboBox {
 	    ResultSet resultSet = statement.executeQuery( mediumQueryString );
 
 	    while ( resultSet.next( ) ) {
-		String mediumString = ( resultSet.getString( 2 ) +
-					" (" + resultSet.getString( 3 ) +
-					"): " + resultSet.getString( 4 ) );
+                String mediumString = resultSet.getString( 2 );
+                final String mediumTypeString = resultSet.getString(3);
+                if ( ( mediumTypeString != null ) && !( mediumTypeString.isEmpty( ) ) ) {
+                    mediumString += " (" + mediumTypeString + ")";
+                }
+                else {
+                    final String importTypeString = resultSet.getString(4);
+                    if ( ( importTypeString != null ) && !( importTypeString.isEmpty( ) ) ) {
+                        mediumString += " (" + importTypeString + ")";
+                    }
+                }
+                mediumString += ": " + resultSet.getString( 5 );
 
-		String uitvoerendenString = resultSet.getString( 5 );
+		String uitvoerendenString = resultSet.getString( 6 );
 		if ( ( uitvoerendenString != null ) && ( uitvoerendenString.length( ) > 0 ) ) {
 		    mediumString += "; " + uitvoerendenString;
 		}
@@ -220,7 +230,7 @@ public class MediumComboBox extends JComboBox {
 						       mediumFilterString );
 	}
 
-	// Check if dialog was completed successfully (i.e., not canceled) 
+	// Check if dialog was completed successfully (i.e., not canceled)
 	if ( newMediumFilterString != null ) {
 	    // Store the new medium filter
 	    mediumFilterString = newMediumFilterString;

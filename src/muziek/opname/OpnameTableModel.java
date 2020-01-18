@@ -111,6 +111,7 @@ class OpnameTableModel extends AbstractTableModel {
 
     private int mediumId = 0;
     private int mediumStatusId = 0;
+    private int importTypeId = 0;
     private String opusFilterString;
     private int componistenPersoonId = 0;
     private int componistenId = 0;
@@ -130,7 +131,7 @@ class OpnameTableModel extends AbstractTableModel {
 	this.connection = connection;
         this.parentFrame = parentFrame;
 
-	setupOpnameTableModel( mediumId, mediumStatusId, null,
+	setupOpnameTableModel( mediumId, mediumStatusId, importTypeId, opusFilterString,
 			       componistenPersoonId, componistenId, genreId, typeId,
 			       persoonAllMusiciId, musiciId, musiciEnsembleId,
 			       opnameDatumId, opnamePlaatsId, producersId );
@@ -138,6 +139,7 @@ class OpnameTableModel extends AbstractTableModel {
 
     void setupOpnameTableModel( int    mediumId,
                                 int    mediumStatusId,
+                                int    importTypeId,
                                 String opusFilterString,
                                 int    componistenPersoonId,
                                 int    componistenId,
@@ -151,6 +153,7 @@ class OpnameTableModel extends AbstractTableModel {
                                 int    producersId ) {
 	this.mediumId = mediumId;
 	this.mediumStatusId = mediumStatusId;
+	this.importTypeId = importTypeId;
 	this.opusFilterString = opusFilterString;
 	this.componistenId = componistenId;
 	this.genreId = genreId;
@@ -187,7 +190,8 @@ class OpnameTableModel extends AbstractTableModel {
 		"LEFT JOIN producers ON producers.producers_id = opname.producers_id ";
 
 	    if ( ( mediumId != 0 ) ||
-	         ( mediumStatusId != 0 ) ||
+                 ( mediumStatusId != 0 ) ||
+                 ( importTypeId != 0 ) ||
 		 ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
 		 ( componistenPersoonId != 0 ) ||
 		 ( componistenId != 0 ) ||
@@ -204,6 +208,7 @@ class OpnameTableModel extends AbstractTableModel {
 		if ( mediumId != 0 ) {
 		    opnameQueryString += "medium.medium_id = " + mediumId + " ";
 		    if ( ( mediumStatusId != 0 ) ||
+                         ( importTypeId != 0 ) ||
 		         ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
 			 ( componistenPersoonId != 0 ) ||
 			 ( componistenId != 0 ) ||
@@ -221,7 +226,8 @@ class OpnameTableModel extends AbstractTableModel {
 
 		if ( mediumStatusId != 0 ) {
 		    opnameQueryString += "medium.medium_status_id = " + mediumStatusId + " ";
-		    if ( ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
+		    if ( ( importTypeId != 0 ) ||
+                         ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
 			 ( componistenPersoonId != 0 ) ||
 			 ( componistenId != 0 ) ||
 			 ( genreId != 0 ) ||
@@ -235,6 +241,23 @@ class OpnameTableModel extends AbstractTableModel {
 			opnameQueryString += "AND ";
 		    }
 		}
+
+                if ( importTypeId != 0 ) {
+                    opnameQueryString += "medium.import_type_id = " + importTypeId + " ";
+                    if ( ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
+                         ( componistenPersoonId != 0 ) ||
+                         ( componistenId != 0 ) ||
+                         ( genreId != 0 ) ||
+                         ( typeId != 0 ) ||
+                         ( persoonAllMusiciId != 0 ) ||
+                         ( musiciId != 0 ) ||
+                         ( musiciEnsembleId != 0 ) ||
+                         ( opnameDatumId != 0 ) ||
+                         ( opnamePlaatsId != 0 ) ||
+                         ( producersId != 0 ) ) {
+                        opnameQueryString += "AND ";
+                    }
+                }
 
 		if ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) {
 		    opnameQueryString += "( opus.opus_titel LIKE \"%" + opusFilterString + "%\" OR ";

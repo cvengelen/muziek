@@ -41,6 +41,9 @@ public class EditMedium extends JInternalFrame {
     private int selectedLabelId = 0;
     private LabelComboBox labelComboBox;
 
+    private int selectedImportTypeId = 0;
+    private ImportTypeComboBox importTypeComboBox;
+
     private int selectedOpslagId = 0;
     private OpslagComboBox opslagComboBox;
 
@@ -71,6 +74,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         };
 
@@ -87,6 +91,7 @@ public class EditMedium extends JInternalFrame {
                                                         selectedMediumTypeId,
                                                         selectedMediumStatusId,
                                                         selectedLabelId,
+                                                        selectedImportTypeId,
                                                         selectedOpslagId );
             }
 
@@ -173,6 +178,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId  );
         } );
 
@@ -206,6 +212,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -239,6 +246,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -272,6 +280,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -305,6 +314,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -338,6 +348,7 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
+                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -397,9 +408,11 @@ public class EditMedium extends JInternalFrame {
 	mediumTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth(  80 );  // mediumStatus
 	mediumTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 100 );  // label
 	mediumTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 100 );  // labelNummer
-	mediumTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 100 );  // aanschafdatum
-	mediumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 100 );  // opslag
-	mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 200 );  // opmerkingen
+	mediumTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 100 );  // aankoop datum
+        mediumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 80 );  // importType
+        mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 100 );  // import datum
+	mediumTable.getColumnModel( ).getColumn( 12 ).setPreferredWidth( 100 );  // opslag
+	mediumTable.getColumnModel( ).getColumn( 13 ).setPreferredWidth( 200 );  // opmerkingen
 
 	// Set vertical size just enough for 20 entries
 	mediumTable.setPreferredScrollableViewportSize( new Dimension( 1410, 320 ) );
@@ -582,6 +595,7 @@ public class EditMedium extends JInternalFrame {
 							    selectedMediumTypeId,
 							    selectedMediumStatusId,
 							    selectedLabelId,
+							    selectedImportTypeId,
 							    selectedOpslagId );
 		} else {
 		    int selectedRow = mediumListSelectionListener.getSelectedRow( );
@@ -618,6 +632,7 @@ public class EditMedium extends JInternalFrame {
 								selectedMediumTypeId,
 							        selectedMediumStatusId,
 								selectedLabelId,
+                                                                selectedImportTypeId,
 							        selectedOpslagId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			String selectedMediumTitelString = mediumTableModel.getMediumTitelString( selectedRow );
@@ -693,6 +708,7 @@ public class EditMedium extends JInternalFrame {
 								selectedMediumTypeId,
 							        selectedMediumStatusId,
 								selectedLabelId,
+                                                                selectedImportTypeId,
 				                                selectedOpslagId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "enableRowEdit" ) ) {
 			// Allow to edit the selected row

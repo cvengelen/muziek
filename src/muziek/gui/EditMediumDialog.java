@@ -14,7 +14,6 @@ import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.table.*;
 
 public class EditMediumDialog {
     final Logger logger = Logger.getLogger( "muziek.gui.EditMediumDialog" );
@@ -23,54 +22,62 @@ public class EditMediumDialog {
     Object parentObject;
     JDialog dialog;
 
-    int mediumId = 0;
+    private int mediumId = 0;
 
-    String defaultMediumTitelString = "";
-    JTextField mediumTitelTextField;
+    private String defaultMediumTitelString = "";
+    private JTextField mediumTitelTextField;
 
-    String defaultUitvoerendenString = "";
-    JTextField uitvoerendenTextField;
+    private String defaultUitvoerendenString = "";
+    private JTextField uitvoerendenTextField;
 
-    MediumTypeComboBox mediumTypeComboBox;
-    int defaultMediumTypeId = 0;
+    private MediumTypeComboBox mediumTypeComboBox;
+    private int defaultMediumTypeId = 0;
 
-    MediumStatusComboBox mediumStatusComboBox;
-    int defaultMediumStatusId = 0;
+    private MediumStatusComboBox mediumStatusComboBox;
+    private int defaultMediumStatusId = 0;
 
-    int defaultAantal = 0;
-    JSpinner aantalSpinner;
+    private int defaultAantal = 0;
+    private JSpinner aantalSpinner;
 
-    LabelComboBox labelComboBox;
-    int defaultLabelId = 0;
-    String labelFilterString = null;
+    private LabelComboBox labelComboBox;
+    private int defaultLabelId = 0;
+    private String labelFilterString = null;
 
-    String defaultLabelNummerString = "";
-    JTextField labelNummerTextField;
+    private String defaultLabelNummerString = "";
+    private JTextField labelNummerTextField;
 
-    Date defaultAankoopDatumDate;
-    JSpinner aankoopDatumSpinner;
+    private Date defaultAankoopDatumDate;
+    private JSpinner aankoopDatumSpinner;
 
-    GenreComboBox genreComboBox;
-    int defaultGenreId = 0;
+    private ImportTypeComboBox importTypeComboBox;
+    private int defaultImportTypeId;
 
-    SubgenreComboBox subgenreComboBox;
-    int defaultSubgenreId = 0;
+    private Date defaultImportDatumDate;
+    private JSpinner importDatumSpinner;
 
-    OpslagComboBox opslagComboBox;
-    int defaultOpslagId = 0;
-    String opslagFilterString = null;
+    private GenreComboBox genreComboBox;
+    private int defaultGenreId = 0;
 
-    String defaultOpmerkingenString = "";
-    JTextField opmerkingenTextField;
+    private SubgenreComboBox subgenreComboBox;
+    private int defaultSubgenreId = 0;
+
+    private OpslagComboBox opslagComboBox;
+    private int defaultOpslagId = 0;
+    private String opslagFilterString = null;
+
+    private String defaultOpmerkingenString = "";
+    private JTextField opmerkingenTextField;
 
     int nUpdate = 0;
 
-    final String insertMediumActionCommand = "insertMedium";
-    final String updateMediumActionCommand = "updateMedium";
- 
+    private final String insertMediumActionCommand = "insertMedium";
+    private final String updateMediumActionCommand = "updateMedium";
+
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
     final Pattern quotePattern = Pattern.compile( "\\'" );
+
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 
     // Constructor for inserting a record in medium
@@ -109,7 +116,8 @@ public class EditMediumDialog {
 	    ResultSet resultSet = statement.executeQuery( "SELECT medium_titel, uitvoerenden, " +
 							  "medium_type_id, aantal, label_id, label_nummer, " +
 							  "aankoop_datum, genre_id, subgenre_id, opslag_id, " +
-							  "opmerkingen, medium_status_id " +
+							  "opmerkingen, medium_status_id, " +
+                                                          "import_type_id, import_datum " +
 							  "FROM medium WHERE medium_id = " + mediumId );
 	    if ( ! resultSet.next( ) ) {
 		logger.severe( "Could not get record for medium_id " + mediumId + " in medium" );
@@ -128,11 +136,19 @@ public class EditMediumDialog {
 	    defaultOpslagId = resultSet.getInt( 10 );
 	    defaultOpmerkingenString = resultSet.getString( 11 );
 	    defaultMediumStatusId = resultSet.getInt( 12 );
+            defaultImportTypeId = resultSet.getInt( 13 );
+            defaultImportDatumDate = resultSet.getDate( 14 );
 	} catch ( SQLException ex ) {
 	    logger.severe( "SQLException: " + ex.getMessage( ) );
 	}
 
 	setupMediumDialog( "Edit medium", "Update", updateMediumActionCommand );
+    }
+
+    private void setMediumComponentsEnabled(final boolean enabled) {
+        mediumStatusComboBox.setEnabled(enabled);
+        aantalSpinner.setEnabled(enabled);
+        aankoopDatumSpinner.setEnabled(enabled);
     }
 
     // Setup medium dialog
@@ -178,10 +194,100 @@ public class EditMediumDialog {
 	constraints.gridwidth = 3;
 	container.add( uitvoerendenTextField, constraints );
 
+        // Setup a JComboBox for label
+        labelComboBox = new LabelComboBox( conn, dialog, defaultLabelId );
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
+        container.add( new JLabel( "Label:" ), constraints );
+
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        container.add( labelComboBox, constraints );
+
+        class SelectLabelActionListener implements ActionListener {
+            public void actionPerformed( ActionEvent actionEvent ) {
+                // Check if a label record needs to be inserted
+                if ( labelComboBox.newLabelSelected( ) ) {
+                    // Insert new label record
+                    EditLabelDialog editLabelDialog =
+                            new EditLabelDialog( conn, parentObject, labelFilterString );
+
+                    // Check if a new label record has been inserted
+                    if ( editLabelDialog.labelUpdated( ) ) {
+                        // Get the id of the new label record
+                        int selectedLabelId = editLabelDialog.getLabelId( );
+
+                        // Setup the label combo box again
+                        labelComboBox.setupLabelComboBox( selectedLabelId );
+                    }
+                }
+            }
+        }
+        labelComboBox.addActionListener( new SelectLabelActionListener( ) );
+
+        JButton filterLabelButton = new JButton( "Filter" );
+        filterLabelButton.setActionCommand( "filterLabel" );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        container.add( filterLabelButton, constraints );
+
+        class FilterLabelActionListener implements ActionListener {
+            public void actionPerformed( ActionEvent ae ) {
+                labelFilterString = labelComboBox.filterLabelComboBox( );
+            }
+        }
+        filterLabelButton.addActionListener( new FilterLabelActionListener( ) );
+
+        JButton editLabelButton = new JButton( "Edit" );
+        editLabelButton.setActionCommand( "editLabel" );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        container.add( editLabelButton, constraints );
+
+        class EditLabelActionListener implements ActionListener {
+            public void actionPerformed( ActionEvent ae ) {
+                // Get the selected Label ID
+                int selectedLabelId = labelComboBox.getSelectedLabelId( );
+
+                // Check if label has been selected
+                if ( selectedLabelId == 0 ) {
+                    JOptionPane.showMessageDialog( dialog,
+                                                   "Geen Label geselecteerd",
+                                                   "Edit Medium error",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return;
+                }
+
+                // Do dialog
+                EditLabelDialog editLabelDialog = new EditLabelDialog( conn,
+                                                                       dialog,
+                                                                       selectedLabelId );
+
+                if ( editLabelDialog.labelUpdated( ) ) {
+                    // Setup the label combo box again
+                    labelComboBox.setupLabelComboBox( );
+                }
+            }
+        }
+        editLabelButton.addActionListener( new EditLabelActionListener( ) );
+
+        // Setup a text field for Label nummer
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
+        container.add( new JLabel( "Label nummer:" ), constraints );
+
+        labelNummerTextField = new JTextField( defaultLabelNummerString, 16 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 3;
+        container.add( labelNummerTextField, constraints );
+
 	// Setup a JComboBox for mediumType
 	mediumTypeComboBox = new MediumTypeComboBox( conn, defaultMediumTypeId );
+        mediumTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            setMediumComponentsEnabled(mediumTypeComboBox.getSelectedMediumTypeId() != 0);
+        } );
+
 	constraints.gridx = 0;
-	constraints.gridy = 2;
+	constraints.gridy = 4;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium type:" ), constraints );
 
@@ -191,7 +297,7 @@ public class EditMediumDialog {
 	// Setup a JComboBox for mediumStatus
 	mediumStatusComboBox = new MediumStatusComboBox( conn, defaultMediumStatusId );
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 5;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Medium status:" ), constraints );
 
@@ -199,7 +305,7 @@ public class EditMediumDialog {
 	container.add( mediumStatusComboBox, constraints );
 
 	constraints.gridx = 0;
-	constraints.gridy = 4;
+	constraints.gridy = 6;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Aantal:" ), constraints );
 	SpinnerNumberModel aantalSpinnerNumberModel = new SpinnerNumberModel( defaultAantal, 0, 100, 1 );
@@ -210,94 +316,6 @@ public class EditMediumDialog {
 	}
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( aantalSpinner, constraints );
-
-	// Setup a JComboBox for label
-	labelComboBox = new LabelComboBox( conn, dialog, defaultLabelId );
-	constraints.gridx = 0;
-	constraints.gridy = 5;
-	constraints.gridwidth = 1;
-	container.add( new JLabel( "Label:" ), constraints );
-
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( labelComboBox, constraints );
-
-	class SelectLabelActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Check if a label record needs to be inserted
-		if ( labelComboBox.newLabelSelected( ) ) {
-		    // Insert new label record
-		    EditLabelDialog editLabelDialog =
-			new EditLabelDialog( conn, parentObject, labelFilterString );
-
-		    // Check if a new label record has been inserted
-		    if ( editLabelDialog.labelUpdated( ) ) {
-			// Get the id of the new label record
-			int selectedLabelId = editLabelDialog.getLabelId( );
-
-			// Setup the label combo box again
-			labelComboBox.setupLabelComboBox( selectedLabelId );
-		    }
-		}
-	    }
-	}
-	labelComboBox.addActionListener( new SelectLabelActionListener( ) );
-
-	JButton filterLabelButton = new JButton( "Filter" );
-	filterLabelButton.setActionCommand( "filterLabel" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( filterLabelButton, constraints );
-
-	class FilterLabelActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		labelFilterString = labelComboBox.filterLabelComboBox( );
-	    }
-	}
-	filterLabelButton.addActionListener( new FilterLabelActionListener( ) );
-
-	JButton editLabelButton = new JButton( "Edit" );
-	editLabelButton.setActionCommand( "editLabel" );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( editLabelButton, constraints );
-
-	class EditLabelActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent ae ) {
-		// Get the selected Label ID
-		int selectedLabelId = labelComboBox.getSelectedLabelId( );
-
-		// Check if label has been selected
-		if ( selectedLabelId == 0 ) {
-		    JOptionPane.showMessageDialog( dialog,
-						   "Geen Label geselecteerd",
-						   "Edit Medium error",
-						   JOptionPane.ERROR_MESSAGE );
-		    return;
-		}
-
-		// Do dialog
-		EditLabelDialog editLabelDialog = new EditLabelDialog( conn,
-								       dialog,
-								       selectedLabelId );
-
-		if ( editLabelDialog.labelUpdated( ) ) {
-		    // Setup the label combo box again
-		    labelComboBox.setupLabelComboBox( );
-		}
-	    }
-	}
-	editLabelButton.addActionListener( new EditLabelActionListener( ) );
-
-
-	// Setup a text field for Label nummer
-	constraints.gridx = 0;
-	constraints.gridy = 6;
-	constraints.gridwidth = 1;
-	container.add( new JLabel( "Label nummer:" ), constraints );
-
-	labelNummerTextField = new JTextField( defaultLabelNummerString, 16 );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.gridwidth = 3;
-	container.add( labelNummerTextField, constraints );
-
 
 	// Aankoop datum
 	GregorianCalendar calendar = new GregorianCalendar( );
@@ -323,11 +341,60 @@ public class EditMediumDialog {
 	constraints.gridwidth = 3;
 	container.add( aankoopDatumSpinner, constraints );
 
+	// Set the medium components to enabled or disabled according to the selected medium type ID
+        setMediumComponentsEnabled(mediumTypeComboBox.getSelectedMediumTypeId() != 0);
 
-	// Setup a JComboBox for genre
+	// Setup a JComboBox for ImportType
+        importTypeComboBox = new ImportTypeComboBox( conn, defaultImportTypeId );
+        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
+                importDatumSpinner.setEnabled(false);
+            }
+            else {
+                importDatumSpinner.setEnabled(true);
+            }
+        } );
+
+        constraints.gridx = 0;
+        constraints.gridy = 8;
+        constraints.gridwidth = 1;
+        container.add( new JLabel( "Import type:" ), constraints );
+
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        container.add( importTypeComboBox, constraints );
+
+        // Import datum
+        if ( defaultImportDatumDate == null ) {
+            defaultImportDatumDate = calendar.getTime( );
+        }
+        SpinnerDateModel importDatumSpinnerDatemodel = new SpinnerDateModel( defaultImportDatumDate,
+                                                                             earliestDate,
+                                                                             latestDate,
+                                                                             Calendar.DAY_OF_MONTH );
+        importDatumSpinner = new JSpinner( importDatumSpinnerDatemodel );
+        importDatumSpinner.setEditor( new JSpinner.DateEditor( importDatumSpinner, "dd-MM-yyyy" ) );
+        constraints.gridx = 0;
+        constraints.gridy = 9;
+        constraints.gridwidth = 1;
+        container.add( new JLabel( "Import datum:" ), constraints );
+
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 3;
+        container.add( importDatumSpinner, constraints );
+
+        // Set the import datum to enabled or disabled according to the selected medium type ID
+        if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
+            importDatumSpinner.setEnabled(false);
+        }
+        else {
+            importDatumSpinner.setEnabled(true);
+        }
+
+
+        // Setup a JComboBox for genre
 	genreComboBox = new GenreComboBox( conn, defaultGenreId );
 	constraints.gridx = 0;
-	constraints.gridy = 8;
+	constraints.gridy = 10;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Genre:" ), constraints );
 
@@ -339,7 +406,7 @@ public class EditMediumDialog {
 	// Setup a JComboBox for subgenre
 	subgenreComboBox = new SubgenreComboBox( conn, defaultSubgenreId );
 	constraints.gridx = 0;
-	constraints.gridy = 9;
+	constraints.gridy = 11;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Subgenre:" ), constraints );
 
@@ -351,7 +418,7 @@ public class EditMediumDialog {
 	// Setup a JComboBox for opslag
 	opslagComboBox = new OpslagComboBox( conn, dialog, defaultOpslagId );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
+	constraints.gridy = 12;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opslag:" ), constraints );
 
@@ -424,7 +491,7 @@ public class EditMediumDialog {
 	editOpslagButton.addActionListener( new EditOpslagActionListener( ) );
 
 	constraints.gridx = 0;
-	constraints.gridy = 11;
+	constraints.gridy = 13;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opmerkingen:" ), constraints );
 
@@ -432,7 +499,6 @@ public class EditMediumDialog {
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
 	container.add( opmerkingenTextField, constraints );
-
 
 
 	// Insert/cancel buttons
@@ -466,12 +532,12 @@ public class EditMediumDialog {
 	buttonPanel.add( cancelMediumButton );
 
 	constraints.gridx = 1;
-	constraints.gridy = 12;
+	constraints.gridy = 14;
 	constraints.gridwidth = 2;
 	container.add( buttonPanel, constraints );
 
 
-	dialog.setSize( 900, 600 );
+	dialog.setSize( 900, 700 );
 	dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	dialog.setVisible( true );
     }
@@ -486,6 +552,14 @@ public class EditMediumDialog {
 					   JOptionPane.ERROR_MESSAGE );
 	    return false;
 	}
+
+        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 && importTypeComboBox.getSelectedImportTypeId() == 0 ) {
+            JOptionPane.showMessageDialog( dialog,
+                                           "Medium type en Import type niet ingevuld",
+                                           "Insert Medium error",
+                                           JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
 
 	// Matcher to find single quotes in mediumTitelString, in order to replace these
 	// with escaped quotes (the quadruple slashes are really necessary)
@@ -503,39 +577,52 @@ public class EditMediumDialog {
 	    }
 	}
 
+        int labelId = labelComboBox.getSelectedLabelId();
+        if (labelId != 0) insertString += ", label_id = " + labelId;
+
+        String labelNummerString = labelNummerTextField.getText();
+        if (labelNummerString != null) {
+            if (labelNummerString.length() > 0) {
+                insertString += ", label_nummer = '" + labelNummerString + "'";
+            }
+        }
+
 	int mediumTypeId = mediumTypeComboBox.getSelectedMediumTypeId( );
-	if ( mediumTypeId != 0 ) insertString += ", medium_type_id = " + mediumTypeId;
+	if ( mediumTypeId != 0 ) {
+            insertString += ", medium_type_id = " + mediumTypeId;
 
-	int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
-	if ( mediumStatusId == 0 ) {
-	    JOptionPane.showMessageDialog( dialog,
-					   "Medium status niet ingevuld",
-					   "Insert Medium error",
-					   JOptionPane.ERROR_MESSAGE );
-	    return false;
-	}
-	insertString += ", medium_status_id = " + mediumStatusId;
+            int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
+            if (mediumStatusId == 0) {
+                JOptionPane.showMessageDialog(dialog,
+                                              "Medium status niet ingevuld",
+                                              "Insert Medium error",
+                                              JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            insertString += ", medium_status_id = " + mediumStatusId;
 
-	int aantal = ( ( Integer )aantalSpinner.getValue( ) ).intValue( );
-	if ( aantal != 0 ) insertString += ", aantal = " + aantal;
+            int aantal = (Integer)aantalSpinner.getValue();
+            if (aantal != 0) insertString += ", aantal = " + aantal;
 
-	int labelId = labelComboBox.getSelectedLabelId( );
-	if ( labelId != 0 ) insertString += ", label_id = " + labelId;
+            String aankoopDatumString = dateFormat.format((Date)aankoopDatumSpinner.getValue());
+            if (aankoopDatumString != null) {
+                if (aankoopDatumString.length() > 0) {
+                    insertString += ", aankoop_datum = '" + aankoopDatumString + "'";
+                }
+            }
+        }
 
-	String labelNummerString = labelNummerTextField.getText( );
-	if ( labelNummerString != null ) {
-	    if ( labelNummerString.length( ) > 0 ) {
-		insertString += ", label_nummer = '" + labelNummerString + "'";
-	    }
-	}
+        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
+        if ( importTypeId != 0 ) {
+            insertString += ", import_type_id = " + importTypeId;
 
-	SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-	String aankoopDatumString = dateFormat.format( ( Date )aankoopDatumSpinner.getValue( ) );
-	if ( aankoopDatumString != null ) {
-	    if ( aankoopDatumString.length( ) > 0 ) {
-		insertString += ", aankoop_datum = '" + aankoopDatumString + "'";
-	    }
-	}
+            String importDatumString = dateFormat.format( ( Date )importDatumSpinner.getValue( ) );
+            if ( importDatumString != null ) {
+                if (importDatumString.length() > 0) {
+                    insertString += ", import_datum = '" + importDatumString + "'";
+                }
+            }
+        }
 
 	int genreId = genreComboBox.getSelectedGenreId( );
 	if ( genreId != 0 ) insertString += ", genre_id = " + genreId;
@@ -600,7 +687,7 @@ public class EditMediumDialog {
 	    if ( mediumTitelString == null || mediumTitelString.length( ) == 0 ) {
 		JOptionPane.showMessageDialog( dialog,
 					       "Medium titel niet ingevuld",
-					       "Insert Medium error",
+					       "Update Medium error",
 					       JOptionPane.ERROR_MESSAGE );
 		return false;
 	    }
@@ -610,6 +697,14 @@ public class EditMediumDialog {
 	    Matcher quoteMatcher = quotePattern.matcher( mediumTitelString );
 	    addToUpdateString( "medium_titel = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
 	}
+
+        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 && importTypeComboBox.getSelectedImportTypeId() == 0 ) {
+            JOptionPane.showMessageDialog( dialog,
+                                           "Medium type en Import type niet ingevuld",
+                                           "Update Medium error",
+                                           JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
 
 	String uitvoerendenString = uitvoerendenTextField.getText( );
 	// Check if uitvoerenden changed (allow for empty string)
@@ -626,61 +721,97 @@ public class EditMediumDialog {
 	    }
 	}
 
+        int labelId = labelComboBox.getSelectedLabelId();
+        // Check if labelId changed (allow for a zero value)
+        if (labelId != defaultLabelId) {
+            if (labelId == 0) {
+                addToUpdateString("label_id = NULL");
+            } else {
+                addToUpdateString("label_id = " + labelId);
+            }
+        }
+
+        String labelNummerString = labelNummerTextField.getText();
+        // Check if label nummer changed (allow for empty string)
+        // (do not update when default was NULL and text field is empty)
+        if (((defaultLabelNummerString != null) || (labelNummerString.length() > 0)) &&
+                (!labelNummerString.equals(defaultLabelNummerString))) {
+            if (labelNummerString.length() == 0) {
+                addToUpdateString("label_nummer = NULL");
+            } else {
+                addToUpdateString("label_nummer = '" + labelNummerString + "'");
+            }
+        }
+
 	int mediumTypeId = mediumTypeComboBox.getSelectedMediumTypeId( );
 	// Check if mediumTypeId changed to a non-zero value
-	if ( ( mediumTypeId != 0 ) && ( mediumTypeId != defaultMediumTypeId ) ) {
-	    addToUpdateString( "medium_type_id = " + mediumTypeId );
-	}
+	if ( mediumTypeId != 0 ) {
+            if (mediumTypeId != defaultMediumTypeId) {
+                addToUpdateString("medium_type_id = " + mediumTypeId);
+            }
 
-	int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId( );
-	// Check if mediumStatusId changed to a non-zero value
-	if ( ( mediumStatusId != 0 ) && ( mediumStatusId != defaultMediumStatusId ) ) {
-	    addToUpdateString( "medium_status_id = " + mediumStatusId );
-	}
+            int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
+            // Check if mediumStatusId changed to a non-zero value
+            if ((mediumStatusId != 0) && (mediumStatusId != defaultMediumStatusId)) {
+                addToUpdateString("medium_status_id = " + mediumStatusId);
+            }
 
-	int aantal = ( ( Integer )aantalSpinner.getValue( ) ).intValue( );
-	// Check if aantal changed
-	if ( aantal != defaultAantal ) {
-	    if ( aantal == 0 ) {
-		addToUpdateString( "aantal = NULL" );
-	    } else {
-		addToUpdateString( "aantal = " + aantal );
-	    }
-	}
+            int aantal = (Integer)aantalSpinner.getValue();
+            // Check if aantal changed
+            if (aantal != defaultAantal) {
+                if (aantal == 0) {
+                    addToUpdateString("aantal = NULL");
+                } else {
+                    addToUpdateString("aantal = " + aantal);
+                }
+            }
 
-	int labelId = labelComboBox.getSelectedLabelId( );
-	// Check if labelId changed (allow for a zero value)
-	if ( labelId != defaultLabelId ) {
-	    if ( labelId == 0 ) {
-		addToUpdateString( "label_id = NULL" );
-	    } else {
-		addToUpdateString( "label_id = " + labelId );
-	    }
-	}
+            Date aankoopDatumDate = (Date)aankoopDatumSpinner.getValue();
+            // Check if aankoopDatumDate changed
+            if (!aankoopDatumDate.equals(defaultAankoopDatumDate)) {
+                String aankoopDatumString = dateFormat.format((Date)aankoopDatumSpinner.getValue());
+                if (aankoopDatumString != null) {
+                    if (aankoopDatumString.length() > 0) {
+                        addToUpdateString("aankoop_datum = '" + aankoopDatumString + "'");
+                    }
+                }
+            }
+        }
+        else {
+	    // Medium type ID is 0: check for change
+            if (0 != defaultMediumTypeId) {
+                addToUpdateString("medium_type_id = NULL");
+                addToUpdateString("medium_status_id = NULL");
+                addToUpdateString("aantal = NULL");
+                addToUpdateString("aankoop_datum = NULL");
+            }
+        }
 
-	String labelNummerString = labelNummerTextField.getText( );
-	// Check if label nummer changed (allow for empty string)
-	// (do not update when default was NULL and text field is empty)
-	if ( ( ( defaultLabelNummerString != null ) || ( labelNummerString.length( ) > 0 ) ) &&
-	     ( !labelNummerString.equals( defaultLabelNummerString ) ) ) {
-	    if ( labelNummerString.length( ) == 0 ) {
-		addToUpdateString( "label_nummer = NULL" );
-	    } else {
-		addToUpdateString( "label_nummer = '" + labelNummerString + "'" );
-	    }
-	}
+        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
+        // Check if importTypeId changed to a non-zero value
+        if ( importTypeId != 0 ) {
+            if (importTypeId != defaultImportTypeId) {
+                addToUpdateString("import_type_id = " + importTypeId);
+            }
 
-	Date aankoopDatumDate = ( Date )aankoopDatumSpinner.getValue( );
-	// Check if aankoopDatumDate changed
-	if ( !aankoopDatumDate.equals( defaultAankoopDatumDate ) ) {
-	    SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-	    String aankoopDatumString = dateFormat.format( ( Date )aankoopDatumSpinner.getValue( ) );
-	    if ( aankoopDatumString != null ) {
-		if ( aankoopDatumString.length( ) > 0 ) {
-		    addToUpdateString( "aankoop_datum = '" + aankoopDatumString + "'" );
-		}
-	    }
-	}
+            Date importDatumDate = (Date)importDatumSpinner.getValue();
+            // Check if importDatumDate changed
+            if (!importDatumDate.equals(defaultImportDatumDate)) {
+                String importDatumString = dateFormat.format((Date)importDatumSpinner.getValue());
+                if (importDatumString != null) {
+                    if (importDatumString.length() > 0) {
+                        addToUpdateString("import_datum = '" + importDatumString + "'");
+                    }
+                }
+            }
+        }
+        else {
+            // Import type ID is 0: check for change
+            if (0 != defaultImportTypeId) {
+                addToUpdateString("import_type_id = NULL");
+                addToUpdateString("import_datum = NULL");
+            }
+        }
 
 	int selectedGenreId = genreComboBox.getSelectedGenreId( );
 	// Check if genreId changed to a non-zero value

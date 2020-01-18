@@ -24,7 +24,7 @@ class MediumTableModel extends AbstractTableModel {
 
     private final String[ ] headings = { "Id", "Medium", "Uitvoerenden",
                                          "Genre", "Subgenre", "Type", "Status", "Label", "Nummer",
-                                         "Aankoopdatum", "Opslag", "Opmerkingen" };
+                                         "Aankoopdatum", "Import", "Importdatum", "Opslag", "Opmerkingen" };
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
@@ -44,6 +44,9 @@ class MediumTableModel extends AbstractTableModel {
 	String	labelString;
 	String  labelNummerString;
 	Date	aankoopDatumDate;
+        int	importTypeId;
+        String	importTypeString;
+        Date	importDatumDate;
 	int	opslagId;
 	String	opslagString;
 	String	opmerkingenString;
@@ -63,6 +66,9 @@ class MediumTableModel extends AbstractTableModel {
                       String  labelString,
                       String  labelNummerString,
                       Date    aankoopDatumDate,
+                      int     importTypeId,
+                      String  importTypeString,
+                      Date    importDatumDate,
                       int     opslagId,
                       String  opslagString,
                       String  opmerkingenString ) {
@@ -81,6 +87,9 @@ class MediumTableModel extends AbstractTableModel {
 	    this.labelString = labelString;
 	    this.labelNummerString = labelNummerString;
 	    this.aankoopDatumDate = aankoopDatumDate;
+            this.importTypeId = importTypeId;
+            this.importTypeString = importTypeString;
+            this.importDatumDate = importDatumDate;
 	    this.opslagId = opslagId;
 	    this.opslagString = opslagString;
 	    this.opmerkingenString = opmerkingenString;
@@ -103,6 +112,9 @@ class MediumTableModel extends AbstractTableModel {
 	    this.labelString = mediumRecord.labelString;
 	    this.labelNummerString = mediumRecord.labelNummerString;
 	    this.aankoopDatumDate = mediumRecord.aankoopDatumDate;
+            this.importTypeId = mediumRecord.importTypeId;
+            this.importTypeString = mediumRecord.importTypeString;
+            this.importDatumDate = mediumRecord.importDatumDate;
 	    this.opslagId = mediumRecord.opslagId;
 	    this.opslagString = mediumRecord.opslagString;
 	    this.opmerkingenString = mediumRecord.opmerkingenString;
@@ -116,6 +128,7 @@ class MediumTableModel extends AbstractTableModel {
     private MediumTypeComboBox mediumTypeComboBox;
     private MediumStatusComboBox mediumStatusComboBox;
     private LabelComboBox labelComboBox;
+    private ImportTypeComboBox importTypeComboBox;
     private OpslagComboBox opslagComboBox;
 
     private JButton cancelRowEditButton;
@@ -146,9 +159,10 @@ class MediumTableModel extends AbstractTableModel {
 	mediumTypeComboBox = new MediumTypeComboBox( connection, 0 );
 	mediumStatusComboBox = new MediumStatusComboBox( connection, 0 );
 	labelComboBox = new LabelComboBox( connection, null, false );
+        importTypeComboBox = new ImportTypeComboBox( connection, 0 );
 	opslagComboBox = new OpslagComboBox( connection, null, false );
 
-	setupMediumTableModel( null, null, null, 0, 0, 0, 0, 0, 0 );
+	setupMediumTableModel( null, null, null, 0, 0, 0, 0, 0, 0, 0 );
     }
 
     void setupMediumTableModel( String mediumTitelFilterString,
@@ -159,6 +173,7 @@ class MediumTableModel extends AbstractTableModel {
                                 int    mediumTypeId,
                                 int    mediumStatusId,
                                 int    labelId,
+                                int    importTypeId,
                                 int    opslagId ) {
 	// Setup the table
 	try {
@@ -167,13 +182,15 @@ class MediumTableModel extends AbstractTableModel {
 		"medium.genre_id, genre.genre, medium.subgenre_id, subgenre.subgenre, " +
 		"medium.medium_type_id, medium_type.medium_type, medium.medium_status_id, medium_status.medium_status, " +
 		"medium.label_id, label.label, medium.label_nummer, " +
-		"medium.aankoop_datum, medium.opslag_id, opslag.opslag, medium.opmerkingen " +
+		"medium.aankoop_datum, medium.import_type_id, import_type.import_type, medium.import_datum, " +
+                "medium.opslag_id, opslag.opslag, medium.opmerkingen " +
 		"FROM medium " +
 		"LEFT JOIN genre ON genre.genre_id = medium.genre_id " +
 		"LEFT JOIN subgenre ON subgenre.subgenre_id = medium.subgenre_id " +
 		"LEFT JOIN medium_type ON medium_type.medium_type_id = medium.medium_type_id " +
 		"LEFT JOIN medium_status ON medium_status.medium_status_id = medium.medium_status_id " +
 		"LEFT JOIN label ON label.label_id = medium.label_id " +
+                "LEFT JOIN import_type ON import_type.import_type_id = medium.import_type_id " +
 		"LEFT JOIN opslag ON opslag.opslag_id = medium.opslag_id ";
 
 	    if ( ( ( mediumTitelFilterString != null ) && ( mediumTitelFilterString.length( ) > 0 ) ) ||
@@ -183,7 +200,8 @@ class MediumTableModel extends AbstractTableModel {
 		 ( subgenreId != 0 ) ||
 		 ( mediumTypeId != 0 ) ||
 		 ( mediumStatusId != 0 ) ||
-		 ( labelId != 0 ) ||
+                    ( labelId != 0 ) ||
+                    ( importTypeId != 0 ) ||
 		 ( opslagId != 0 ) ) {
 		mediumQueryString += "WHERE ";
 
@@ -199,6 +217,7 @@ class MediumTableModel extends AbstractTableModel {
 			 ( mediumTypeId != 0 ) ||
 		         ( mediumStatusId != 0 ) ||
 			 ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -215,6 +234,7 @@ class MediumTableModel extends AbstractTableModel {
 			 ( mediumTypeId != 0 ) ||
 		         ( mediumStatusId != 0 ) ||
 			 ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -230,6 +250,7 @@ class MediumTableModel extends AbstractTableModel {
 			 ( mediumTypeId != 0 ) ||
 		         ( mediumStatusId != 0 ) ||
 			 ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -241,6 +262,7 @@ class MediumTableModel extends AbstractTableModel {
 			 ( mediumTypeId != 0 ) ||
 		         ( mediumStatusId != 0 ) ||
 			 ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -251,6 +273,7 @@ class MediumTableModel extends AbstractTableModel {
 		    if ( ( mediumTypeId != 0 ) ||
 		         ( mediumStatusId != 0 ) ||
 			 ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -260,6 +283,7 @@ class MediumTableModel extends AbstractTableModel {
 		    mediumQueryString += "medium.medium_type_id = " + mediumTypeId + " ";
 		    if ( ( mediumStatusId != 0 ) ||
                          ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -268,6 +292,7 @@ class MediumTableModel extends AbstractTableModel {
 		if ( mediumStatusId != 0 ) {
 		    mediumQueryString += "medium.medium_status_id = " + mediumStatusId + " ";
 		    if ( ( labelId != 0 ) ||
+                            ( importTypeId != 0 ) ||
 			 ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
@@ -275,10 +300,18 @@ class MediumTableModel extends AbstractTableModel {
 
 		if ( labelId != 0 ) {
 		    mediumQueryString += "medium.label_id = " + labelId + " ";
-		    if ( opslagId != 0 ) {
+                    if ( ( importTypeId != 0 ) ||
+                            ( opslagId != 0 ) ) {
 			mediumQueryString += "AND ";
 		    }
 		}
+
+                if ( importTypeId != 0 ) {
+                    mediumQueryString += "medium.import_type_id = " + importTypeId + " ";
+                    if ( opslagId != 0 ) {
+                        mediumQueryString += "AND ";
+                    }
+                }
 
 		if ( opslagId != 0 ) {
 		    mediumQueryString += "medium.opslag_id = " + opslagId + " ";
@@ -302,6 +335,12 @@ class MediumTableModel extends AbstractTableModel {
 			aankoopDatumDate = dateFormat.parse( aankoopDatumString );
 		    }
 
+                    String importDatumString = resultSet.getString( 18 );
+                    Date importDatumDate = null;
+                    if ( ( importDatumString != null ) && ( importDatumString.length( ) > 0 ) ) {
+                        importDatumDate = dateFormat.parse( importDatumString );
+                    }
+
 		    mediumRecordList.add( new MediumRecord( resultSet.getInt( 1 ),
 							    resultSet.getString( 2 ),
 							    resultSet.getString( 3 ),
@@ -318,8 +357,11 @@ class MediumTableModel extends AbstractTableModel {
 							    resultSet.getString( 14 ),
 							    aankoopDatumDate,
 							    resultSet.getInt( 16 ),
-							    resultSet.getString( 17 ),
-							    resultSet.getString( 18 ) ) );
+                                                            resultSet.getString( 17 ),
+                                                            importDatumDate,
+                                                            resultSet.getInt( 19 ),
+							    resultSet.getString( 20 ),
+							    resultSet.getString( 21 ) ) );
 		} catch( ParseException parseException ) {
 		    logger.severe( "Datum parse exception: " + parseException.getMessage( ) );
 		}
@@ -340,7 +382,7 @@ class MediumTableModel extends AbstractTableModel {
 
     public int getRowCount( ) { return mediumRecordList.size( ); }
 
-    public int getColumnCount( ) { return 12; }
+    public int getColumnCount( ) { return 14; }
 
     public String getColumnName( int column ) {
 	return headings[ column ];
@@ -393,8 +435,15 @@ class MediumTableModel extends AbstractTableModel {
 	    // Convert the Date object to a string
 	    return dateFormat.format( mediumRecord.aankoopDatumDate );
 	}
-	if ( column == 10 ) return mediumRecord.opslagString;
-	if ( column == 11 ) return mediumRecord.opmerkingenString;
+        if ( column == 10 ) return mediumRecord.importTypeString;
+        if ( column == 11 ) {
+            // Check if importDatumDate is present
+            if ( mediumRecord.importDatumDate == null ) return "";
+            // Convert the Date object to a string
+            return dateFormat.format( mediumRecord.importDatumDate );
+        }
+	if ( column == 12 ) return mediumRecord.opslagString;
+	if ( column == 13 ) return mediumRecord.opmerkingenString;
 
 	return "";
     }
@@ -519,7 +568,44 @@ class MediumTableModel extends AbstractTableModel {
 		}
 		break;
 
-	    case 10:
+            case 10:
+                int importTypeId = importTypeComboBox.getImportTypeId( ( String )object );
+                if ( importTypeId != mediumRecord.importTypeId ) {
+                    mediumRecord.importTypeId = importTypeId;
+                    mediumRecord.importTypeString = ( String )object;
+                    rowModified = true;
+                }
+                break;
+
+            case 11:
+                String importDatumString = ( String )object;
+
+                // Check if string in table is null or empty, and date in record is not null
+                if ( ( ( importDatumString == null ) || ( importDatumString.length( ) == 0 ) ) &&
+                        ( mediumRecord.importDatumDate != null ) ) {
+                    // Set the import datum to null in the record
+                    mediumRecord.importDatumDate = null;
+                    rowModified = true;
+                } else {
+                    // Convert the string to a Date object
+                    try {
+                        final Date importDatumDate = dateFormat.parse( importDatumString );
+                        logger.fine( "Date: " + importDatumDate );
+
+                        // Check if importDatumDate is valid, and unequal to importDatumDate in record
+                        if ( ( importDatumDate != null ) &&
+                                ( !importDatumDate.equals( mediumRecord.importDatumDate ) ) ) {
+                            // Modified importDatumDate: update record
+                            mediumRecord.importDatumDate = importDatumDate;
+                            rowModified = true;
+                        }
+                    } catch( ParseException parseException ) {
+                        logger.severe( "Datum parse exception: " + parseException.getMessage( ) );
+                    }
+                }
+                break;
+
+            case 12:
 		int opslagId = opslagComboBox.getOpslagId( ( String )object );
 		if ( opslagId != mediumRecord.opslagId ) {
 		    mediumRecord.opslagId = opslagId;
@@ -528,7 +614,7 @@ class MediumTableModel extends AbstractTableModel {
 		}
 		break;
 
-	    case 11:
+	    case 13:
 		String opmerkingenString = ( String )object;
 		if ( ( ( opmerkingenString == null ) || ( opmerkingenString.length( ) == 0 ) ) &&
 		     ( mediumRecord.opmerkingenString != null ) ) {
