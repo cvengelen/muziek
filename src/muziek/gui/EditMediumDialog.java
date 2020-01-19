@@ -46,8 +46,8 @@ public class EditMediumDialog {
     private String defaultLabelNummerString = "";
     private JTextField labelNummerTextField;
 
-    private Date defaultAankoopDatumDate;
-    private JSpinner aankoopDatumSpinner;
+    private Date defaultMediumDatumDate;
+    private JSpinner mediumDatumSpinner;
 
     private ImportTypeComboBox importTypeComboBox;
     private int defaultImportTypeId;
@@ -115,7 +115,7 @@ public class EditMediumDialog {
 	    Statement statement = conn.createStatement( );
 	    ResultSet resultSet = statement.executeQuery( "SELECT medium_titel, uitvoerenden, " +
 							  "medium_type_id, aantal, label_id, label_nummer, " +
-							  "aankoop_datum, genre_id, subgenre_id, opslag_id, " +
+							  "medium_datum, genre_id, subgenre_id, opslag_id, " +
 							  "opmerkingen, medium_status_id, " +
                                                           "import_type_id, import_datum " +
 							  "FROM medium WHERE medium_id = " + mediumId );
@@ -130,7 +130,7 @@ public class EditMediumDialog {
 	    defaultAantal = resultSet.getInt( 4 );
 	    defaultLabelId = resultSet.getInt( 5 );
 	    defaultLabelNummerString = resultSet.getString( 6 );
-	    defaultAankoopDatumDate = resultSet.getDate( 7 );
+	    defaultMediumDatumDate = resultSet.getDate( 7 );
 	    defaultGenreId = resultSet.getInt( 8 );
 	    defaultSubgenreId = resultSet.getInt( 9 );
 	    defaultOpslagId = resultSet.getInt( 10 );
@@ -146,9 +146,8 @@ public class EditMediumDialog {
     }
 
     private void setMediumComponentsEnabled(final boolean enabled) {
-        mediumStatusComboBox.setEnabled(enabled);
         aantalSpinner.setEnabled(enabled);
-        aankoopDatumSpinner.setEnabled(enabled);
+        mediumDatumSpinner.setEnabled(enabled);
     }
 
     // Setup medium dialog
@@ -317,29 +316,29 @@ public class EditMediumDialog {
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( aantalSpinner, constraints );
 
-	// Aankoop datum
+	// Medium datum
 	GregorianCalendar calendar = new GregorianCalendar( );
-	if ( defaultAankoopDatumDate == null ) {
-	    defaultAankoopDatumDate = calendar.getTime( );
+	if ( defaultMediumDatumDate == null ) {
+	    defaultMediumDatumDate = calendar.getTime( );
 	}
 	calendar.add( Calendar.YEAR, -50 );
 	Date earliestDate = calendar.getTime( );
 	calendar.add( Calendar.YEAR, 100 );
 	Date latestDate = calendar.getTime( );
-	SpinnerDateModel aankoopDatumSpinnerDatemodel = new SpinnerDateModel( defaultAankoopDatumDate,
+	SpinnerDateModel mediumDatumSpinnerDatemodel = new SpinnerDateModel( defaultMediumDatumDate,
 									      earliestDate,
 									      latestDate,
 									      Calendar.DAY_OF_MONTH );
-	aankoopDatumSpinner = new JSpinner( aankoopDatumSpinnerDatemodel );
-	aankoopDatumSpinner.setEditor( new JSpinner.DateEditor( aankoopDatumSpinner, "dd-MM-yyyy" ) );
+	mediumDatumSpinner = new JSpinner( mediumDatumSpinnerDatemodel );
+	mediumDatumSpinner.setEditor( new JSpinner.DateEditor( mediumDatumSpinner, "dd-MM-yyyy" ) );
 	constraints.gridx = 0;
 	constraints.gridy = 7;
 	constraints.gridwidth = 1;
-	container.add( new JLabel( "Aankoop datum:" ), constraints );
+	container.add( new JLabel( "Medium datum:" ), constraints );
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 3;
-	container.add( aankoopDatumSpinner, constraints );
+	container.add( mediumDatumSpinner, constraints );
 
 	// Set the medium components to enabled or disabled according to the selected medium type ID
         setMediumComponentsEnabled(mediumTypeComboBox.getSelectedMediumTypeId() != 0);
@@ -591,26 +590,26 @@ public class EditMediumDialog {
 	if ( mediumTypeId != 0 ) {
             insertString += ", medium_type_id = " + mediumTypeId;
 
-            int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
-            if (mediumStatusId == 0) {
-                JOptionPane.showMessageDialog(dialog,
-                                              "Medium status niet ingevuld",
-                                              "Insert Medium error",
-                                              JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
-            insertString += ", medium_status_id = " + mediumStatusId;
-
             int aantal = (Integer)aantalSpinner.getValue();
             if (aantal != 0) insertString += ", aantal = " + aantal;
 
-            String aankoopDatumString = dateFormat.format((Date)aankoopDatumSpinner.getValue());
-            if (aankoopDatumString != null) {
-                if (aankoopDatumString.length() > 0) {
-                    insertString += ", aankoop_datum = '" + aankoopDatumString + "'";
+            String mediumDatumString = dateFormat.format((Date)mediumDatumSpinner.getValue());
+            if (mediumDatumString != null) {
+                if (mediumDatumString.length() > 0) {
+                    insertString += ", medium_datum = '" + mediumDatumString + "'";
                 }
             }
         }
+
+        int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
+        if (mediumStatusId == 0) {
+            JOptionPane.showMessageDialog(dialog,
+                                          "Medium status niet ingevuld",
+                                          "Insert Medium error",
+                                          JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        insertString += ", medium_status_id = " + mediumStatusId;
 
         int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
         if ( importTypeId != 0 ) {
@@ -750,12 +749,6 @@ public class EditMediumDialog {
                 addToUpdateString("medium_type_id = " + mediumTypeId);
             }
 
-            int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
-            // Check if mediumStatusId changed to a non-zero value
-            if ((mediumStatusId != 0) && (mediumStatusId != defaultMediumStatusId)) {
-                addToUpdateString("medium_status_id = " + mediumStatusId);
-            }
-
             int aantal = (Integer)aantalSpinner.getValue();
             // Check if aantal changed
             if (aantal != defaultAantal) {
@@ -766,13 +759,13 @@ public class EditMediumDialog {
                 }
             }
 
-            Date aankoopDatumDate = (Date)aankoopDatumSpinner.getValue();
-            // Check if aankoopDatumDate changed
-            if (!aankoopDatumDate.equals(defaultAankoopDatumDate)) {
-                String aankoopDatumString = dateFormat.format((Date)aankoopDatumSpinner.getValue());
-                if (aankoopDatumString != null) {
-                    if (aankoopDatumString.length() > 0) {
-                        addToUpdateString("aankoop_datum = '" + aankoopDatumString + "'");
+            Date mediumDatumDate = (Date)mediumDatumSpinner.getValue();
+            // Check if mediumDatumDate changed
+            if (!mediumDatumDate.equals(defaultMediumDatumDate)) {
+                String mediumDatumString = dateFormat.format((Date)mediumDatumSpinner.getValue());
+                if (mediumDatumString != null) {
+                    if (mediumDatumString.length() > 0) {
+                        addToUpdateString("medium_datum = '" + mediumDatumString + "'");
                     }
                 }
             }
@@ -781,10 +774,15 @@ public class EditMediumDialog {
 	    // Medium type ID is 0: check for change
             if (0 != defaultMediumTypeId) {
                 addToUpdateString("medium_type_id = NULL");
-                addToUpdateString("medium_status_id = NULL");
                 addToUpdateString("aantal = NULL");
-                addToUpdateString("aankoop_datum = NULL");
+                addToUpdateString("medium_datum = NULL");
             }
+        }
+
+        int mediumStatusId = mediumStatusComboBox.getSelectedMediumStatusId();
+        // Check if mediumStatusId changed to a non-zero value
+        if ((mediumStatusId != 0) && (mediumStatusId != defaultMediumStatusId)) {
+            addToUpdateString("medium_status_id = " + mediumStatusId);
         }
 
         int importTypeId = importTypeComboBox.getSelectedImportTypeId( );

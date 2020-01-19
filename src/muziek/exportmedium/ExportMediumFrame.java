@@ -155,11 +155,11 @@ public class ExportMediumFrame {
 	printWriter.println( "Medium Titel" + tabChar + "Uitvoerenden" + tabChar +
 			     "Sub-genre" + tabChar + "Medium" + tabChar +
 			     "Label" + tabChar + "Label Nummer" + tabChar +
-			     "Aankoop datum" + tabChar + "Opslag" + crChar );
+			     "Medium datum" + tabChar + "Opslag" + crChar );
 
 	String mediumQueryString =
 	    "SELECT medium_titel, uitvoerenden, subgenre, medium_type, " +
-	    "label, label_nummer, aankoop_datum, opslag FROM medium " +
+	    "label, label_nummer, medium_datum, opslag FROM medium " +
 	    "LEFT JOIN subgenre ON medium.subgenre_id = subgenre.subgenre_id " +
 	    "LEFT JOIN medium_type ON medium.medium_type_id = medium_type.medium_type_id " +
 	    "LEFT JOIN label ON medium.label_id = label.label_id " +
@@ -196,8 +196,8 @@ public class ExportMediumFrame {
 		if ( labelNummerString != null ) printWriter.print( labelNummerString );
 		printWriter.print( tabChar );
 
-		String aankoopDatumString = resultSet.getString( 7 );
-		if ( aankoopDatumString != null ) printWriter.print( aankoopDatumString );
+		String mediumDatumString = resultSet.getString( 7 );
+		if ( mediumDatumString != null ) printWriter.print( mediumDatumString );
 		printWriter.print( tabChar );
 
 		String opslagString = resultSet.getString( 8 );

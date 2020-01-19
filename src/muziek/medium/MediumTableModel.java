@@ -24,7 +24,7 @@ class MediumTableModel extends AbstractTableModel {
 
     private final String[ ] headings = { "Id", "Medium", "Uitvoerenden",
                                          "Genre", "Subgenre", "Type", "Status", "Label", "Nummer",
-                                         "Aankoopdatum", "Import", "Importdatum", "Opslag", "Opmerkingen" };
+                                         "Medium datum", "Import", "Import datum", "Opslag", "Opmerkingen" };
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
@@ -43,7 +43,7 @@ class MediumTableModel extends AbstractTableModel {
 	int	labelId;
 	String	labelString;
 	String  labelNummerString;
-	Date	aankoopDatumDate;
+	Date	mediumDatumDate;
         int	importTypeId;
         String	importTypeString;
         Date	importDatumDate;
@@ -65,7 +65,7 @@ class MediumTableModel extends AbstractTableModel {
                       int     labelId,
                       String  labelString,
                       String  labelNummerString,
-                      Date    aankoopDatumDate,
+                      Date    mediumDatumDate,
                       int     importTypeId,
                       String  importTypeString,
                       Date    importDatumDate,
@@ -86,7 +86,7 @@ class MediumTableModel extends AbstractTableModel {
 	    this.labelId = labelId;
 	    this.labelString = labelString;
 	    this.labelNummerString = labelNummerString;
-	    this.aankoopDatumDate = aankoopDatumDate;
+	    this.mediumDatumDate = mediumDatumDate;
             this.importTypeId = importTypeId;
             this.importTypeString = importTypeString;
             this.importDatumDate = importDatumDate;
@@ -111,7 +111,7 @@ class MediumTableModel extends AbstractTableModel {
 	    this.labelId = mediumRecord.labelId;
 	    this.labelString = mediumRecord.labelString;
 	    this.labelNummerString = mediumRecord.labelNummerString;
-	    this.aankoopDatumDate = mediumRecord.aankoopDatumDate;
+	    this.mediumDatumDate = mediumRecord.mediumDatumDate;
             this.importTypeId = mediumRecord.importTypeId;
             this.importTypeString = mediumRecord.importTypeString;
             this.importDatumDate = mediumRecord.importDatumDate;
@@ -182,7 +182,7 @@ class MediumTableModel extends AbstractTableModel {
 		"medium.genre_id, genre.genre, medium.subgenre_id, subgenre.subgenre, " +
 		"medium.medium_type_id, medium_type.medium_type, medium.medium_status_id, medium_status.medium_status, " +
 		"medium.label_id, label.label, medium.label_nummer, " +
-		"medium.aankoop_datum, medium.import_type_id, import_type.import_type, medium.import_datum, " +
+		"medium.medium_datum, medium.import_type_id, import_type.import_type, medium.import_datum, " +
                 "medium.opslag_id, opslag.opslag, medium.opmerkingen " +
 		"FROM medium " +
 		"LEFT JOIN genre ON genre.genre_id = medium.genre_id " +
@@ -318,7 +318,7 @@ class MediumTableModel extends AbstractTableModel {
 		}
 	    }
 
-	    mediumQueryString += "ORDER BY opslag.opslag, medium.medium_titel, medium.subgenre_id, medium.aankoop_datum";
+	    mediumQueryString += "ORDER BY opslag.opslag, medium.medium_titel, medium.subgenre_id, medium.medium_datum";
 
 	    Statement statement = connection.createStatement( );
 	    ResultSet resultSet = statement.executeQuery( mediumQueryString );
@@ -329,10 +329,10 @@ class MediumTableModel extends AbstractTableModel {
 	    // Add all query results to the list
 	    while ( resultSet.next( ) ) {
 		try {
-		    String aankoopDatumString = resultSet.getString( 15 );
-		    Date aankoopDatumDate = null;
-		    if ( ( aankoopDatumString != null ) && ( aankoopDatumString.length( ) > 0 ) ) {
-			aankoopDatumDate = dateFormat.parse( aankoopDatumString );
+		    String mediumDatumString = resultSet.getString( 15 );
+		    Date mediumDatumDate = null;
+		    if ( ( mediumDatumString != null ) && ( mediumDatumString.length( ) > 0 ) ) {
+			mediumDatumDate = dateFormat.parse( mediumDatumString );
 		    }
 
                     String importDatumString = resultSet.getString( 18 );
@@ -355,7 +355,7 @@ class MediumTableModel extends AbstractTableModel {
 							    resultSet.getInt( 12 ),
 							    resultSet.getString( 13 ),
 							    resultSet.getString( 14 ),
-							    aankoopDatumDate,
+							    mediumDatumDate,
 							    resultSet.getInt( 16 ),
                                                             resultSet.getString( 17 ),
                                                             importDatumDate,
@@ -430,10 +430,10 @@ class MediumTableModel extends AbstractTableModel {
 	if ( column == 7 ) return mediumRecord.labelString;
 	if ( column == 8 ) return mediumRecord.labelNummerString;
 	if ( column == 9 ) {
-	    // Check if aankoopDatumDate is present
-	    if ( mediumRecord.aankoopDatumDate == null ) return "";
+	    // Check if mediumDatumDate is present
+	    if ( mediumRecord.mediumDatumDate == null ) return "";
 	    // Convert the Date object to a string
-	    return dateFormat.format( mediumRecord.aankoopDatumDate );
+	    return dateFormat.format( mediumRecord.mediumDatumDate );
 	}
         if ( column == 10 ) return mediumRecord.importTypeString;
         if ( column == 11 ) {
@@ -541,25 +541,25 @@ class MediumTableModel extends AbstractTableModel {
 		break;
 
 	    case 9:
-		String aankoopDatumString = ( String )object;
+		String mediumDatumString = ( String )object;
 
 		// Check if string in table is null or empty, and date in record is not null
-		if ( ( ( aankoopDatumString == null ) || ( aankoopDatumString.length( ) == 0 ) ) &&
-		     ( mediumRecord.aankoopDatumDate != null ) ) {
-		    // Set the aankoop datum to null in the record
-		    mediumRecord.aankoopDatumDate = null;
+		if ( ( ( mediumDatumString == null ) || ( mediumDatumString.length( ) == 0 ) ) &&
+		     ( mediumRecord.mediumDatumDate != null ) ) {
+		    // Set the medium datum to null in the record
+		    mediumRecord.mediumDatumDate = null;
 		    rowModified = true;
 		} else {
 		    // Convert the string to a Date object
 		    try {
-			final Date aankoopDatumDate = dateFormat.parse( aankoopDatumString );
-			logger.fine( "Date: " + aankoopDatumDate );
+			final Date mediumDatumDate = dateFormat.parse( mediumDatumString );
+			logger.fine( "Date: " + mediumDatumDate );
 
-			// Check if aankoopDatumDate is valid, and unequal to aankoopDatumDate in record
-			if ( ( aankoopDatumDate != null ) &&
-			     ( !aankoopDatumDate.equals( mediumRecord.aankoopDatumDate ) ) ) {
-			    // Modified aankoopDatumDate: update record
-			    mediumRecord.aankoopDatumDate = aankoopDatumDate;
+			// Check if mediumDatumDate is valid, and unequal to mediumDatumDate in record
+			if ( ( mediumDatumDate != null ) &&
+			     ( !mediumDatumDate.equals( mediumRecord.mediumDatumDate ) ) ) {
+			    // Modified mediumDatumDate: update record
+			    mediumRecord.mediumDatumDate = mediumDatumDate;
 			    rowModified = true;
 			}
 		    } catch( ParseException parseException ) {
@@ -773,14 +773,14 @@ class MediumTableModel extends AbstractTableModel {
 	    updateString = addToUpdateString( updateString, "label_nummer = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
 	}
 
-	Date aankoopDatumDate = mediumRecord.aankoopDatumDate;
-	if ( ( aankoopDatumDate == null ) && ( originalMediumRecord.aankoopDatumDate != null ) ) {
-	    updateString = addToUpdateString( updateString, "aankoop_datum = NULL " );
-	} else if ( ( aankoopDatumDate != null ) &&
-		    ( !aankoopDatumDate.equals( originalMediumRecord.aankoopDatumDate ) ) ) {
+	Date mediumDatumDate = mediumRecord.mediumDatumDate;
+	if ( ( mediumDatumDate == null ) && ( originalMediumRecord.mediumDatumDate != null ) ) {
+	    updateString = addToUpdateString( updateString, "medium_datum = NULL " );
+	} else if ( ( mediumDatumDate != null ) &&
+		    ( !mediumDatumDate.equals( originalMediumRecord.mediumDatumDate ) ) ) {
 	    // Convert the date object to a string
-	    String aankoopDatumString  = dateFormat.format( mediumRecord.aankoopDatumDate );
-	    updateString = addToUpdateString( updateString, "aankoop_datum = '" + aankoopDatumString + "'" );
+	    String mediumDatumString  = dateFormat.format( mediumRecord.mediumDatumDate );
+	    updateString = addToUpdateString( updateString, "medium_datum = '" + mediumDatumString + "'" );
 	}
 
 	int opslagId = mediumRecord.opslagId;

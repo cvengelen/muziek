@@ -318,13 +318,47 @@ public class EditMedium extends JInternalFrame {
                                                     selectedOpslagId );
         } );
 
+        /////////////////////////////////
+        // Import Type Combo Box
+        /////////////////////////////////
+
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
+        constraints.gridy = 7;
+        constraints.anchor = GridBagConstraints.EAST;
+        container.add( new JLabel( "ImportType:" ), constraints );
+
+        importTypeComboBox = new ImportTypeComboBox( connection, selectedImportTypeId );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( importTypeComboBox, constraints );
+
+        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected import type ID from the combo box
+            selectedImportTypeId = importTypeComboBox.getSelectedImportTypeId( );
+
+            // Setup the medium table for the selected import type
+            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
+                                                    uitvoerendenFilterTextField.getText( ),
+                                                    opmerkingenFilterTextField.getText( ),
+                                                    selectedGenreId,
+                                                    selectedSubgenreId,
+                                                    selectedMediumTypeId,
+                                                    selectedMediumStatusId,
+                                                    selectedLabelId,
+                                                    selectedImportTypeId,
+                                                    selectedOpslagId );
+        } );
+
 	/////////////////////////////////
 	// Opslag Combo Box
 	/////////////////////////////////
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 7;
+	constraints.gridy = 8;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Opslag:" ), constraints );
 
@@ -358,7 +392,7 @@ public class EditMedium extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 8;
+	constraints.gridy = 9;
 	constraints.anchor = GridBagConstraints.EAST;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opmerkingen Filter:" ), constraints );
@@ -408,7 +442,7 @@ public class EditMedium extends JInternalFrame {
 	mediumTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth(  80 );  // mediumStatus
 	mediumTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 100 );  // label
 	mediumTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 100 );  // labelNummer
-	mediumTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 100 );  // aankoop datum
+	mediumTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 100 );  // medium datum
         mediumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 80 );  // importType
         mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 100 );  // import datum
 	mediumTable.getColumnModel( ).getColumn( 12 ).setPreferredWidth( 100 );  // opslag
@@ -443,7 +477,7 @@ public class EditMedium extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 9;
+	constraints.gridy = 10;
 	constraints.gridwidth = 2;
 	constraints.anchor = GridBagConstraints.CENTER;
 
@@ -801,13 +835,13 @@ public class EditMedium extends JInternalFrame {
 
         constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
+	constraints.gridy = 11;
 	constraints.weightx = 0d;
 	constraints.weighty = 0d;
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	setSize( 1470, 820 );
+	setSize( 1470, 850 );
         setLocation( x, y );
 	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	setVisible(true);
