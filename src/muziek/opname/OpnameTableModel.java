@@ -31,11 +31,12 @@ class OpnameTableModel extends AbstractTableModel {
     private final Connection connection;
     private final JFrame parentFrame;
 
-    private final String[ ] headings = { "Medium", "Opus", "Componisten", "Genre", "Type",
+    private final String[ ] headings = { "Medium", "Import", "Opus", "Componisten", "Genre", "Type",
 				   "Musici", "Opname datum", "Opname plaats", "Producers" };
 
     private class OpnameRecord {
 	String	mediumString;
+	String  importTypeString;
 	String	opusString;
         String  componistString;
 	String	componistenString;
@@ -51,6 +52,7 @@ class OpnameTableModel extends AbstractTableModel {
 	int	musiciId;
 
 	OpnameRecord( String mediumString,
+                      String importTypeString,
                       String opusString,
                       String componistString,
                       String componistenString,
@@ -65,6 +67,7 @@ class OpnameTableModel extends AbstractTableModel {
                       int    opnameNummer,
                       int    musiciId ) {
 	    this.mediumString = mediumString;
+	    this.importTypeString = importTypeString;
 	    this.opusString = opusString;
             this.componistString = componistString;
 	    this.componistenString = componistenString;
@@ -90,6 +93,7 @@ class OpnameTableModel extends AbstractTableModel {
 
             // No check for componistString!
             if (!OpnameTableModel.stringEquals(mediumString, opnameRecord.mediumString)) return false;
+            if (!OpnameTableModel.stringEquals(importTypeString, opnameRecord.importTypeString)) return false;
             if (!OpnameTableModel.stringEquals(opusString, opnameRecord.opusString)) return false;
             if (!OpnameTableModel.stringEquals(componistenString, opnameRecord.componistenString)) return false;
             if (!OpnameTableModel.stringEquals(genreString, opnameRecord.genreString)) return false;
@@ -168,14 +172,17 @@ class OpnameTableModel extends AbstractTableModel {
 	// Setup the table
 	try {
 	    String opnameQueryString =
-		"SELECT DISTINCT medium.medium_titel, opus.opus_titel, opus.opus_nummer, " +
+		"SELECT DISTINCT " +
+                "medium.medium_titel, import_type.import_type, " +
+                "opus.opus_titel, opus.opus_nummer, " +
 		"componist.persoon, componisten.componisten, " +
 		"genre.genre, type.type, " +
 		"musici.musici, " +
 		"opname_datum.opname_datum, opname_plaats.opname_plaats, producers.producers, " +
 		"medium.medium_id, opus.opus_id, opname.opname_nummer, opname.musici_id " +
 		"FROM opname " +
-		"LEFT JOIN medium ON medium.medium_id = opname.medium_id " +
+                "LEFT JOIN medium ON medium.medium_id = opname.medium_id " +
+                "LEFT JOIN import_type ON opname.import_type_id = import_type.import_type_id " +
 		"LEFT JOIN opus ON opus.opus_id = opname.opus_id " +
 		"LEFT JOIN componisten ON componisten.componisten_id = opus.componisten_id " +
 		"LEFT JOIN componisten_persoon ON componisten_persoon.componisten_id = opus.componisten_id " +
@@ -243,7 +250,7 @@ class OpnameTableModel extends AbstractTableModel {
 		}
 
                 if ( importTypeId != 0 ) {
-                    opnameQueryString += "medium.import_type_id = " + importTypeId + " ";
+                    opnameQueryString += "opname.import_type_id = " + importTypeId + " ";
                     if ( ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
                          ( componistenPersoonId != 0 ) ||
                          ( componistenId != 0 ) ||
@@ -392,35 +399,36 @@ class OpnameTableModel extends AbstractTableModel {
 	    // Add all query results to the list
 	    while ( resultSet.next( ) ) {
 		// Get the opus title and opus number, if present
-		String opusString = resultSet.getString( 2 );
-		String opusNummerString = resultSet.getString( 3 );
+		String opusString = resultSet.getString( 3 );
+		String opusNummerString = resultSet.getString( 4 );
 		if ( ( opusNummerString != null ) && ( opusNummerString.length( ) > 0 ) ) {
 		    opusString += ", " + opusNummerString;
 		}
 
                 /*
-		String componistenString = resultSet.getString( 4 );
+		String componistenString = resultSet.getString( 5 );
 		if ( ( componistenString != null ) &&
-		     !componistenString.equals( resultSet.getString( 5 ) ) ) {
+		     !componistenString.equals( resultSet.getString( 6 ) ) ) {
 		    // Set componistenString to "Composer (composer-group)"
-		    componistenString += " (" + resultSet.getString( 5 ) + ")";
+		    componistenString += " (" + resultSet.getString( 6 ) + ")";
 		}
 		*/
 
 		final OpnameRecord opnameRecord= ( new OpnameRecord( resultSet.getString( 1 ),
+                                                                     resultSet.getString( 2 ),
 							             opusString,
-                                                                     resultSet.getString( 4 ),
                                                                      resultSet.getString( 5 ),
-							             resultSet.getString( 6 ),
+                                                                     resultSet.getString( 6 ),
 							             resultSet.getString( 7 ),
 							             resultSet.getString( 8 ),
 							             resultSet.getString( 9 ),
 							             resultSet.getString( 10 ),
 							             resultSet.getString( 11 ),
-							             resultSet.getInt( 12 ),
+							             resultSet.getString( 12 ),
 							             resultSet.getInt( 13 ),
 							             resultSet.getInt( 14 ),
-							             resultSet.getInt( 15 ) ) );
+							             resultSet.getInt( 15 ),
+							             resultSet.getInt( 16 ) ) );
                 if (!opnameRecordList.contains(opnameRecord)) {
                     opnameRecordList.add(opnameRecord);
                 }
@@ -441,7 +449,7 @@ class OpnameTableModel extends AbstractTableModel {
 
     public int getRowCount( ) { return opnameRecordList.size( ); }
 
-    public int getColumnCount( ) { return 9; }
+    public int getColumnCount( ) { return 10; }
 
     // Indicate the class for each column for setting the correct default renderer
     // see file:///home/cvengelen/java/tutorial/uiswing/components/table.html
@@ -466,8 +474,10 @@ class OpnameTableModel extends AbstractTableModel {
         case 0:
             return opnameRecord.mediumString;
         case 1:
-            return opnameRecord.opusString;
+            return opnameRecord.importTypeString;
         case 2:
+            return opnameRecord.opusString;
+        case 3:
             // Use the componistString, and add the componistenString if it is different from the componistString.
             // First check the componistString for null (should normally not be the case).
             String componistenString = opnameRecord.componistString;
@@ -491,17 +501,17 @@ class OpnameTableModel extends AbstractTableModel {
                 }
             }
             return componistenString;
-        case 3:
-            return opnameRecord.genreString;
         case 4:
-            return opnameRecord.typeString;
+            return opnameRecord.genreString;
         case 5:
-            return opnameRecord.musiciString;
+            return opnameRecord.typeString;
         case 6:
-            return opnameRecord.opnameDatumString;
+            return opnameRecord.musiciString;
         case 7:
-            return opnameRecord.opnamePlaatsString;
+            return opnameRecord.opnameDatumString;
         case 8:
+            return opnameRecord.opnamePlaatsString;
+        case 9:
             return opnameRecord.producersString;
         default:
             break;

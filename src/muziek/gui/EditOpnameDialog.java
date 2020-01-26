@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.logging.*;
 import java.text.*;
 import java.awt.*;
@@ -44,6 +47,12 @@ public class EditOpnameDialog {
     private MediumComboBox mediumComboBox;
     private int defaultMediumId = 0;
     private String mediumFilterString = null;
+
+    private ImportTypeComboBox importTypeComboBox;
+    private int defaultImportTypeId;
+
+    private Date defaultImportDatumDate;
+    private JSpinner importDatumSpinner;
 
     private OpusComboBox opusComboBox;
     private int defaultOpusId = 0;
@@ -82,6 +91,8 @@ public class EditOpnameDialog {
 
     private final String insertOpnameActionCommand = "insertOpname";
     private final String updateOpnameActionCommand = "updateOpname";
+
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     // Constructor for inserting a record in opname
     public EditOpnameDialog( Connection conn,
@@ -138,7 +149,8 @@ public class EditOpnameDialog {
 
 	try {
 	    Statement statement = conn.createStatement( );
-	    ResultSet resultSet = statement.executeQuery( "SELECT opname_plaats_id, opname_datum_id, " +
+	    ResultSet resultSet = statement.executeQuery( "SELECT import_type_id, import_datum, " +
+                                                          "opname_plaats_id, opname_datum_id, " +
 							  "producers_id, opname_techniek, mix_techniek " +
 							  "FROM opname " +
 							  "WHERE medium_id = " + defaultMediumId +
@@ -151,11 +163,13 @@ public class EditOpnameDialog {
 		return;
 	    }
 
-	    defaultOpnamePlaatsId = resultSet.getInt( 1 );
-	    defaultOpnameDatumId = resultSet.getInt( 2 );
-	    defaultProducersId = resultSet.getInt( 3 );
-	    defaultOpnameTechniekString = resultSet.getString( 4 );
-	    defaultMixTechniekString = resultSet.getString( 5 );
+            defaultImportTypeId = resultSet.getInt( 1 );
+            defaultImportDatumDate = resultSet.getDate( 2);
+            defaultOpnamePlaatsId = resultSet.getInt( 3 );
+	    defaultOpnameDatumId = resultSet.getInt( 4 );
+	    defaultProducersId = resultSet.getInt( 5 );
+	    defaultOpnameTechniekString = resultSet.getString( 6 );
+	    defaultMixTechniekString = resultSet.getString( 7 );
 
 	    // Make copies of default opname techniek and default mix techniek, so that if not touched,
 	    // these will be equal to the default. Note: do not copy variables, but really make new objects,
@@ -289,7 +303,64 @@ public class EditOpnameDialog {
 	container.add( mediumPanel, constraints );
 
 
-	///////////////////////////////////////////////////
+        //////////////////////////////////////////
+        // Import Type Combo Box, Import Datum
+        //////////////////////////////////////////
+
+        constraints.anchor = GridBagConstraints.EAST;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = 1;
+        container.add( new JLabel( "Import:" ), constraints );
+
+        // Setup a JComboBox for ImportType
+        importTypeComboBox = new ImportTypeComboBox( conn, defaultImportTypeId );
+        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
+                importDatumSpinner.setEnabled(false);
+            }
+            else {
+                importDatumSpinner.setEnabled(true);
+            }
+        } );
+
+        final JPanel importPanel = new JPanel();
+        importPanel.add( importTypeComboBox );
+
+        // Import datum
+        GregorianCalendar calendar = new GregorianCalendar( );
+        if ( defaultImportDatumDate == null ) {
+            defaultImportDatumDate = calendar.getTime( );
+        }
+        calendar.add( Calendar.YEAR, -50 );
+        Date earliestDate = calendar.getTime( );
+        calendar.add( Calendar.YEAR, 100 );
+        Date latestDate = calendar.getTime( );
+        SpinnerDateModel importDatumSpinnerDatemodel = new SpinnerDateModel(defaultImportDatumDate,
+                                                                            earliestDate,
+                                                                            latestDate,
+                                                                            Calendar.DAY_OF_MONTH );
+        importDatumSpinner = new JSpinner( importDatumSpinnerDatemodel );
+        importDatumSpinner.setEditor( new JSpinner.DateEditor( importDatumSpinner, "dd-MM-yyyy" ) );
+        importPanel.add( importDatumSpinner );
+
+        // Set the import datum to enabled or disabled according to the selected medium type ID
+        if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
+            importDatumSpinner.setEnabled(false);
+        }
+        else {
+            importDatumSpinner.setEnabled(true);
+        }
+
+        constraints.insets = new Insets( 5, 0, 5, 20 );
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
+        container.add( importPanel, constraints );
+
+
+        ///////////////////////////////////////////////////
 	// Opus pre-selection on componisten, genre, type
 	///////////////////////////////////////////////////
 
@@ -301,7 +372,7 @@ public class EditOpnameDialog {
             constraints.anchor = GridBagConstraints.EAST;
             constraints.insets = new Insets( 5, 20, 5, 5 );
 	    constraints.gridx = 0;
-	    constraints.gridy = 1;
+	    constraints.gridy = 2;
 	    constraints.gridwidth = 1;
 	    container.add( new JLabel( "Opus selection:" ), constraints );
 
@@ -448,7 +519,7 @@ public class EditOpnameDialog {
         constraints.anchor = GridBagConstraints.EAST;
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 2;
+	constraints.gridy = 3;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opus:" ), constraints );
 
@@ -507,7 +578,7 @@ public class EditOpnameDialog {
         constraints.anchor = GridBagConstraints.EAST;
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 4;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opname nummer:" ), constraints );
 
@@ -532,7 +603,7 @@ public class EditOpnameDialog {
         constraints.anchor = GridBagConstraints.EAST;
         constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
-	constraints.gridy = 4;
+	constraints.gridy = 5;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Tracks tabel:" ), constraints );
 
@@ -623,14 +694,14 @@ public class EditOpnameDialog {
 	final JButton insertTrackInTableButton = new JButton( "Insert" );
 	insertTrackInTableButton.setActionCommand( "insertTrackInTable" );
 	insertTrackInTableButton.setEnabled( false );
-	constraints.gridy = 5;
+	constraints.gridy = 6;
 	container.add( insertTrackInTableButton, constraints );
 
 	// Define Remove button next to table
 	final JButton removeTrackFromTableButton = new JButton( "Remove" );
 	removeTrackFromTableButton.setActionCommand( "removeTrackFromTable" );
 	removeTrackFromTableButton.setEnabled( false );
-	constraints.gridy = 6;
+	constraints.gridy = 7;
 	container.add( removeTrackFromTableButton, constraints );
 
 
@@ -1184,6 +1255,18 @@ public class EditOpnameDialog {
 				", opname_nummer = " + opnameNummer +
 				", musici_id = " + selectedMusiciId );
 
+        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
+        if ( importTypeId != 0 ) {
+            insertString += ", import_type_id = " + importTypeId;
+
+            String importDatumString = dateFormat.format( ( Date )importDatumSpinner.getValue( ) );
+            if ( importDatumString != null ) {
+                if (importDatumString.length() > 0) {
+                    insertString += ", import_datum = '" + importDatumString + "'";
+                }
+            }
+        }
+
 	int opnamePlaatsId = opnamePlaatsComboBox.getSelectedOpnamePlaatsId( );
 	if ( opnamePlaatsId != 0 ) insertString += ", opname_plaats_id = " + opnamePlaatsId;
 
@@ -1256,6 +1339,32 @@ public class EditOpnameDialog {
 	    // Add selectedMediumId to update string
 	    addToUpdateString( "medium_id = " + selectedMediumId );
 	}
+
+        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
+        // Check if importTypeId changed to a non-zero value
+        if ( importTypeId != 0 ) {
+            if (importTypeId != defaultImportTypeId) {
+                addToUpdateString("import_type_id = " + importTypeId);
+            }
+
+            Date importDatumDate = (Date)importDatumSpinner.getValue();
+            // Check if importDatumDate changed
+            if (!importDatumDate.equals(defaultImportDatumDate)) {
+                String importDatumString = dateFormat.format((Date)importDatumSpinner.getValue());
+                if (importDatumString != null) {
+                    if (importDatumString.length() > 0) {
+                        addToUpdateString("import_datum = '" + importDatumString + "'");
+                    }
+                }
+            }
+        }
+        else {
+            // Import type ID is 0: check for change
+            if (0 != defaultImportTypeId) {
+                addToUpdateString("import_type_id = NULL");
+                addToUpdateString("import_datum = NULL");
+            }
+        }
 
 	int selectedOpusId = opusComboBox.getSelectedOpusId( );
 	// Check if selectedOpusId changed

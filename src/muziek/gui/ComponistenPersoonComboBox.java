@@ -28,7 +28,7 @@ public class ComponistenPersoonComboBox extends JComboBox< String > {
     private Object parentObject;
 
     // Map of number of composers in componisten group, indexed by componisten_id
-    private Map< Integer, Integer > nComponistenMap = new HashMap< >( );
+    private Map< Integer, Integer > numComponistenMap = new HashMap< >( );
 
     // Map of persoon_id indexed by composer (a single person)
     private Map< String, Integer > componistenPersoonMap = new HashMap< >( );
@@ -97,9 +97,9 @@ public class ComponistenPersoonComboBox extends JComboBox< String > {
 	    addItem( newComponistenString );
 	}
 
-	if ( !nComponistenMap.isEmpty( ) ) {
+	if ( !numComponistenMap.isEmpty( ) ) {
 	    // Remove all items in the nComponisten hash table
-	    nComponistenMap.clear( );
+	    numComponistenMap.clear( );
 	}
 
 	// Get the number of groups of composers a composer belongs to
@@ -112,7 +112,7 @@ public class ComponistenPersoonComboBox extends JComboBox< String > {
 
 	    while ( resultSet.next( ) ) {
 		// Store the number of groups of composers in , indexed by persoon_id
-		nComponistenMap.put( resultSet.getInt( 1 ), resultSet.getInt( 2 ) );
+		numComponistenMap.put( resultSet.getInt( 1 ), resultSet.getInt( 2 ) );
 	    }
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
@@ -159,36 +159,37 @@ public class ComponistenPersoonComboBox extends JComboBox< String > {
 
 		// If the composer is a member of more than one group of composers,
 		// then add a separate entry in the combobox for the composer as a person
-		if ( nComponistenMap.containsKey( resultSet.getInt( 3 ) ) ) {
-		    try {
-			int nComponisten = nComponistenMap.get( resultSet.getInt( 3 ) );
-			if ( nComponisten > 1 ) {
-			    String componistenPersoonString = componistString + " (*)";
+                // Skip if Composer does not have any persoon.
+                if ( resultSet.getInt( 3 ) != 0 ) {
+                    if (numComponistenMap.containsKey(resultSet.getInt(3))) {
+                        try {
+                            int nComponisten = numComponistenMap.get(resultSet.getInt(3));
+                            if (nComponisten > 1) {
+                                String componistenPersoonString = componistString + " (*)";
 
-			    // Check if the componistenPersoonMap does not already contains this entry
-			    if ( !componistenPersoonMap.containsKey( componistenPersoonString ) ) {
-				// Store the persoon_id in the componistenPersoonMap indexed by the componistString
-				componistenPersoonMap.put( componistenPersoonString, resultSet.getInt( 3 ) );
+                                // Check if the componistenPersoonMap does not already contains this entry
+                                if (!componistenPersoonMap.containsKey(componistenPersoonString)) {
+                                    // Store the persoon_id in the componistenPersoonMap indexed by the componistString
+                                    componistenPersoonMap.put(componistenPersoonString, resultSet.getInt(3));
 
-				// Add the componistString to the combo box
-				addItem( componistenPersoonString );
+                                    // Add the componistString to the combo box
+                                    addItem(componistenPersoonString);
 
-				// Check if this is the selected componisten
-				if ( resultSet.getInt( 3 ) == selectedComponistenPersoonId ) {
-				    // Select this composer
-				    setSelectedItem( componistenPersoonString );
-				}
-			    }
-			}
-		    }
-		    catch ( Exception exception ) {
-			    logger.severe( "nComponistenMap exception for key " + resultSet.getString( 3 ) +
-					   ": " + exception.getMessage( ) );
-		    }
-		}
-		else {
-		    logger.severe( "nComponistenMap does not contain key " + resultSet.getString( 3 ) );
-		}
+                                    // Check if this is the selected componisten
+                                    if (resultSet.getInt(3) == selectedComponistenPersoonId) {
+                                        // Select this composer
+                                        setSelectedItem(componistenPersoonString);
+                                    }
+                                }
+                            }
+                        } catch (Exception exception) {
+                            logger.severe("numComponistenMap exception for key " + resultSet.getInt(3) +
+                                                  ": " + exception.getMessage());
+                        }
+                    } else {
+                        logger.severe("numComponistenMap does not contain key " + resultSet.getInt(3));
+                    }
+                }
 
 		String componistenString = resultSet.getString( 2 );
 		if ( !( componistenString.equals( componistString ) ) ) {

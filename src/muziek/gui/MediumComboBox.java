@@ -112,11 +112,10 @@ public class MediumComboBox extends JComboBox {
 	try {
 	    // Fill the combo box and hash table
 	    String mediumQueryString =
-		"SELECT medium_id, genre, medium_type, import_type, medium_titel, uitvoerenden FROM medium " +
+		"SELECT medium_id, genre, medium_type, medium_titel, uitvoerenden FROM medium " +
 		"LEFT JOIN genre ON medium.genre_id = genre.genre_id " +
 		"LEFT JOIN subgenre ON medium.subgenre_id = subgenre.subgenre_id " +
                 "LEFT JOIN medium_type ON medium.medium_type_id = medium_type.medium_type_id " +
-                "LEFT JOIN import_type ON medium.import_type_id = import_type.import_type_id " +
 		"LEFT JOIN opslag ON medium.opslag_id = opslag.opslag_id ";
 
 	    // Check if a medium filter is present, or genre is selected, or medium type is selected
@@ -168,15 +167,9 @@ public class MediumComboBox extends JComboBox {
                 if ( ( mediumTypeString != null ) && !( mediumTypeString.isEmpty( ) ) ) {
                     mediumString += " (" + mediumTypeString + ")";
                 }
-                else {
-                    final String importTypeString = resultSet.getString(4);
-                    if ( ( importTypeString != null ) && !( importTypeString.isEmpty( ) ) ) {
-                        mediumString += " (" + importTypeString + ")";
-                    }
-                }
-                mediumString += ": " + resultSet.getString( 5 );
+                mediumString += ": " + resultSet.getString( 4 );
 
-		String uitvoerendenString = resultSet.getString( 6 );
+		String uitvoerendenString = resultSet.getString( 5 );
 		if ( ( uitvoerendenString != null ) && ( uitvoerendenString.length( ) > 0 ) ) {
 		    mediumString += "; " + uitvoerendenString;
 		}

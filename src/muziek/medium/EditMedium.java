@@ -41,9 +41,6 @@ public class EditMedium extends JInternalFrame {
     private int selectedLabelId = 0;
     private LabelComboBox labelComboBox;
 
-    private int selectedImportTypeId = 0;
-    private ImportTypeComboBox importTypeComboBox;
-
     private int selectedOpslagId = 0;
     private OpslagComboBox opslagComboBox;
 
@@ -74,7 +71,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         };
 
@@ -91,7 +87,6 @@ public class EditMedium extends JInternalFrame {
                                                         selectedMediumTypeId,
                                                         selectedMediumStatusId,
                                                         selectedLabelId,
-                                                        selectedImportTypeId,
                                                         selectedOpslagId );
             }
 
@@ -178,7 +173,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId  );
         } );
 
@@ -212,7 +206,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -246,7 +239,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -280,7 +272,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -314,41 +305,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
-                                                    selectedOpslagId );
-        } );
-
-        /////////////////////////////////
-        // Import Type Combo Box
-        /////////////////////////////////
-
-        constraints.insets = new Insets( 5, 20, 5, 5 );
-        constraints.gridx = 0;
-        constraints.gridy = 7;
-        constraints.anchor = GridBagConstraints.EAST;
-        container.add( new JLabel( "ImportType:" ), constraints );
-
-        importTypeComboBox = new ImportTypeComboBox( connection, selectedImportTypeId );
-
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-        constraints.gridx = GridBagConstraints.RELATIVE;
-        constraints.anchor = GridBagConstraints.WEST;
-        container.add( importTypeComboBox, constraints );
-
-        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
-            // Get the selected import type ID from the combo box
-            selectedImportTypeId = importTypeComboBox.getSelectedImportTypeId( );
-
-            // Setup the medium table for the selected import type
-            mediumTableModel.setupMediumTableModel( mediumTitelFilterTextField.getText( ),
-                                                    uitvoerendenFilterTextField.getText( ),
-                                                    opmerkingenFilterTextField.getText( ),
-                                                    selectedGenreId,
-                                                    selectedSubgenreId,
-                                                    selectedMediumTypeId,
-                                                    selectedMediumStatusId,
-                                                    selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -382,7 +338,6 @@ public class EditMedium extends JInternalFrame {
                                                     selectedMediumTypeId,
                                                     selectedMediumStatusId,
                                                     selectedLabelId,
-                                                    selectedImportTypeId,
                                                     selectedOpslagId );
         } );
 
@@ -436,20 +391,18 @@ public class EditMedium extends JInternalFrame {
 	mediumTable.getColumnModel( ).getColumn( 0 ).setPreferredWidth(  50 );  // id
 	mediumTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth( 200 );  // medium titel
 	mediumTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 200 );  // uitvoerenden
-	mediumTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 100 );  // genre
+	mediumTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth(  80 );  // genre
 	mediumTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 100 );  // subgenre
-	mediumTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth(  80 );  // mediumType
+	mediumTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth(  70 );  // mediumType
 	mediumTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth(  80 );  // mediumStatus
 	mediumTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 100 );  // label
 	mediumTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 100 );  // labelNummer
 	mediumTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 100 );  // medium datum
-        mediumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 80 );  // importType
-        mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 100 );  // import datum
-	mediumTable.getColumnModel( ).getColumn( 12 ).setPreferredWidth( 100 );  // opslag
-	mediumTable.getColumnModel( ).getColumn( 13 ).setPreferredWidth( 200 );  // opmerkingen
+	mediumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 100 );  // opslag
+	mediumTable.getColumnModel( ).getColumn( 11 ).setPreferredWidth( 200 );  // opmerkingen
 
 	// Set vertical size just enough for 20 entries
-	mediumTable.setPreferredScrollableViewportSize( new Dimension( 1410, 320 ) );
+	mediumTable.setPreferredScrollableViewportSize( new Dimension( 1400, 320 ) );
 
 	final DefaultCellEditor genreDefaultCellEditor =
 	    new DefaultCellEditor( new GenreComboBox( connection, 0 ) );
@@ -629,7 +582,6 @@ public class EditMedium extends JInternalFrame {
 							    selectedMediumTypeId,
 							    selectedMediumStatusId,
 							    selectedLabelId,
-							    selectedImportTypeId,
 							    selectedOpslagId );
 		} else {
 		    int selectedRow = mediumListSelectionListener.getSelectedRow( );
@@ -666,7 +618,6 @@ public class EditMedium extends JInternalFrame {
 								selectedMediumTypeId,
 							        selectedMediumStatusId,
 								selectedLabelId,
-                                                                selectedImportTypeId,
 							        selectedOpslagId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			String selectedMediumTitelString = mediumTableModel.getMediumTitelString( selectedRow );
@@ -742,7 +693,6 @@ public class EditMedium extends JInternalFrame {
 								selectedMediumTypeId,
 							        selectedMediumStatusId,
 								selectedLabelId,
-                                                                selectedImportTypeId,
 				                                selectedOpslagId );
 		    } else if ( actionEvent.getActionCommand( ).equals( "enableRowEdit" ) ) {
 			// Allow to edit the selected row
@@ -841,7 +791,7 @@ public class EditMedium extends JInternalFrame {
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	setSize( 1470, 850 );
+	setSize( 1470, 800 );
         setLocation( x, y );
 	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	setVisible(true);

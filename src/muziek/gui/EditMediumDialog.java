@@ -49,12 +49,6 @@ public class EditMediumDialog {
     private Date defaultMediumDatumDate;
     private JSpinner mediumDatumSpinner;
 
-    private ImportTypeComboBox importTypeComboBox;
-    private int defaultImportTypeId;
-
-    private Date defaultImportDatumDate;
-    private JSpinner importDatumSpinner;
-
     private GenreComboBox genreComboBox;
     private int defaultGenreId = 0;
 
@@ -116,8 +110,7 @@ public class EditMediumDialog {
 	    ResultSet resultSet = statement.executeQuery( "SELECT medium_titel, uitvoerenden, " +
 							  "medium_type_id, aantal, label_id, label_nummer, " +
 							  "medium_datum, genre_id, subgenre_id, opslag_id, " +
-							  "opmerkingen, medium_status_id, " +
-                                                          "import_type_id, import_datum " +
+							  "opmerkingen, medium_status_id " +
 							  "FROM medium WHERE medium_id = " + mediumId );
 	    if ( ! resultSet.next( ) ) {
 		logger.severe( "Could not get record for medium_id " + mediumId + " in medium" );
@@ -136,8 +129,6 @@ public class EditMediumDialog {
 	    defaultOpslagId = resultSet.getInt( 10 );
 	    defaultOpmerkingenString = resultSet.getString( 11 );
 	    defaultMediumStatusId = resultSet.getInt( 12 );
-            defaultImportTypeId = resultSet.getInt( 13 );
-            defaultImportDatumDate = resultSet.getDate( 14 );
 	} catch ( SQLException ex ) {
 	    logger.severe( "SQLException: " + ex.getMessage( ) );
 	}
@@ -343,57 +334,10 @@ public class EditMediumDialog {
 	// Set the medium components to enabled or disabled according to the selected medium type ID
         setMediumComponentsEnabled(mediumTypeComboBox.getSelectedMediumTypeId() != 0);
 
-	// Setup a JComboBox for ImportType
-        importTypeComboBox = new ImportTypeComboBox( conn, defaultImportTypeId );
-        importTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
-            if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
-                importDatumSpinner.setEnabled(false);
-            }
-            else {
-                importDatumSpinner.setEnabled(true);
-            }
-        } );
-
-        constraints.gridx = 0;
-        constraints.gridy = 8;
-        constraints.gridwidth = 1;
-        container.add( new JLabel( "Import type:" ), constraints );
-
-        constraints.gridx = GridBagConstraints.RELATIVE;
-        container.add( importTypeComboBox, constraints );
-
-        // Import datum
-        if ( defaultImportDatumDate == null ) {
-            defaultImportDatumDate = calendar.getTime( );
-        }
-        SpinnerDateModel importDatumSpinnerDatemodel = new SpinnerDateModel( defaultImportDatumDate,
-                                                                             earliestDate,
-                                                                             latestDate,
-                                                                             Calendar.DAY_OF_MONTH );
-        importDatumSpinner = new JSpinner( importDatumSpinnerDatemodel );
-        importDatumSpinner.setEditor( new JSpinner.DateEditor( importDatumSpinner, "dd-MM-yyyy" ) );
-        constraints.gridx = 0;
-        constraints.gridy = 9;
-        constraints.gridwidth = 1;
-        container.add( new JLabel( "Import datum:" ), constraints );
-
-        constraints.gridx = GridBagConstraints.RELATIVE;
-        constraints.gridwidth = 3;
-        container.add( importDatumSpinner, constraints );
-
-        // Set the import datum to enabled or disabled according to the selected medium type ID
-        if (importTypeComboBox.getSelectedImportTypeId( ) == 0) {
-            importDatumSpinner.setEnabled(false);
-        }
-        else {
-            importDatumSpinner.setEnabled(true);
-        }
-
-
         // Setup a JComboBox for genre
 	genreComboBox = new GenreComboBox( conn, defaultGenreId );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
+	constraints.gridy = 8;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Genre:" ), constraints );
 
@@ -401,11 +345,10 @@ public class EditMediumDialog {
 	constraints.gridwidth = 3;
 	container.add( genreComboBox, constraints );
 
-
 	// Setup a JComboBox for subgenre
 	subgenreComboBox = new SubgenreComboBox( conn, defaultSubgenreId );
 	constraints.gridx = 0;
-	constraints.gridy = 11;
+	constraints.gridy = 9;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Subgenre:" ), constraints );
 
@@ -417,7 +360,7 @@ public class EditMediumDialog {
 	// Setup a JComboBox for opslag
 	opslagComboBox = new OpslagComboBox( conn, dialog, defaultOpslagId );
 	constraints.gridx = 0;
-	constraints.gridy = 12;
+	constraints.gridy = 10;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opslag:" ), constraints );
 
@@ -490,7 +433,7 @@ public class EditMediumDialog {
 	editOpslagButton.addActionListener( new EditOpslagActionListener( ) );
 
 	constraints.gridx = 0;
-	constraints.gridy = 13;
+	constraints.gridy = 11;
 	constraints.gridwidth = 1;
 	container.add( new JLabel( "Opmerkingen:" ), constraints );
 
@@ -531,12 +474,12 @@ public class EditMediumDialog {
 	buttonPanel.add( cancelMediumButton );
 
 	constraints.gridx = 1;
-	constraints.gridy = 14;
+	constraints.gridy = 12;
 	constraints.gridwidth = 2;
 	container.add( buttonPanel, constraints );
 
 
-	dialog.setSize( 900, 700 );
+	dialog.setSize( 900, 550 );
 	dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	dialog.setVisible( true );
     }
@@ -552,9 +495,9 @@ public class EditMediumDialog {
 	    return false;
 	}
 
-        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 && importTypeComboBox.getSelectedImportTypeId() == 0 ) {
+        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 ) {
             JOptionPane.showMessageDialog( dialog,
-                                           "Medium type en Import type niet ingevuld",
+                                           "Medium type niet ingevuld",
                                            "Insert Medium error",
                                            JOptionPane.ERROR_MESSAGE );
             return false;
@@ -610,18 +553,6 @@ public class EditMediumDialog {
             return false;
         }
         insertString += ", medium_status_id = " + mediumStatusId;
-
-        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
-        if ( importTypeId != 0 ) {
-            insertString += ", import_type_id = " + importTypeId;
-
-            String importDatumString = dateFormat.format( ( Date )importDatumSpinner.getValue( ) );
-            if ( importDatumString != null ) {
-                if (importDatumString.length() > 0) {
-                    insertString += ", import_datum = '" + importDatumString + "'";
-                }
-            }
-        }
 
 	int genreId = genreComboBox.getSelectedGenreId( );
 	if ( genreId != 0 ) insertString += ", genre_id = " + genreId;
@@ -697,9 +628,9 @@ public class EditMediumDialog {
 	    addToUpdateString( "medium_titel = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
 	}
 
-        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 && importTypeComboBox.getSelectedImportTypeId() == 0 ) {
+        if ( mediumTypeComboBox.getSelectedMediumTypeId() == 0 ) {
             JOptionPane.showMessageDialog( dialog,
-                                           "Medium type en Import type niet ingevuld",
+                                           "Medium type niet ingevuld",
                                            "Update Medium error",
                                            JOptionPane.ERROR_MESSAGE );
             return false;
@@ -783,32 +714,6 @@ public class EditMediumDialog {
         // Check if mediumStatusId changed to a non-zero value
         if ((mediumStatusId != 0) && (mediumStatusId != defaultMediumStatusId)) {
             addToUpdateString("medium_status_id = " + mediumStatusId);
-        }
-
-        int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
-        // Check if importTypeId changed to a non-zero value
-        if ( importTypeId != 0 ) {
-            if (importTypeId != defaultImportTypeId) {
-                addToUpdateString("import_type_id = " + importTypeId);
-            }
-
-            Date importDatumDate = (Date)importDatumSpinner.getValue();
-            // Check if importDatumDate changed
-            if (!importDatumDate.equals(defaultImportDatumDate)) {
-                String importDatumString = dateFormat.format((Date)importDatumSpinner.getValue());
-                if (importDatumString != null) {
-                    if (importDatumString.length() > 0) {
-                        addToUpdateString("import_datum = '" + importDatumString + "'");
-                    }
-                }
-            }
-        }
-        else {
-            // Import type ID is 0: check for change
-            if (0 != defaultImportTypeId) {
-                addToUpdateString("import_type_id = NULL");
-                addToUpdateString("import_datum = NULL");
-            }
         }
 
 	int selectedGenreId = genreComboBox.getSelectedGenreId( );
