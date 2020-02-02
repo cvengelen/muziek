@@ -676,14 +676,15 @@ public class EditOpname extends JInternalFrame {
 
         opnameTable.getColumnModel( ).getColumn( 0 ).setPreferredWidth( 200 );  // medium
         opnameTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth(  50 );  // import type
-	opnameTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 200 );  // opus
-	opnameTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 150 );  // componisten
-	opnameTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth(  80 );  // genre
-	opnameTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth(  80 );  // type
-	opnameTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 150 );  // Musici
-	opnameTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 140 );  // Opname datum
-	opnameTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 150 );  // Opname plaats
-	opnameTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 150 );  // producers
+	opnameTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 100 );  // import datum
+        opnameTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 200 );  // opus
+	opnameTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 150 );  // componisten
+	opnameTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth(  80 );  // genre
+	opnameTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth(  80 );  // type
+	opnameTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 150 );  // Musici
+	opnameTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 140 );  // Opname datum
+	opnameTable.getColumnModel( ).getColumn( 9 ).setPreferredWidth( 150 );  // Opname plaats
+	opnameTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 150 );  // producers
 
 	// Set vertical size just enough for 10 entries
 	opnameTable.setPreferredScrollableViewportSize( new Dimension( 1300, 240 ) );

@@ -18,6 +18,8 @@ import java.sql.Statement;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
@@ -31,13 +33,16 @@ class OpnameTableModel extends AbstractTableModel {
     private final Connection connection;
     private final JFrame parentFrame;
 
-    private final String[ ] headings = { "Medium", "Import", "Opus", "Componisten", "Genre", "Type",
-				   "Musici", "Opname datum", "Opname plaats", "Producers" };
+    private final String[ ] headings = { "Medium", "Import", "Import datum", "Opus", "Componisten", "Genre",
+                                         "Type","Musici", "Opname datum", "Opname plaats", "Producers" };
+
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd" );
 
     private class OpnameRecord {
 	String	mediumString;
 	String  importTypeString;
-	String	opusString;
+        Date    importDatumDate;
+        String	opusString;
         String  componistString;
 	String	componistenString;
 	String	genreString;
@@ -53,6 +58,7 @@ class OpnameTableModel extends AbstractTableModel {
 
 	OpnameRecord( String mediumString,
                       String importTypeString,
+                      Date   importDatumDate,
                       String opusString,
                       String componistString,
                       String componistenString,
@@ -68,6 +74,7 @@ class OpnameTableModel extends AbstractTableModel {
                       int    musiciId ) {
 	    this.mediumString = mediumString;
 	    this.importTypeString = importTypeString;
+	    this.importDatumDate = importDatumDate;
 	    this.opusString = opusString;
             this.componistString = componistString;
 	    this.componistenString = componistenString;
@@ -94,6 +101,7 @@ class OpnameTableModel extends AbstractTableModel {
             // No check for componistString!
             if (!OpnameTableModel.stringEquals(mediumString, opnameRecord.mediumString)) return false;
             if (!OpnameTableModel.stringEquals(importTypeString, opnameRecord.importTypeString)) return false;
+            if (importDatumDate != opnameRecord.importDatumDate) return false;
             if (!OpnameTableModel.stringEquals(opusString, opnameRecord.opusString)) return false;
             if (!OpnameTableModel.stringEquals(componistenString, opnameRecord.componistenString)) return false;
             if (!OpnameTableModel.stringEquals(genreString, opnameRecord.genreString)) return false;
@@ -173,7 +181,7 @@ class OpnameTableModel extends AbstractTableModel {
 	try {
 	    String opnameQueryString =
 		"SELECT DISTINCT " +
-                "medium.medium_titel, import_type.import_type, " +
+                "medium.medium_titel, import_type.import_type, opname.import_datum, " +
                 "opus.opus_titel, opus.opus_nummer, " +
 		"componist.persoon, componisten.componisten, " +
 		"genre.genre, type.type, " +
@@ -399,8 +407,8 @@ class OpnameTableModel extends AbstractTableModel {
 	    // Add all query results to the list
 	    while ( resultSet.next( ) ) {
 		// Get the opus title and opus number, if present
-		String opusString = resultSet.getString( 3 );
-		String opusNummerString = resultSet.getString( 4 );
+		String opusString = resultSet.getString( 4 );
+		String opusNummerString = resultSet.getString( 5 );
 		if ( ( opusNummerString != null ) && ( opusNummerString.length( ) > 0 ) ) {
 		    opusString += ", " + opusNummerString;
 		}
@@ -414,21 +422,32 @@ class OpnameTableModel extends AbstractTableModel {
 		}
 		*/
 
-		final OpnameRecord opnameRecord= ( new OpnameRecord( resultSet.getString( 1 ),
+                String importDatumString = resultSet.getString( 3 );
+                Date importDatumDate = null;
+                if ( ( importDatumString != null ) && ( importDatumString.length( ) > 0 ) ) {
+                    try {
+                        importDatumDate = dateFormat.parse( importDatumString );
+                    } catch( ParseException parseException ) {
+                        logger.severe( "Datum parse exception: " + parseException.getMessage( ) );
+                    }
+                }
+
+                final OpnameRecord opnameRecord= ( new OpnameRecord( resultSet.getString( 1 ),
                                                                      resultSet.getString( 2 ),
+							             importDatumDate,
 							             opusString,
-                                                                     resultSet.getString( 5 ),
                                                                      resultSet.getString( 6 ),
-							             resultSet.getString( 7 ),
+                                                                     resultSet.getString( 7 ),
 							             resultSet.getString( 8 ),
 							             resultSet.getString( 9 ),
 							             resultSet.getString( 10 ),
 							             resultSet.getString( 11 ),
 							             resultSet.getString( 12 ),
-							             resultSet.getInt( 13 ),
+							             resultSet.getString( 13 ),
 							             resultSet.getInt( 14 ),
 							             resultSet.getInt( 15 ),
-							             resultSet.getInt( 16 ) ) );
+							             resultSet.getInt( 16 ),
+							             resultSet.getInt( 17 ) ) );
                 if (!opnameRecordList.contains(opnameRecord)) {
                     opnameRecordList.add(opnameRecord);
                 }
@@ -449,7 +468,7 @@ class OpnameTableModel extends AbstractTableModel {
 
     public int getRowCount( ) { return opnameRecordList.size( ); }
 
-    public int getColumnCount( ) { return 10; }
+    public int getColumnCount( ) { return 11; }
 
     // Indicate the class for each column for setting the correct default renderer
     // see file:///home/cvengelen/java/tutorial/uiswing/components/table.html
@@ -476,8 +495,13 @@ class OpnameTableModel extends AbstractTableModel {
         case 1:
             return opnameRecord.importTypeString;
         case 2:
-            return opnameRecord.opusString;
+            // Check if importDatumDate is present
+            if ( opnameRecord.importDatumDate == null ) return "";
+            // Convert the Date object to a string
+            return dateFormat.format( opnameRecord.importDatumDate );
         case 3:
+            return opnameRecord.opusString;
+        case 4:
             // Use the componistString, and add the componistenString if it is different from the componistString.
             // First check the componistString for null (should normally not be the case).
             String componistenString = opnameRecord.componistString;
@@ -501,23 +525,23 @@ class OpnameTableModel extends AbstractTableModel {
                 }
             }
             return componistenString;
-        case 4:
-            return opnameRecord.genreString;
         case 5:
-            return opnameRecord.typeString;
+            return opnameRecord.genreString;
         case 6:
-            return opnameRecord.musiciString;
+            return opnameRecord.typeString;
         case 7:
-            return opnameRecord.opnameDatumString;
+            return opnameRecord.musiciString;
         case 8:
-            return opnameRecord.opnamePlaatsString;
+            return opnameRecord.opnameDatumString;
         case 9:
+            return opnameRecord.opnamePlaatsString;
+        case 10:
             return opnameRecord.producersString;
         default:
             break;
         }
 
-	return "";
+        return "";
     }
 
     public String getColumnName( int column ) {
