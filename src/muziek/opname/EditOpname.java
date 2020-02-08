@@ -17,6 +17,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
+import java.util.ArrayList;
 import java.util.logging.*;
 
 import muziek.gui.*;
@@ -704,11 +705,15 @@ public class EditOpname extends JInternalFrame {
 	// Define the open opname dialog button because it is used by the list selection listener
 	final JButton openOpnameDialogButton = new JButton( "Open Dialog" );
 
+        // Define the update opname import dialog button because it is used by the list selection listener
+        final JButton updateOpnameImportDialogButton = new JButton( "Update Import Dialog" );
+
 	// Get the selection model related to the rekening_mutatie table
 	final ListSelectionModel opnameListSelectionModel = opnameTable.getSelectionModel( );
 
 	class OpnameListSelectionListener implements ListSelectionListener {
 	    private int selectedRow = -1;
+	    private ArrayList<Integer> selectedRows = new ArrayList<Integer>();
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -717,16 +722,27 @@ public class EditOpname extends JInternalFrame {
 		// Ignore if nothing is selected
 		if ( opnameListSelectionModel.isSelectionEmpty( ) ) {
 		    selectedRow = -1;
-		    openOpnameDialogButton.setEnabled( false );
+                    openOpnameDialogButton.setEnabled( false );
+                    updateOpnameImportDialogButton.setEnabled( false );
 		    return;
 		}
 
-		int viewRow = opnameListSelectionModel.getMinSelectionIndex( );
-		selectedRow = opnameTableSorter.modelIndex( viewRow );
-		openOpnameDialogButton.setEnabled( true );
+		int firstRow = opnameListSelectionModel.getMinSelectionIndex( );
+		selectedRow = opnameTableSorter.modelIndex( firstRow );
+                openOpnameDialogButton.setEnabled( true );
+                updateOpnameImportDialogButton.setEnabled( true );
+
+		selectedRows.clear();
+                int lastRow = opnameListSelectionModel.getMaxSelectionIndex();
+                for (int row = firstRow; row <= lastRow; row++ ) {
+                    int sortedRow = opnameTableSorter.modelIndex(row);
+                    logger.info("row: " + Integer.toString(row) + ", sorted row: " + Integer.toString(sortedRow));
+                    selectedRows.add(sortedRow);
+                }
 	    }
 
-	    int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow( ) { return selectedRow; }
+	    ArrayList<Integer> getSelectedRows( ) { return selectedRows; }
 	}
 
 	// Add opnameListSelectionListener object to the selection model of the opname table
@@ -782,7 +798,8 @@ public class EditOpname extends JInternalFrame {
 		    setVisible( false );
                     dispose();
 		    return;
-		} else if ( actionEvent.getActionCommand( ).equals( "new" ) ) {
+		}
+		else if ( actionEvent.getActionCommand( ).equals( "new" ) ) {
 		    // Insert new opname record
 		    new EditOpnameDialog( connection, parentFrame,
                                           selectedMediumId,
@@ -797,7 +814,39 @@ public class EditOpname extends JInternalFrame {
                                           selectedOpnameDatumId,
                                           selectedOpnamePlaatsId,
                                           selectedProducersId );
-		} else {
+                }
+                else if ( actionEvent.getActionCommand( ).equals( "updateOpnameImport" ) ) {
+                    ArrayList<Integer> selectedRows = opnameListSelectionListener.getSelectedRows( );
+                    if ( selectedRows.isEmpty() ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen opnames geselecteerd",
+                                                       "Opname frame error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+                    ArrayList<OpnameKey> opnameKeys = new ArrayList<OpnameKey>();
+                    for ( int selectedRow: selectedRows ) {
+                        opnameKeys.add(opnameTableModel.getSelectedOpnameKey(selectedRow));
+                    }
+                    new EditOpnameImportDialog(connection, parentFrame, selectedImportTypeId, opnameKeys);
+
+                    // Records may have been modified: setup the table model again
+                    opnameTableModel.setupOpnameTableModel( selectedMediumId,
+                                                            selectedMediumStatusId,
+                                                            selectedImportTypeId,
+                                                            opusFilterTextField.getText( ),
+                                                            selectedComponistenPersoonId,
+                                                            selectedComponistenId,
+                                                            selectedGenreId,
+                                                            selectedTypeId,
+                                                            selectedPersoonAllMusiciId,
+                                                            selectedMusiciId,
+                                                            selectedMusiciEnsembleId,
+                                                            selectedOpnameDatumId,
+                                                            selectedOpnamePlaatsId,
+                                                            selectedProducersId );
+		}
+		else {
 		    int selectedRow = opnameListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
 			JOptionPane.showMessageDialog( parentFrame,
@@ -865,12 +914,15 @@ public class EditOpname extends JInternalFrame {
 	newOpnameButton.addActionListener( buttonActionListener );
 	buttonPanel.add( newOpnameButton );
 
-
 	openOpnameDialogButton.setActionCommand( "openDialog" );
 	openOpnameDialogButton.setEnabled( false );
 	openOpnameDialogButton.addActionListener( buttonActionListener );
 	buttonPanel.add( openOpnameDialogButton );
 
+        updateOpnameImportDialogButton.setActionCommand( "updateOpnameImport" );
+        updateOpnameImportDialogButton.setEnabled( false );
+        updateOpnameImportDialogButton.addActionListener( buttonActionListener );
+        buttonPanel.add( updateOpnameImportDialogButton );
 
 	final JButton closeButton = new JButton( "Close" );
 	closeButton.setActionCommand( "close" );
