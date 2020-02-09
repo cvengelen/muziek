@@ -727,17 +727,19 @@ public class EditOpname extends JInternalFrame {
 		    return;
 		}
 
-		int firstRow = opnameListSelectionModel.getMinSelectionIndex( );
-		selectedRow = opnameTableSorter.modelIndex( firstRow );
+		int minSelectionIndex = opnameListSelectionModel.getMinSelectionIndex( );
+		selectedRow = opnameTableSorter.modelIndex( minSelectionIndex );
                 openOpnameDialogButton.setEnabled( true );
                 updateOpnameImportDialogButton.setEnabled( true );
 
 		selectedRows.clear();
-                int lastRow = opnameListSelectionModel.getMaxSelectionIndex();
-                for (int row = firstRow; row <= lastRow; row++ ) {
-                    int sortedRow = opnameTableSorter.modelIndex(row);
-                    logger.info("row: " + Integer.toString(row) + ", sorted row: " + Integer.toString(sortedRow));
-                    selectedRows.add(sortedRow);
+                int maxSelectionIndex = opnameListSelectionModel.getMaxSelectionIndex();
+                for (int selectionIndex = minSelectionIndex; selectionIndex <= maxSelectionIndex; selectionIndex++ ) {
+                    if (opnameListSelectionModel.isSelectedIndex(selectionIndex)) {
+                        int sortedRow = opnameTableSorter.modelIndex(selectionIndex);
+                        logger.info("row: " + Integer.toString(selectionIndex) + ", sorted row: " + Integer.toString(sortedRow));
+                        selectedRows.add(sortedRow);
+                    }
                 }
 	    }
 
@@ -828,7 +830,7 @@ public class EditOpname extends JInternalFrame {
                     for ( int selectedRow: selectedRows ) {
                         opnameKeys.add(opnameTableModel.getSelectedOpnameKey(selectedRow));
                     }
-                    new EditOpnameImportDialog(connection, parentFrame, selectedImportTypeId, opnameKeys);
+                    new EditOpnameImportDialog(connection, parentFrame, opnameKeys);
 
                     // Records may have been modified: setup the table model again
                     opnameTableModel.setupOpnameTableModel( selectedMediumId,

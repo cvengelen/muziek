@@ -41,25 +41,24 @@ public class EditOpnameImportDialog {
     private ArrayList<OpnameKey> opnameKeys;
 
     private ImportTypeComboBox importTypeComboBox;
-    private int defaultImportTypeId;
+    private static int defaultImportTypeId;
 
     private JSpinner importDatumSpinner;
+    private static Date defaultImportDatum;
 
     private int nUpdate = 0;
 
     private final String insertOpnameActionCommand = "insertOpname";
     private final String updateOpnameActionCommand = "updateOpname";
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     // Constructor
-    public EditOpnameImportDialog(Connection conn,
-                                  Object     parentObject,
-                                  int        defaultImportTypeId,
+    public EditOpnameImportDialog(Connection           conn,
+                                  Object               parentObject,
                                   ArrayList<OpnameKey> opnameKeys ) {
 	this.conn = conn;
 	this.parentObject = parentObject;
-	this.defaultImportTypeId = defaultImportTypeId;
 	this.opnameKeys = opnameKeys;
 
 	setupOpnameImportDialog();
@@ -68,10 +67,11 @@ public class EditOpnameImportDialog {
     // Setup opname import dialog
     private void setupOpnameImportDialog( ) {
 	// Create modal dialog for editing opname record
+        String title = "Update Opname Import (" + Integer.toString(opnameKeys.size()) + " records)";
 	if ( parentObject instanceof JFrame ) {
-	    dialog = new JDialog( ( JFrame )parentObject, "Opname Import", true );
+	    dialog = new JDialog( ( JFrame )parentObject, title, true );
 	} else if ( parentObject instanceof JDialog ) {
-	    dialog = new JDialog( ( JDialog )parentObject, "Opname Import", true );
+	    dialog = new JDialog( ( JDialog )parentObject, title, true );
 	} else {
 	    logger.severe( "Unexpected parent object class: " +
 			   parentObject.getClass( ).getName( ) );
@@ -110,13 +110,15 @@ public class EditOpnameImportDialog {
 
         // Import datum
         GregorianCalendar calendar = new GregorianCalendar( );
-        Date defaultImportDatumDate = calendar.getTime( );
+        if (defaultImportDatum == null) {
+            defaultImportDatum = calendar.getTime();
+        }
 
         calendar.add( Calendar.YEAR, -50 );
         Date earliestDate = calendar.getTime( );
         calendar.add( Calendar.YEAR, 100 );
         Date latestDate = calendar.getTime( );
-        SpinnerDateModel importDatumSpinnerDatemodel = new SpinnerDateModel(defaultImportDatumDate,
+        SpinnerDateModel importDatumSpinnerDatemodel = new SpinnerDateModel(defaultImportDatum,
                                                                             earliestDate,
                                                                             latestDate,
                                                                             Calendar.DAY_OF_MONTH );
@@ -158,7 +160,7 @@ public class EditOpnameImportDialog {
             }
         };
 
-	JButton editOpnameButton = new JButton( "Update Import" );
+	JButton editOpnameButton = new JButton( "Update (" + Integer.toString(opnameKeys.size()) + " opname records)");
 	editOpnameButton.setActionCommand( "updateOpnameImport" );
 	editOpnameButton.addActionListener( buttonPanelActionListener );
 	buttonPanel.add( editOpnameButton );
@@ -197,14 +199,12 @@ public class EditOpnameImportDialog {
 	updateString = null;
 
         int importTypeId = importTypeComboBox.getSelectedImportTypeId( );
-        // Check if importTypeId changed to a non-zero value
         if ( importTypeId != 0 ) {
-            if (importTypeId != defaultImportTypeId) {
-                addToUpdateString("import_type_id = " + importTypeId);
-            }
+            addToUpdateString("import_type_id = " + importTypeId);
+            defaultImportTypeId = importTypeId;
 
-            Date importDatumDate = (Date)importDatumSpinner.getValue();
-            String importDatumString = dateFormat.format((Date)importDatumSpinner.getValue());
+            defaultImportDatum = (Date)importDatumSpinner.getValue();
+            String importDatumString = dateFormat.format(defaultImportDatum);
             if (importDatumString != null) {
                 if (importDatumString.length() > 0) {
                     addToUpdateString("import_datum = '" + importDatumString + "'");
@@ -212,11 +212,9 @@ public class EditOpnameImportDialog {
             }
         }
         else {
-            // Import type ID is 0: check for change
-            if (0 != defaultImportTypeId) {
-                addToUpdateString("import_type_id = NULL");
-                addToUpdateString("import_datum = NULL");
-            }
+            // Import type ID is 0
+            addToUpdateString("import_type_id = NULL");
+            addToUpdateString("import_datum = NULL");
         }
 
 	// Check if any update is necessary at all
