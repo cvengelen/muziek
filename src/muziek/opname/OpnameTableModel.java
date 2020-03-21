@@ -122,6 +122,7 @@ class OpnameTableModel extends AbstractTableModel {
     private final ArrayList<OpnameRecord> opnameRecordList = new ArrayList<>( 1000 );
 
     private int mediumId = 0;
+    private int mediumTypeId = 0;
     private int mediumStatusId = 0;
     private int importTypeId = 0;
     private String opusFilterString;
@@ -143,13 +144,14 @@ class OpnameTableModel extends AbstractTableModel {
 	this.connection = connection;
         this.parentFrame = parentFrame;
 
-	setupOpnameTableModel( mediumId, mediumStatusId, importTypeId, opusFilterString,
+	setupOpnameTableModel( mediumId, mediumTypeId, mediumStatusId, importTypeId, opusFilterString,
 			       componistenPersoonId, componistenId, genreId, typeId,
 			       persoonAllMusiciId, musiciId, musiciEnsembleId,
 			       opnameDatumId, opnamePlaatsId, producersId );
     }
 
     void setupOpnameTableModel( int    mediumId,
+                                int    mediumTypeId,
                                 int    mediumStatusId,
                                 int    importTypeId,
                                 String opusFilterString,
@@ -164,7 +166,8 @@ class OpnameTableModel extends AbstractTableModel {
                                 int    opnamePlaatsId,
                                 int    producersId ) {
 	this.mediumId = mediumId;
-	this.mediumStatusId = mediumStatusId;
+        this.mediumTypeId = mediumTypeId;
+        this.mediumStatusId = mediumStatusId;
 	this.importTypeId = importTypeId;
 	this.opusFilterString = opusFilterString;
 	this.componistenId = componistenId;
@@ -205,6 +208,7 @@ class OpnameTableModel extends AbstractTableModel {
 		"LEFT JOIN producers ON producers.producers_id = opname.producers_id ";
 
 	    if ( ( mediumId != 0 ) ||
+                 ( mediumTypeId != 0 ) ||
                  ( mediumStatusId != 0 ) ||
                  ( importTypeId != 0 ) ||
 		 ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
@@ -222,7 +226,8 @@ class OpnameTableModel extends AbstractTableModel {
 
 		if ( mediumId != 0 ) {
 		    opnameQueryString += "medium.medium_id = " + mediumId + " ";
-		    if ( ( mediumStatusId != 0 ) ||
+		    if ( ( mediumTypeId != 0 ) ||
+                         ( mediumStatusId != 0 ) ||
                          ( importTypeId != 0 ) ||
 		         ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
 			 ( componistenPersoonId != 0 ) ||
@@ -239,9 +244,10 @@ class OpnameTableModel extends AbstractTableModel {
 		    }
 		}
 
-		if ( mediumStatusId != 0 ) {
-		    opnameQueryString += "medium.medium_status_id = " + mediumStatusId + " ";
-		    if ( ( importTypeId != 0 ) ||
+		if ( mediumTypeId != 0 ) {
+		    opnameQueryString += "medium.medium_type_id = " + mediumTypeId + " ";
+		    if ( ( mediumStatusId != 0 ) ||
+		         ( importTypeId != 0 ) ||
                          ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
 			 ( componistenPersoonId != 0 ) ||
 			 ( componistenId != 0 ) ||
@@ -256,6 +262,24 @@ class OpnameTableModel extends AbstractTableModel {
 			opnameQueryString += "AND ";
 		    }
 		}
+
+                if ( mediumStatusId != 0 ) {
+                    opnameQueryString += "medium.medium_status_id = " + mediumStatusId + " ";
+                    if ( ( importTypeId != 0 ) ||
+                            ( ( opusFilterString != null ) && ( opusFilterString.length( ) > 0 ) ) ||
+                            ( componistenPersoonId != 0 ) ||
+                            ( componistenId != 0 ) ||
+                            ( genreId != 0 ) ||
+                            ( typeId != 0 ) ||
+                            ( persoonAllMusiciId != 0 ) ||
+                            ( musiciId != 0 ) ||
+                            ( musiciEnsembleId != 0 ) ||
+                            ( opnameDatumId != 0 ) ||
+                            ( opnamePlaatsId != 0 ) ||
+                            ( producersId != 0 ) ) {
+                        opnameQueryString += "AND ";
+                    }
+                }
 
                 if ( importTypeId != 0 ) {
                     opnameQueryString += "opname.import_type_id = " + importTypeId + " ";
