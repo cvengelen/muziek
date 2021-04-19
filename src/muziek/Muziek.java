@@ -22,9 +22,8 @@ import java.util.logging.Logger;
 public class Muziek extends JFrame implements ActionListener {
     private final static Logger logger = Logger.getLogger( muziek.Main.class.getCanonicalName() );
 
-    private JDesktopPane desktopPane;
+    private final JDesktopPane desktopPane;
     private Connection connection;
-    private String password;
 
     private int openFrameCount = 0;
     private static final int xOffset = 30, yOffset = 30;
@@ -46,7 +45,7 @@ public class Muziek extends JFrame implements ActionListener {
 
         try {
             // Load the MySQL JDBC driver
-            Class.forName( "com.mysql.jdbc.Driver" );
+            Class.forName( "com.mysql.cj.jdbc.Driver" );
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage() );
             System.exit( 1 );
@@ -55,7 +54,7 @@ public class Muziek extends JFrame implements ActionListener {
         try {
             // Get the password for the muziek account, which gives access to schema muziek.
             final muziek.gui.PasswordPanel passwordPanel = new muziek.gui.PasswordPanel();
-            password = passwordPanel.getPassword();
+            final String password = passwordPanel.getPassword();
             if (password == null) {
                 logger.info("No password");
                 System.err.println("Geen password gegeven");
@@ -239,7 +238,7 @@ public class Muziek extends JFrame implements ActionListener {
             openFrameCount++;
         } catch ( java.beans.PropertyVetoException propertyVetoException ) {
             JOptionPane.showMessageDialog( this, propertyVetoException.getMessage( ),
-                    "The internal frame could not be dusplayed",
+                    "The internal frame could not be displayed",
                     JOptionPane.ERROR_MESSAGE);
             logger.severe( propertyVetoException.getMessage() );
         }
