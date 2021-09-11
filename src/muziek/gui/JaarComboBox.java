@@ -11,7 +11,7 @@ public class JaarComboBox extends JComboBox {
 	// Add empty item for when jaar is not applicable
 	addItem( "" );
 
-	for ( int year = 1900; year <= 2020; year++ ) {
+	for ( int year = 1900; year <= 2030; year++ ) {
 	    // Add the jaarString to the combo box
 	    addItem( String.valueOf( year ) );
 
